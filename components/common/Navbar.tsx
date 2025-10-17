@@ -1,5 +1,6 @@
-// components/Navbar.tsx
+// components/common/Navbar.tsx
 import Link from "next/link";
+import Button from "@/components/common/Button";
 
 export default function Navbar() {
   return (
@@ -15,12 +16,8 @@ export default function Navbar() {
           <Link href="/#trust">Trust & Safety</Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/signin" className="btn btn-ghost h-9 px-4">
-            Sign in
-          </Link>
-          <Link href="/apply" className="btn btn-primary h-9 px-4">
-            Start mentoring
-          </Link>
+          <Button href="/signin" variant="ghost" size="sm">Sign in</Button>
+          <Button href="/apply" size="sm">Start mentoring</Button>
         </div>
       </div>
     </header>

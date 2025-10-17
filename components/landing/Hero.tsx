@@ -1,5 +1,5 @@
-// components/Hero.tsx
-import Link from "next/link";
+// components/landing/Hero.tsx
+import Button from "@/components/common/Button";
 
 export default function Hero() {
   return (
@@ -15,12 +15,8 @@ export default function Hero() {
             pricing. No fluff, no hidden upsells.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/catalog" className="btn btn-primary">
-              Browse mentors
-            </Link>
-            <Link href="/apply" className="btn btn-ghost">
-              Become a mentor
-            </Link>
+            <Button href="/catalog">Browse mentors</Button>
+            <Button href="/apply" variant="ghost">Become a mentor</Button>
           </div>
           <ul className="mt-6 grid gap-2 text-sm text-white/70">
             <li>• Verified-purchase reviews</li>
@@ -28,8 +24,7 @@ export default function Hero() {
             <li>• Refund & dispute policy that protects you</li>
           </ul>
         </div>
-        <div className="card p-4">
-          {/* simple showcase placeholder */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
           <div className="aspect-[16/10] rounded-xl bg-gradient-to-br from-fuchsia-600/30 via-purple-600/20 to-blue-600/20" />
           <p className="muted mt-3 text-sm">
             Coming soon: live catalog preview and top mentors.
