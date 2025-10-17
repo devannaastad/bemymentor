@@ -4,10 +4,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/components/common/cn";
+import { useSession } from "@/components/auth/SessionProvider";
 
 export default function NavDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const { user } = useSession();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -48,6 +50,13 @@ export default function NavDropdown() {
           role="menu"
           className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-white/10 bg-black/95 p-2 shadow-2xl backdrop-blur"
         >
+          {user && (
+            <div className="mb-2 rounded-lg bg-white/5 px-3 py-2 text-xs text-white/80">
+              Signed in as <span className="font-medium text-white">{user.name}</span>
+              <div className="truncate text-white/60">{user.email}</div>
+            </div>
+          )}
+
           <MenuLink href="/" label="Home" />
           <MenuLink href="/catalog" label="Browse Catalog" />
           <MenuLink href="/saved" label="Saved Mentors" />
@@ -64,9 +73,12 @@ export default function NavDropdown() {
           <Divider />
 
           <MenuLink href="/settings" label="Settings" />
-          {/* Auth stubs — wire to real auth later */}
-          <MenuLink href="/login" label="Sign in" />
-          <MenuLink href="/logout" label="Sign out" />
+
+          {!user ? (
+            <MenuLink href="/login" label="Sign in" />
+          ) : (
+            <MenuLink href="/logout" label="Sign out" />
+          )}
         </div>
       )}
     </div>

@@ -1,31 +1,25 @@
-import type { Metadata, Viewport } from "next";
+// app/layout.tsx
+import type { ReactNode } from "react";
 import "./globals.css";
-import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
+import Navbar from "@/components/layout/Navbar";
+import SessionProvider from "@/components/auth/SessionProvider";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: "BeMyMentor — Find verified mentors. Learn faster.",
-  description:
-    "A vetted, review-driven marketplace that connects learners with mentors for skills, strategies, and coaching.",
-  openGraph: { title: "BeMyMentor — Find verified mentors. Learn faster.", description: "A vetted, review-driven marketplace that connects learners with mentors for skills, strategies, and coaching.", type: "website", url: "/" },
-  twitter: { card: "summary_large_image", title: "BeMyMentor — Find verified mentors. Learn faster.", description: "A vetted, review-driven marketplace that connects learners with mentors." },
-  icons: { icon: "/favicon.ico" },
+export const metadata = {
+  title: "BeMyMentor",
+  description: "Connect mentors and learners.",
 };
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#000000",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="bg-black text-white">
-      <body className="min-h-screen antialiased">
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+    <html lang="en">
+      <body className="bg-black text-white antialiased">
+        <SessionProvider>
+          <Navbar />
+          <main className="min-h-screen pb-safe-bottom">{children}</main>
+          <footer className="border-t border-white/10 py-8 text-center text-sm text-white/60">
+            © {new Date().getFullYear()} BeMyMentor
+          </footer>
+        </SessionProvider>
       </body>
     </html>
   );
