@@ -1,60 +1,122 @@
 // app/catalog/page.tsx
-import SectionHeader from "@/components/common/SectionHeader";
+import { headers } from "next/headers";
 import { Card, CardContent } from "@/components/common/Card";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
+import Select from "@/components/common/Select";
+import MentorCard from "@/components/catalog/MentorCard";
+import type { Mentor } from "@prisma/client";
 
-const CATEGORIES = ["Trading", "Gaming", "Design", "Fitness", "Languages", "Career"];
+type SP = {
+  q?: string;
+  category?: string;
+  priceMin?: string;
+  priceMax?: string;
+  type?: "ACCESS" | "TIME" | "BOTH";
+};
 
-export default function CatalogPage() {
+type PageProps = {
+  // Next 15 dynamic API: this is a Promise
+  searchParams?: Promise<SP>;
+};
+
+function buildQuery(sp?: SP) {
+  if (!sp) return "";
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(sp)) {
+    if (v) params.set(k, v as string);
+  }
+  const s = params.toString();
+  return s ? `?${s}` : "";
+}
+
+export default async function CatalogPage({ searchParams }: PageProps) {
+  // ✅ await the dynamic API before using
+  const sp = (await searchParams) ?? {};
+  const query = buildQuery(sp);
+
+  // ✅ build absolute base URL from request headers (works locally + Vercel)
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("host") ?? "localhost:3000";
+  const baseUrl = `${proto}://${host}`;
+
+  const res = await fetch(`${baseUrl}/api/mentors${query}`, { next: { revalidate: 60 } });
+  const json = (await res.json()) as { ok: boolean; data: Mentor[] };
+  const mentors = json?.data ?? [];
+
   return (
     <section className="section">
-      <SectionHeader
-        title="Browse mentors"
-        subtitle="Filter by category, price, and rating. (Placeholder—real search & filters coming soon.)"
-      />
+      <div className="container">
+        <h1 className="h1 mb-6">Browse mentors</h1>
 
-      <div className="container mt-8 grid gap-4 md:grid-cols-[240px,1fr]">
-        <aside className="h-fit">
-          <Card>
-            <CardContent className="grid gap-3">
-              <div className="font-medium">Filters</div>
+        <div className="grid gap-4 md:grid-cols-[280px,1fr]">
+          {/* Sidebar: Filters */}
+          <aside className="h-fit">
+            <Card>
+              <CardContent>
+                <form method="GET" className="grid gap-3">
+                  <div className="grid gap-2">
+                    <label className="text-sm text-white/80">Search</label>
+                    <Input name="q" defaultValue={sp.q ?? ""} placeholder="keywords…" />
+                  </div>
 
-              <div>
-                <div className="mb-1 text-white/80">Category</div>
-                <div className="grid gap-2">
-                  {CATEGORIES.map((c) => (
-                    <Button key={c} variant="ghost" size="sm" className="justify-start">
-                      {c}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm text-white/80">Category</label>
+                    <Select name="category" defaultValue={sp.category ?? ""}>
+                      <option value="">All</option>
+                      <option value="trading">Trading</option>
+                      <option value="gaming">Gaming</option>
+                      <option value="design">Design</option>
+                      <option value="fitness">Fitness</option>
+                      <option value="languages">Languages</option>
+                      <option value="career">Career</option>
+                    </Select>
+                  </div>
 
-              <div>
-                <div className="mb-1 text-white/80">Price</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input placeholder="$ min" />
-                  <Input placeholder="$ max" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </aside>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-2">
+                      <label className="text-sm text-white/80">Min $</label>
+                      <Input name="priceMin" defaultValue={sp.priceMin ?? ""} inputMode="decimal" />
+                    </div>
+                    <div className="grid gap-2">
+                      <label className="text-sm text-white/80">Max $</label>
+                      <Input name="priceMax" defaultValue={sp.priceMax ?? ""} inputMode="decimal" />
+                    </div>
+                  </div>
 
-        <main className="grid gap-4">
-          {[1, 2, 3, 4, 5, 6].map((id) => (
-            <Card key={id}>
-              <CardContent className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Mentor #{id}</h3>
-                  <p className="muted text-sm">Category • Short tagline about expertise</p>
-                </div>
-                <Button href="#">View</Button>
+                  <div className="grid gap-2">
+                    <label className="text-sm text-white/80">Offer type</label>
+                    <Select name="type" defaultValue={sp.type ?? ""}>
+                      <option value="">Any</option>
+                      <option value="ACCESS">ACCESS</option>
+                      <option value="TIME">TIME</option>
+                      <option value="BOTH">BOTH</option>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button type="submit">Apply</Button>
+                    <Button href="/catalog" variant="ghost">Reset</Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
-          ))}
-        </main>
+          </aside>
+
+          {/* Results */}
+          <main className="grid gap-4">
+            {mentors.length === 0 ? (
+              <Card>
+                <CardContent>
+                  <p className="muted">No mentors found. Try clearing filters.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              mentors.map((m) => <MentorCard key={m.id} m={m} />)
+            )}
+          </main>
+        </div>
       </div>
     </section>
   );

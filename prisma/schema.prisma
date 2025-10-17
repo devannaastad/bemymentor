@@ -1,0 +1,39 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum MentorCategory {
+  trading
+  gaming
+  design
+  fitness
+  languages
+  career
+}
+
+enum OfferType {
+  ACCESS
+  TIME
+  BOTH
+}
+
+model Mentor {
+  id          String   @id @default(cuid())
+  name        String
+  category    MentorCategory
+  tagline     String
+  rating      Float
+  reviews     Int
+  offerType   OfferType
+  accessPrice Int?
+  hourlyRate  Int?
+  badges      Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
