@@ -7,6 +7,7 @@ import Button from "@/components/common/Button";
 import Select from "@/components/common/Select";
 import MentorCard from "@/components/catalog/MentorCard";
 import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
+import Badge from "@/components/common/Badge";
 import type { Mentor } from "@prisma/client";
 
 export const revalidate = 60;
@@ -53,16 +54,42 @@ async function CatalogResults({ url }: { url: string }) {
     );
   }
 
-  return <>{mentors.map((m) => <MentorCard key={m.id} m={m} />)}</>;
+  return (
+    <div className="grid gap-4">
+      {mentors.map((m) => (
+        <MentorCard key={m.id} m={m} />
+      ))}
+    </div>
+  );
 }
 
 function CatalogFallback() {
   return (
-    <>
+    <div className="grid gap-4">
       {Array.from({ length: 9 }).map((_, i) => (
         <MentorCardShimmer key={i} />
       ))}
-    </>
+    </div>
+  );
+}
+
+function ActiveFilters({ sp }: { sp: SP }) {
+  const hasFilters = sp.q || sp.category || sp.priceMin || sp.priceMax || sp.type;
+  
+  if (!hasFilters) return null;
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <span className="text-sm text-white/60">Active filters:</span>
+      {sp.q && <Badge variant="outline">Search: {sp.q}</Badge>}
+      {sp.category && <Badge variant="outline">Category: {sp.category}</Badge>}
+      {sp.priceMin && <Badge variant="outline">Min: ${sp.priceMin}</Badge>}
+      {sp.priceMax && <Badge variant="outline">Max: ${sp.priceMax}</Badge>}
+      {sp.type && <Badge variant="outline">Type: {sp.type}</Badge>}
+      <Button href="/catalog" variant="ghost" size="sm">
+        Clear all
+      </Button>
+    </div>
   );
 }
 
@@ -89,13 +116,22 @@ export default async function CatalogPage({ searchParams }: PageProps) {
               <CardContent>
                 <form method="GET" className="grid gap-3">
                   <div className="grid gap-2">
-                    <label className="text-sm text-white/80">Search</label>
-                    <Input name="q" defaultValue={sp.q ?? ""} placeholder="keywords…" />
+                    <label htmlFor="search" className="text-sm text-white/80">
+                      Search
+                    </label>
+                    <Input 
+                      id="search"
+                      name="q" 
+                      defaultValue={sp.q ?? ""} 
+                      placeholder="Valorant, trading, design…" 
+                    />
                   </div>
 
                   <div className="grid gap-2">
-                    <label className="text-sm text-white/80">Category</label>
-                    <Select name="category" defaultValue={sp.category ?? ""}>
+                    <label htmlFor="category" className="text-sm text-white/80">
+                      Category
+                    </label>
+                    <Select id="category" name="category" defaultValue={sp.category ?? ""}>
                       <option value="">All</option>
                       <option value="trading">Trading</option>
                       <option value="gaming">Gaming</option>
@@ -108,18 +144,38 @@ export default async function CatalogPage({ searchParams }: PageProps) {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="grid gap-2">
-                      <label className="text-sm text-white/80">Min $</label>
-                      <Input name="priceMin" defaultValue={sp.priceMin ?? ""} inputMode="decimal" />
+                      <label htmlFor="priceMin" className="text-sm text-white/80">
+                        Min $
+                      </label>
+                      <Input 
+                        id="priceMin"
+                        name="priceMin" 
+                        defaultValue={sp.priceMin ?? ""} 
+                        placeholder="0"
+                        type="number"
+                        min="0"
+                      />
                     </div>
                     <div className="grid gap-2">
-                      <label className="text-sm text-white/80">Max $</label>
-                      <Input name="priceMax" defaultValue={sp.priceMax ?? ""} inputMode="decimal" />
+                      <label htmlFor="priceMax" className="text-sm text-white/80">
+                        Max $
+                      </label>
+                      <Input 
+                        id="priceMax"
+                        name="priceMax" 
+                        defaultValue={sp.priceMax ?? ""} 
+                        placeholder="1000"
+                        type="number"
+                        min="0"
+                      />
                     </div>
                   </div>
 
                   <div className="grid gap-2">
-                    <label className="text-sm text-white/80">Offer type</label>
-                    <Select name="type" defaultValue={sp.type ?? ""}>
+                    <label htmlFor="type" className="text-sm text-white/80">
+                      Offer type
+                    </label>
+                    <Select id="type" name="type" defaultValue={sp.type ?? ""}>
                       <option value="">Any</option>
                       <option value="ACCESS">ACCESS</option>
                       <option value="TIME">TIME</option>
@@ -128,8 +184,12 @@ export default async function CatalogPage({ searchParams }: PageProps) {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button type="submit">Apply</Button>
-                    <Button href="/catalog" variant="ghost">Reset</Button>
+                    <Button type="submit" className="flex-1">
+                      Apply
+                    </Button>
+                    <Button href="/catalog" variant="ghost">
+                      Reset
+                    </Button>
                   </div>
                 </form>
               </CardContent>
@@ -137,7 +197,8 @@ export default async function CatalogPage({ searchParams }: PageProps) {
           </aside>
 
           {/* Results */}
-          <main className="grid gap-4">
+          <main>
+            <ActiveFilters sp={sp} />
             <Suspense fallback={<CatalogFallback />}>
               <CatalogResults url={apiUrl} />
             </Suspense>

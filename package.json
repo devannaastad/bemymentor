@@ -8,7 +8,13 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "db:seed": "ts-node --compiler-options '{\"module\":\"commonjs\"}' prisma/seed.ts"
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset && tsx prisma/seed.ts",
+    "db:setup": "prisma generate && prisma db push && tsx prisma/seed.ts"
   },
   "dependencies": {
     "@auth/core": "0.41.0",
@@ -41,7 +47,7 @@
     "prettier": "^3.6.2",
     "prisma": "6.17.1",
     "tailwindcss": "4.1.14",
-    "ts-node": "10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "5.9.3"
   }
 }
