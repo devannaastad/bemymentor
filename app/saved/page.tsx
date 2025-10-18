@@ -1,18 +1,18 @@
 // app/saved/page.tsx
-import { cache, Suspense } from "react";
+import { Suspense } from "react";
 import { headers } from "next/headers";
 import MentorCard from "@/components/catalog/MentorCard";
 import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
 import type { Mentor } from "@prisma/client";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic"; // per-user page; do not prerender
 
-const fetchSaved = cache(async (absoluteUrl: string) => {
-  const res = await fetch(absoluteUrl, { next: { revalidate: 30 } });
+async function fetchSaved(absoluteUrl: string) {
+  const res = await fetch(absoluteUrl, { cache: "no-store" });
   if (!res.ok) return [] as Mentor[];
   const json = (await res.json()) as { ok: boolean; data: Mentor[] };
   return json?.data ?? [];
-});
+}
 
 async function SavedResults({ url }: { url: string }) {
   const mentors = await fetchSaved(url);
