@@ -43,18 +43,18 @@ export default function Navbar() {
           <span className="hidden text-sm font-semibold sm:inline">BeMyMentor</span>
         </Link>
 
-        {/* Center: Primary nav (uses prefetch-on-hover links) */}
+        {/* Center: Primary nav */}
         <div className="hidden items-center gap-6 text-sm md:flex">
-          <TopLink as={PrefetchLink} href="/catalog" active={pathname === "/catalog"}>
+          <TopLink href="/catalog" active={pathname === "/catalog"}>
             Catalog
           </TopLink>
-          <TopLink as={PrefetchLink} href="/apply" active={pathname === "/apply"}>
+          <TopLink href="/apply" active={pathname === "/apply"}>
             Apply
           </TopLink>
-          <TopLink as={PrefetchLink} href="/saved" active={pathname === "/saved"}>
+          <TopLink href="/saved" active={pathname === "/saved"}>
             Saved
           </TopLink>
-          <TopLink as={PrefetchLink} href="/settings" active={pathname === "/settings"}>
+          <TopLink href="/settings" active={pathname === "/settings"}>
             Settings
           </TopLink>
         </div>
@@ -110,10 +110,7 @@ export default function Navbar() {
         <h3 className="text-base font-semibold text-white">Sign out?</h3>
         <p className="mt-1 text-sm text-neutral-300">You can always sign back in later.</p>
         <div className="mt-4 flex justify-end gap-2">
-          <Button
-            onClick={() => setShowSignOutConfirm(false)}
-            variant="secondary"
-          >
+          <Button onClick={() => setShowSignOutConfirm(false)} variant="secondary">
             Cancel
           </Button>
           <Button
@@ -135,15 +132,13 @@ function TopLink({
   href,
   active,
   children,
-  as: Comp = Link,
 }: {
   href: string;
   active?: boolean;
   children: React.ReactNode;
-  as?: any; // allows PrefetchLink to be injected
 }) {
   return (
-    <Comp
+    <PrefetchLink
       href={href}
       className={`relative text-sm transition ${
         active ? "text-white" : "text-neutral-300 hover:text-neutral-100"
@@ -153,6 +148,6 @@ function TopLink({
       {active && (
         <span className="absolute -bottom-2 left-0 right-0 mx-auto h-0.5 w-6 rounded-full bg-white/60" />
       )}
-    </Comp>
+    </PrefetchLink>
   );
 }

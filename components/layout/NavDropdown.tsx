@@ -1,3 +1,4 @@
+// components/layout/NavDropdown.tsx
 "use client";
 
 import Link from "next/link";
@@ -10,12 +11,20 @@ export type NavItem = {
   danger?: boolean;
 };
 
+type TriggerElementProps = {
+  onClick?: (e: React.MouseEvent) => void;
+  "aria-haspopup"?: "menu";
+  "aria-expanded"?: boolean;
+};
+
+type TriggerElement = React.ReactElement<TriggerElementProps>;
+
 export default function NavDropdown({
   trigger,
   items,
   signedInAs,
 }: {
-  trigger: React.ReactNode;
+  trigger: TriggerElement | React.ReactNode;
   items: NavItem[];
   signedInAs?: string;
 }) {
@@ -23,13 +32,12 @@ export default function NavDropdown({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const Trigger = React.isValidElement(trigger)
-    ? React.cloneElement(trigger as React.ReactElement<any>, {
+  const Trigger: React.ReactNode = React.isValidElement(trigger)
+    ? React.cloneElement(trigger as TriggerElement, {
         onClick: (e: React.MouseEvent) => {
-          if (typeof (trigger as any).props?.onClick === "function") {
-            (trigger as any).props.onClick(e);
-          }
-          setOpen((v: boolean) => !v);
+          const original = (trigger as TriggerElement).props.onClick;
+          if (typeof original === "function") original(e);
+          setOpen((v) => !v);
         },
         "aria-haspopup": "menu",
         "aria-expanded": open,
