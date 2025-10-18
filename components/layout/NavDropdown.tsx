@@ -1,66 +1,125 @@
-// components/layout/NavDropdown.tsx
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useSession, signIn, signOut } from "@/components/auth/SessionProvider";
+import React, { useEffect, useRef, useState } from "react";
 
-export default function NavDropdown() {
-  const { data: session, status } = useSession();
-  const user = session?.user;
+export type NavItem = {
+  label: string;
+  href?: string;
+  onSelect?: () => void;
+  danger?: boolean;
+};
+
+export default function NavDropdown({
+  trigger,
+  items,
+  signedInAs,
+}: {
+  trigger: React.ReactNode;
+  items: NavItem[];
+  signedInAs?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const Trigger = React.isValidElement(trigger)
+    ? React.cloneElement(trigger as React.ReactElement<any>, {
+        onClick: (e: React.MouseEvent) => {
+          if (typeof (trigger as any).props?.onClick === "function") {
+            (trigger as any).props.onClick(e);
+          }
+          setOpen((v: boolean) => !v);
+        },
+        "aria-haspopup": "menu",
+        "aria-expanded": open,
+      })
+    : (
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={() => setOpen((v) => !v)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") setOpen((v) => !v);
+            if (e.key === "Escape") setOpen(false);
+          }}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          className="inline-flex cursor-pointer items-center"
+        >
+          {trigger}
+        </span>
+      );
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!open) return;
+      const target = e.target as Node;
+      if (containerRef.current && !containerRef.current.contains(target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
-    <div className="relative">
-      {status === "authenticated" && user ? (
-        <div className="flex items-center gap-3">
-          {user.image ? (
-            <Image
-              src={user.image}
-              alt={user.name ?? "User"}
-              width={28}
-              height={28}
-              className="rounded-full"
-            />
-          ) : (
-            <div className="size-7 rounded-full bg-white/10" />
-          )}
-          <div className="text-sm">
-            <div className="font-medium">{user.name ?? "Account"}</div>
-            <div className="text-white/60">{user.email}</div>
-          </div>
-          <div className="ml-4 flex items-center gap-3">
-            <Link
-              href="/settings"
-              className="rounded-md px-3 py-1.5 text-sm ring-1 ring-white/15 hover:bg-white/10"
-            >
-              Settings
-            </Link>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="rounded-md px-3 py-1.5 text-sm ring-1 ring-white/15 hover:bg-white/10"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      ) : status === "loading" ? (
-        <div className="text-sm text-white/60">Loading…</div>
-      ) : (
-        // OPTION A: Link to /signin
-        <Link
-          href="/signin"
-          className="rounded-md px-3 py-1.5 text-sm ring-1 ring-white/15 hover:bg-white/10"
+    <div ref={containerRef} className="relative">
+      {Trigger}
+      {open && (
+        <div
+          ref={menuRef}
+          role="menu"
+          aria-label="Account menu"
+          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-neutral-900/95 shadow-xl backdrop-blur"
         >
-          Sign in
-        </Link>
+          {signedInAs && (
+            <>
+              <div className="px-3 py-2">
+                <p className="truncate text-xs text-neutral-400">Signed in as</p>
+                <p className="truncate text-sm font-medium text-neutral-100">{signedInAs}</p>
+              </div>
+              <div className="my-1 h-px bg-white/10" />
+            </>
+          )}
 
-        // OPTION B (alternate): use the configured sign-in page
-        // <button
-        //   onClick={() => signIn()} // no provider -> routes to pages.signIn (/signin)
-        //   className="rounded-md px-3 py-1.5 text-sm ring-1 ring-white/15 hover:bg-white/10"
-        // >
-        //   Sign in
-        // </button>
+          <ul className="py-1 text-sm text-neutral-200">
+            {items.map((item) => {
+              const base =
+                "block w-full text-left px-3 py-2 hover:bg-white/5 focus:bg-white/5 focus:outline-none";
+              if (item.href) {
+                return (
+                  <li key={item.label}>
+                    <Link href={item.href} onClick={() => setOpen(false)} className={base} role="menuitem">
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              }
+              return (
+                <li key={item.label}>
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      item.onSelect?.();
+                    }}
+                    className={`${base} ${item.danger ? "text-red-300 hover:bg-red-500/10" : ""}`}
+                    role="menuitem"
+                    type="button"
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
     </div>
   );

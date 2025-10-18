@@ -16,13 +16,17 @@
     "@hookform/resolvers": "5.2.2",
     "@prisma/client": "6.17.1",
     "@react-email/render": "^1.4.0",
+    "@uploadthing/react": "^7.3.3",
+    "@vercel/blob": "^2.0.0",
     "next": "15.5.5",
     "next-auth": "5.0.0-beta.29",
+    "nextjs-toploader": "^3.9.17",
     "nodemailer": "^7.0.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "7.65.0",
     "resend": "^6.2.0",
+    "uploadthing": "^7.7.4",
     "zod": "4.1.12"
   },
   "devDependencies": {

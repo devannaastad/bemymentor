@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import SessionProvider from "@/components/auth/SessionProvider";
+import NextTopLoader from "nextjs-toploader";
 
 export const metadata: Metadata = {
   title: "BeMyMentor",
@@ -14,6 +15,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-black text-white antialiased">
+        {/* Page transition loader */}
+        <NextTopLoader showSpinner={false} color="#a3a3a3" height={2} />
+
+        {/* Auth session context (wrap once only) */}
         <SessionProvider>
           <Navbar />
           <main className="min-h-screen pb-safe-bottom">{children}</main>

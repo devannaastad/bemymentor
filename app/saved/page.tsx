@@ -1,89 +1,54 @@
 // app/saved/page.tsx
+import { cache, Suspense } from "react";
 import { headers } from "next/headers";
-import { auth } from "@/auth";
-import { db } from "@/lib/db";
 import MentorCard from "@/components/catalog/MentorCard";
-import { Card, CardContent } from "@/components/common/Card";
-import SavedLoader from "@/components/catalog/SavedLoader";
+import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
 import type { Mentor } from "@prisma/client";
 
-type SP = { ids?: string };
+export const revalidate = 30;
 
-export default async function SavedPage({
-  searchParams,
-}: {
-  searchParams?: Promise<SP>;
-}) {
-  const session = await auth();
+const fetchSaved = cache(async (absoluteUrl: string) => {
+  const res = await fetch(absoluteUrl, { next: { revalidate: 30 } });
+  if (!res.ok) return [] as Mentor[];
+  const json = (await res.json()) as { ok: boolean; data: Mentor[] };
+  return json?.data ?? [];
+});
 
-  let mentors: Mentor[] = [];
-
-  if (session?.user?.email) {
-    // Server-side: pull saved mentors from DB for signed-in users
-    const user = await db.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-    if (user) {
-      const rows = await db.savedMentor.findMany({
-        where: { userId: user.id },
-        include: { mentor: true },
-        orderBy: { createdAt: "desc" },
-      });
-      mentors = rows.map((row: { mentor: Mentor }) => row.mentor);
-    }
-  } else {
-    // Anonymous fallback: support ?ids=a,b,c (localStorage -> query via SavedLoader)
-    const sp = (await searchParams) ?? {};
-    const idsParam = (sp.ids ?? "").trim();
-    if (idsParam) {
-      const h = await headers();
-      const proto = h.get("x-forwarded-proto") ?? "http";
-      const host = h.get("host") ?? "localhost:3000";
-      const baseUrl = `${proto}://${host}`;
-      const res = await fetch(`${baseUrl}/api/mentors?ids=${encodeURIComponent(idsParam)}`, {
-        next: { revalidate: 60 },
-      });
-      const json = (await res.json()) as { ok: boolean; data: Mentor[] };
-      mentors = json?.data ?? [];
-    }
+async function SavedResults({ url }: { url: string }) {
+  const mentors = await fetchSaved(url);
+  if (mentors.length === 0) {
+    return <p className="muted">No saved mentors yet.</p>;
   }
+  return <>{mentors.map((m) => <MentorCard key={m.id} m={m} />)}</>;
+}
 
-  const hasAny = mentors.length > 0;
+function SavedFallback() {
+  return (
+    <>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <MentorCardShimmer key={i} />
+      ))}
+    </>
+  );
+}
+
+export default async function SavedPage() {
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("host") ?? "localhost:3000";
+  const baseUrl = `${proto}://${host}`;
+  const apiUrl = `${baseUrl}/api/saved`;
 
   return (
     <section className="section">
-      <SavedLoader />
       <div className="container">
         <h1 className="h1 mb-6">Saved mentors</h1>
 
-        {!hasAny && (
-          <Card>
-            <CardContent>
-              <p className="muted">
-                {session?.user ? (
-                  "You haven't saved any mentors yet."
-                ) : (
-                  <>
-                    You haven’t saved any mentors yet. Browse the{" "}
-                    <a href="/catalog" className="underline underline-offset-4">
-                      catalog
-                    </a>{" "}
-                    and tap “Save” on mentors you like.
-                  </>
-                )}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {hasAny && (
-          <div className="grid gap-4">
-            {mentors.map((m) => (
-              <MentorCard key={m.id} m={m} />
-            ))}
-          </div>
-        )}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Suspense fallback={<SavedFallback />}>
+            <SavedResults url={apiUrl} />
+          </Suspense>
+        </div>
       </div>
     </section>
   );

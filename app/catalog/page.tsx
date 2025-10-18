@@ -1,11 +1,15 @@
 // app/catalog/page.tsx
+import { cache, Suspense } from "react";
 import { headers } from "next/headers";
 import { Card, CardContent } from "@/components/common/Card";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
 import Select from "@/components/common/Select";
 import MentorCard from "@/components/catalog/MentorCard";
+import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
 import type { Mentor } from "@prisma/client";
+
+export const revalidate = 60;
 
 type SP = {
   q?: string;
@@ -16,7 +20,6 @@ type SP = {
 };
 
 type PageProps = {
-  // Next 15 dynamic API: this is a Promise
   searchParams?: Promise<SP>;
 };
 
@@ -30,20 +33,49 @@ function buildQuery(sp?: SP) {
   return s ? `?${s}` : "";
 }
 
+const fetchMentors = cache(async (absoluteUrl: string) => {
+  const res = await fetch(absoluteUrl, { next: { revalidate: 60 } });
+  if (!res.ok) return [] as Mentor[];
+  const json = (await res.json()) as { ok: boolean; data: Mentor[] };
+  return json?.data ?? [];
+});
+
+async function CatalogResults({ url }: { url: string }) {
+  const mentors = await fetchMentors(url);
+
+  if (mentors.length === 0) {
+    return (
+      <Card>
+        <CardContent>
+          <p className="muted">No mentors found. Try clearing filters.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return <>{mentors.map((m) => <MentorCard key={m.id} m={m} />)}</>;
+}
+
+function CatalogFallback() {
+  return (
+    <>
+      {Array.from({ length: 9 }).map((_, i) => (
+        <MentorCardShimmer key={i} />
+      ))}
+    </>
+  );
+}
+
 export default async function CatalogPage({ searchParams }: PageProps) {
-  // ✅ await the dynamic API before using
   const sp = (await searchParams) ?? {};
   const query = buildQuery(sp);
 
-  // ✅ build absolute base URL from request headers (works locally + Vercel)
   const h = await headers();
   const proto = h.get("x-forwarded-proto") ?? "http";
   const host = h.get("host") ?? "localhost:3000";
   const baseUrl = `${proto}://${host}`;
 
-  const res = await fetch(`${baseUrl}/api/mentors${query}`, { next: { revalidate: 60 } });
-  const json = (await res.json()) as { ok: boolean; data: Mentor[] };
-  const mentors = json?.data ?? [];
+  const apiUrl = `${baseUrl}/api/mentors${query}`;
 
   return (
     <section className="section">
@@ -106,15 +138,9 @@ export default async function CatalogPage({ searchParams }: PageProps) {
 
           {/* Results */}
           <main className="grid gap-4">
-            {mentors.length === 0 ? (
-              <Card>
-                <CardContent>
-                  <p className="muted">No mentors found. Try clearing filters.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              mentors.map((m) => <MentorCard key={m.id} m={m} />)
-            )}
+            <Suspense fallback={<CatalogFallback />}>
+              <CatalogResults url={apiUrl} />
+            </Suspense>
           </main>
         </div>
       </div>

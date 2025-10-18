@@ -1,23 +1,42 @@
 // auth.config.ts
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
-import Resend from "next-auth/providers/resend";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
 
-export default {
-  adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" },
-  trustHost: true,
-  pages: { signIn: "/signin" },
+const config: NextAuthConfig = {
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    Resend({
-      apiKey: process.env.RESEND_API_KEY!, // e.g. re_xxx from Resend
-      from: process.env.EMAIL_FROM!,       // e.g. "BeMyMentor <login@your-domain.com>"
-    }),
   ],
-} satisfies NextAuthConfig;
+  session: { strategy: "jwt" },
+  trustHost: true,
+
+  callbacks: {
+    // Minimal JWT (let NextAuth issue it)
+    async jwt({ token, user }) {
+      // On first sign in, copy name/image from provider
+      if (user) {
+        if (user.name) token.name = user.name;
+        if (user.image) token.picture = user.image as string;
+      }
+      return token;
+    },
+
+    // 🔑 Always read the latest user from the DB (by email)
+    async session({ session }) {
+      if (session.user?.email) {
+        const u = await db.user.findUnique({
+          where: { email: session.user.email },
+          select: { name: true, image: true },
+        });
+        if (u?.name) session.user.name = u.name;
+        if (u?.image) session.user.image = u.image;
+      }
+      return session;
+    },
+  },
+};
+
+export default config;
