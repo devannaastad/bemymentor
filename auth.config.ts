@@ -1,60 +1,42 @@
 // auth.config.ts
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
-import { db } from "@/lib/db";
 
-// Check if Google OAuth is configured
-const hasGoogleCreds = !!(
-  process.env.GOOGLE_CLIENT_ID && 
-  process.env.GOOGLE_CLIENT_SECRET
-);
-
-const config: NextAuthConfig = {
-  providers: hasGoogleCreds ? [
+const authConfig = {
+  providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
-  ] : [],
-  
-  session: { strategy: "jwt" },
-  trustHost: true,
-  
+  ],
   pages: {
     signIn: "/signin",
-    error: "/signin",
   },
-
   callbacks: {
-    async jwt({ token, user, account }) {
-      // On first sign in, copy name/image from provider
-      if (user) {
-        if (user.name) token.name = user.name;
-        if (user.email) token.email = user.email;
-        if (user.image) token.picture = user.image as string;
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      if (isOnDashboard) {
+        if (isLoggedIn) return true;
+        return false;
+      } else if (isLoggedIn) {
+        return true;
       }
-      return token;
+      return true;
     },
-
     async session({ session, token }) {
-      // Always read the latest user from the DB (by email)
-      if (session.user?.email) {
-        try {
-          const u = await db.user.findUnique({
-            where: { email: session.user.email },
-            select: { name: true, image: true },
-          });
-          if (u?.name) session.user.name = u.name;
-          if (u?.image) session.user.image = u.image;
-        } catch (error) {
-          console.error("Session callback DB error:", error);
-          // Continue with token data if DB fails
-        }
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
       }
       return session;
     },
+    async jwt({ token }) {
+      return token;
+    },
   },
-};
+  session: {
+    strategy: "jwt" as const,
+  },
+} satisfies NextAuthConfig;
 
-export default config;
+export default authConfig;

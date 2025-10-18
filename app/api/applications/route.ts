@@ -114,7 +114,7 @@ export async function GET(request: Request) {
 
   try {
     const applications = await db.application.findMany({
-      where: status ? { status: status as any } : undefined,
+      where: status ? { status: status as "PENDING" | "APPROVED" | "REJECTED" } : undefined,
       orderBy: { createdAt: "desc" },
       take: limit,
     });

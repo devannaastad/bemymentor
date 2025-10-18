@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { signIn } from "@/auth";
 import Button from "@/components/common/Button";
-import { Card, CardContent } from "@/components/common/Card";
 
 export const metadata = {
   title: "Sign in • BeMyMentor",

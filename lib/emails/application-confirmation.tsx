@@ -22,7 +22,7 @@ export function ApplicationConfirmationEmail({
         <p>Hi {applicantName},</p>
         
         <p>
-          Thank you for applying to become a mentor on BeMyMentor! We've received your application for:
+          Thank you for applying to become a mentor on BeMyMentor! We&apos;ve received your application for:
         </p>
         
         <div style={{ 
@@ -38,9 +38,9 @@ export function ApplicationConfirmationEmail({
         
         <ol style={{ lineHeight: "1.8" }}>
           <li>Our team will review your application and proof links</li>
-          <li>We'll verify your expertise and check for quality</li>
-          <li>You'll hear back from us within <strong>48 hours</strong></li>
-          <li>If approved, we'll guide you through setting up Stripe payouts</li>
+          <li>We&apos;ll verify your expertise and check for quality</li>
+          <li>You&apos;ll hear back from us within <strong>48 hours</strong></li>
+          <li>If approved, we&apos;ll guide you through setting up Stripe payouts</li>
         </ol>
         
         <p style={{ 

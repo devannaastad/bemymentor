@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { auth } from "@/auth";
 import { isAdmin } from "@/lib/admin";
 import { z } from "zod";
+import type { Application, MentorCategory } from "@prisma/client";
 
 const updateSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
@@ -11,16 +12,11 @@ const updateSchema = z.object({
   reviewedBy: z.string().optional(),
 });
 
-/**
- * Update application status
- * PATCH /api/admin/applications/:id
- */
 export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Check authentication
     const session = await auth();
     const email = session?.user?.email;
     
@@ -45,7 +41,6 @@ export async function PATCH(
       },
     });
 
-    // If approved, create mentor from application
     if (parsed.status === "APPROVED") {
       await createMentorFromApplication(application);
     }
@@ -60,12 +55,8 @@ export async function PATCH(
   }
 }
 
-/**
- * Helper: Convert approved application to mentor
- */
-async function createMentorFromApplication(app: any) {
+async function createMentorFromApplication(app: Application) {
   try {
-    // Check if mentor already exists from this application
     const existing = await db.mentor.findFirst({
       where: {
         name: app.fullName,
@@ -78,7 +69,6 @@ async function createMentorFromApplication(app: any) {
       return;
     }
 
-    // Create new mentor
     const mentor = await db.mentor.create({
       data: {
         name: app.fullName,
@@ -100,10 +90,7 @@ async function createMentorFromApplication(app: any) {
   }
 }
 
-/**
- * Helper: Infer category from topic
- */
-function inferCategory(topic: string): any {
+function inferCategory(topic: string): MentorCategory {
   const lower = topic.toLowerCase();
   
   if (lower.includes("trading") || lower.includes("stocks") || lower.includes("crypto")) {

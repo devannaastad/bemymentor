@@ -1,4 +1,4 @@
-// components/catalog/MentorCard.tsx//
+// components/catalog/MentorCard.tsx
 "use client";
 
 import Link from "next/link";
@@ -10,7 +10,7 @@ import type { Mentor } from "@prisma/client";
 import { useSaved } from "./useSaved";
 
 export default function MentorCard({ m }: { m: Mentor }) {
-  const { isSaved, toggle } = useSaved();
+  const { isSaved, toggle, loading } = useSaved();
 
   const saved = isSaved(m.id);
   const badges = Array.isArray(m.badges) ? (m.badges as string[]) : [];
@@ -50,12 +50,13 @@ export default function MentorCard({ m }: { m: Mentor }) {
           <Button href={`/mentors/${m.id}`}>View</Button>
           <Button
             variant={saved ? "primary" : "ghost"}
+            disabled={loading}
             onClick={(e) => {
               e.preventDefault();
               toggle(m.id);
             }}
           >
-            {saved ? "Saved" : "Save"}
+            {saved ? "✓ Saved" : "Save"}
           </Button>
         </div>
       </CardContent>

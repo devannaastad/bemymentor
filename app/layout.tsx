@@ -5,6 +5,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import SessionProvider from "@/components/auth/SessionProvider";
 import NextTopLoader from "nextjs-toploader";
+import ToastContainer from "@/components/common/Toast";
 
 export const metadata: Metadata = {
   title: "BeMyMentor",
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <footer className="border-t border-white/10 py-8 text-center text-sm text-white/60">
             © {new Date().getFullYear()} BeMyMentor
           </footer>
+          <ToastContainer />
         </SessionProvider>
       </body>
     </html>

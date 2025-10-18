@@ -84,7 +84,7 @@ export default function ApplyForm() {
                 <div>
                   <p className="font-medium text-emerald-200">{successMessage}</p>
                   <p className="mt-1 text-sm text-emerald-300/80">
-                    We'll email you at <strong>{watch("email")}</strong> once we've reviewed your application.
+                    We&apos;ll email you at <strong>{watch("email")}</strong> once we&apos;ve reviewed your application.
                   </p>
                 </div>
               </div>
