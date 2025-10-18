@@ -1,5 +1,5 @@
 // app/api/saved/[id]/route.ts
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
@@ -11,29 +11,34 @@ export const runtime = "nodejs";
  * POST /api/saved/:id
  */
 export async function POST(
-  _req: Request,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: mentorId } = await ctx.params;
+
     const session = await auth();
     const email = session?.user?.email;
-    if (!email) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    if (!email) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
+    if (!mentorId) {
+      return NextResponse.json({ ok: false, error: "Missing mentor id" }, { status: 400 });
+    }
 
-    const mentorId = params.id;
-    if (!mentorId) return NextResponse.json({ ok: false, error: "Missing mentor id" }, { status: 400 });
-
-    // Get user id from email (SavedMentor stores userId)
+    // Look up current userId
     const user = await db.user.findUnique({ where: { email }, select: { id: true } });
-    if (!user) return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+    }
 
-    // Upsert avoids duplicates thanks to the composite unique on (userId, mentorId)
+    // Upsert avoids duplicates (composite unique on userId+mentorId)
     await db.savedMentor.upsert({
       where: { userId_mentorId: { userId: user.id, mentorId } },
       update: {},
       create: { userId: user.id, mentorId },
     });
 
-    // Revalidate Saved page so UI updates instantly
     revalidatePath("/saved");
 
     return NextResponse.json(
@@ -51,19 +56,25 @@ export async function POST(
  * DELETE /api/saved/:id
  */
 export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: mentorId } = await ctx.params;
+
     const session = await auth();
     const email = session?.user?.email;
-    if (!email) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-
-    const mentorId = params.id;
-    if (!mentorId) return NextResponse.json({ ok: false, error: "Missing mentor id" }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
+    if (!mentorId) {
+      return NextResponse.json({ ok: false, error: "Missing mentor id" }, { status: 400 });
+    }
 
     const user = await db.user.findUnique({ where: { email }, select: { id: true } });
-    if (!user) return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+    }
 
     await db.savedMentor.deleteMany({
       where: { userId: user.id, mentorId },

@@ -5,18 +5,17 @@ import { db } from "@/lib/db";
 import type { Mentor } from "@prisma/client";
 
 export const runtime = "nodejs";
-export const revalidate = 30;
+export const dynamic = "force-dynamic"; // 🔧 never prerender this API
 
 export async function GET() {
   try {
     const session = await auth();
     const email = session?.user?.email;
-
     if (!email) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get saved mentor IDs for this user using a relational filter on email
+    // Single indexed lookup for saved mentor IDs
     const saved = await db.savedMentor.findMany({
       where: { user: { email } },
       select: { mentorId: true },
@@ -25,16 +24,13 @@ export async function GET() {
     if (saved.length === 0) {
       return NextResponse.json(
         { ok: true, data: [] as Mentor[] },
-        {
-          status: 200,
-          headers: { "Cache-Control": "public, max-age=15, s-maxage=30, stale-while-revalidate=60" },
-        }
+        { status: 200, headers: { "Cache-Control": "no-store" } }
       );
     }
 
-    const ids: string[] = saved.map((row) => row.mentorId);
+    const ids = saved.map((s) => s.mentorId);
 
-    // Fetch all mentors in a single IN() query
+    // One IN() query for mentors
     const mentors = await db.mentor.findMany({
       where: { id: { in: ids } },
       orderBy: { createdAt: "desc" },
@@ -42,10 +38,7 @@ export async function GET() {
 
     return NextResponse.json(
       { ok: true, data: mentors },
-      {
-        status: 200,
-        headers: { "Cache-Control": "public, max-age=15, s-maxage=30, stale-while-revalidate=60" },
-      }
+      { status: 200, headers: { "Cache-Control": "no-store" } }
     );
   } catch (err) {
     console.error("[api/saved] GET failed:", err);
