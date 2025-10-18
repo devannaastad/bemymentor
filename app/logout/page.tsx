@@ -2,24 +2,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "@/components/auth/SessionProvider";
+import { signOut, useSession } from "@/components/auth/SessionProvider";
 
 export default function LogoutPage() {
-  const { signOut } = useSession();
-  const router = useRouter();
+  const { status } = useSession();
 
   useEffect(() => {
-    signOut();
-    const t = setTimeout(() => router.push("/"), 500);
-    return () => clearTimeout(t);
-  }, [router, signOut]);
+    // Trigger a real sign out, then redirect home
+    signOut({ callbackUrl: "/" });
+  }, []);
 
   return (
-    <section className="section">
-      <div className="container">
-        <p className="muted">Signing you out…</p>
-      </div>
-    </section>
+    <main className="mx-auto max-w-md px-6 py-16">
+      <h1 className="mb-2 text-2xl font-semibold">Signing you out…</h1>
+      <p className="text-sm text-white/60">Current status: {status}</p>
+    </main>
   );
 }

@@ -1,47 +1,62 @@
-// components/common/Button.tsx
-import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
-import { cn } from "./cn";
+//components/common/Button.tsx//
+"use client";
 
-type Variant = "primary" | "ghost" | "outline";
-type Size = "sm" | "md" | "lg";
+import * as React from "react";
 
-const VARIANTS: Record<Variant, string> = {
-  primary: "bg-white text-black hover:bg-white/90",
-  ghost: "bg-white/10 text-white hover:bg-white/20",
-  outline: "border border-white/30 text-white hover:bg-white/10",
-};
-const SIZES: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm rounded-lg",
-  md: "h-10 px-4 rounded-xl",
-  lg: "h-12 px-5 text-base rounded-xl",
+type Variant = "primary" | "ghost";
+type Size = "md" | "lg";
+
+type Common = {
+  className?: string;
+  variant?: Variant;
+  size?: Size;
+  disabled?: boolean;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  children?: React.ReactNode;
 };
 
-type CommonProps = { variant?: Variant; size?: Size; className?: string; children: ReactNode; };
-type AnchorProps = CommonProps & Omit<ComponentProps<typeof Link>, "className" | "href"> & { href: string };
-type NativeButtonProps = CommonProps & React.ButtonHTMLAttributes<HTMLButtonElement> & { href?: never };
+type AnchorProps = Common & React.ComponentPropsWithoutRef<"a"> & { href: string };
+type ButtonProps = Common & React.ComponentPropsWithoutRef<"button"> & { href?: undefined };
 
-export default function Button(props: AnchorProps | NativeButtonProps) {
-  const v: Variant = (props.variant ?? "primary") as Variant;
-  const s: Size = (props.size ?? "md") as Size;
-  const classes = cn(
-    "inline-flex items-center justify-center font-medium transition-colors",
-    VARIANTS[v], SIZES[s], props.className
-  );
+function baseClasses(variant: Variant, size: Size, disabled?: boolean) {
+  const v =
+    variant === "primary"
+      ? "bg-white text-black hover:bg-white/90"
+      : "bg-white/5 text-white hover:bg-white/10";
+  const s = size === "lg" ? "h-11 px-5 text-base" : "h-10 px-4 text-sm";
+  // noticeable press + focus ring
+  const interactivity =
+    "transition-transform duration-75 active:translate-y-[1px] active:scale-[.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60";
+  const state = disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer";
+  const frame = "inline-flex items-center justify-center rounded-xl font-medium";
+  return [frame, v, s, interactivity, state].join(" ");
+}
 
-  if ("href" in props && typeof props.href === "string") {
-    const { href, ...linkProps } = props;
+export default function Button(props: AnchorProps | ButtonProps) {
+  const { variant = "primary", size = "md", className, children, disabled } = props as Common;
+
+  if ("href" in props && props.href) {
+    const { href, ...rest } = props as AnchorProps;
     return (
-      <Link href={href} className={classes} {...(linkProps as Omit<AnchorProps, "href">)}>
-        {props.children}
-      </Link>
+      <a
+        {...rest}
+        href={href}
+        aria-disabled={disabled}
+        className={[baseClasses(variant, size, disabled), className].filter(Boolean).join(" ")}
+      >
+        {children}
+      </a>
     );
   }
 
-  const buttonProps = props as NativeButtonProps;
+  const btn = props as ButtonProps;
   return (
-    <button className={classes} {...buttonProps}>
-      {props.children}
+    <button
+      {...btn}
+      disabled={disabled}
+      className={[baseClasses(variant, size, disabled), className].filter(Boolean).join(" ")}
+    >
+      {children}
     </button>
   );
 }

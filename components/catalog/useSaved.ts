@@ -1,35 +1,93 @@
 // components/catalog/useSaved.ts
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "@/components/auth/SessionProvider";
 
-const KEY = "bmm_saved_mentors";
+const LS_KEY = "savedMentorIds";
+
+/** Read/write localStorage set */
+function readLocal(): Set<string> {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return new Set();
+    return new Set<string>(JSON.parse(raw));
+  } catch {
+    return new Set();
+  }
+}
+function writeLocal(ids: Set<string>) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify([...ids]));
+  } catch {}
+}
 
 export function useSaved() {
-  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const { status } = useSession();
+  const isAuthed = status === "authenticated";
 
+  const [ids, setIds] = useState<Set<string>>(new Set());
+
+  // Load initial state
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setSaved(new Set(JSON.parse(raw)));
-    } catch {}
-  }, []);
+    let cancelled = false;
 
-  function persist(next: Set<string>) {
-    setSaved(new Set(next));
-    try {
-      localStorage.setItem(KEY, JSON.stringify(Array.from(next)));
-    } catch {}
-  }
+    const load = async () => {
+      if (!isAuthed) {
+        // local only
+        setIds(readLocal());
+        return;
+      }
+      // DB: fetch full mentors then keep just their ids locally
+      const res = await fetch("/api/saved", { cache: "no-store" });
+      if (!res.ok) {
+        setIds(new Set());
+        return;
+      }
+      const json = (await res.json()) as { ok: boolean; data: { id: string }[] };
+      if (cancelled) return;
+      setIds(new Set(json.data.map((m) => m.id)));
+    };
 
-  function toggle(id: string) {
-    const next = new Set(saved);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    persist(next);
-  }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthed]);
 
-  const isSaved = (id: string) => saved.has(id);
+  const isSaved = (id: string) => ids.has(id);
 
-  return { saved, isSaved, toggle };
+  const toggle = async (id: string) => {
+    // optimistic UI
+    setIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+    if (isAuthed) {
+      // call API
+      const currentlySaved = ids.has(id);
+      if (currentlySaved) {
+        await fetch(`/api/saved?mentorId=${encodeURIComponent(id)}`, { method: "DELETE" });
+      } else {
+        await fetch("/api/saved", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mentorId: id }),
+        });
+      }
+    } else {
+      // localStorage fallback
+      const next = new Set(ids);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      writeLocal(next);
+    }
+  };
+
+  return useMemo(() => ({ isSaved, toggle, ids }), [ids]); // eslint-disable-line react-hooks/exhaustive-deps
 }
+
+export default useSaved;

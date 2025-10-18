@@ -1,53 +1,24 @@
 // components/auth/SessionProvider.tsx
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import {
+  SessionProvider as NextAuthProvider,
+  useSession as useNextSession,
+  signIn,
+  signOut,
+} from "next-auth/react";
 
-type User = { name: string; email: string };
-
-type Session = {
-  user: User | null;
-  signIn: (u: User) => void;
-  signOut: () => void;
-};
-
-const KEY = "bmm_user";
-const SessionCtx = createContext<Session | null>(null);
-
-export default function SessionProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setUser(JSON.parse(raw));
-    } catch {}
-  }, []);
-
-  const value = useMemo<Session>(
-    () => ({
-      user,
-      signIn: (u: User) => {
-        try {
-          localStorage.setItem(KEY, JSON.stringify(u));
-        } catch {}
-        setUser(u);
-      },
-      signOut: () => {
-        try {
-          localStorage.removeItem(KEY);
-        } catch {}
-        setUser(null);
-      },
-    }),
-    [user]
-  );
-
-  return <SessionCtx.Provider value={value}>{children}</SessionCtx.Provider>;
+/**
+ * Single source of truth for session context.
+ * - Wraps NextAuth's SessionProvider
+ * - Re-exports useSession/signIn/signOut for existing imports
+ */
+export default function SessionProvider({ children }: { children: ReactNode }) {
+  return <NextAuthProvider>{children}</NextAuthProvider>;
 }
 
-export function useSession() {
-  const ctx = useContext(SessionCtx);
-  if (!ctx) throw new Error("useSession must be used within SessionProvider");
-  return ctx;
-}
+// Re-export so components importing from "components/auth/SessionProvider"
+// keep working without changes.
+export const useSession = useNextSession;
+export { signIn, signOut };

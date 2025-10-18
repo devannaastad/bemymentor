@@ -1,10 +1,11 @@
 // app/layout.tsx
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import SessionProvider from "@/components/auth/SessionProvider";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "BeMyMentor",
   description: "Connect mentors and learners.",
 };
