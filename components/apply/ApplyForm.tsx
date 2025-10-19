@@ -4,49 +4,39 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useRouter } from "next/navigation";
-import Label from "@/components/common/Label";
+import {
+  applicationFormSchema,
+  type ApplicationFormValues,
+} from "@/lib/schemas/application";
+import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import Textarea from "@/components/common/Textarea";
 import Select from "@/components/common/Select";
-import Button from "@/components/common/Button";
 import FormFieldError from "@/components/common/FormFieldError";
-import Spinner from "@/components/common/Spinner";
-import { toast } from "@/components/common/Toast";
-
-const applicationSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  topic: z.string().min(5, "Topic must be at least 5 characters"),
-  proofLinks: z.string().min(10, "Please provide proof links"),
-  offerType: z.enum(["ACCESS", "TIME", "BOTH"]),
-  accessPrice: z.number().min(1).optional().nullable(),
-  hourlyRate: z.number().min(1).optional().nullable(),
-});
-
-type ApplicationFormData = z.infer<typeof applicationSchema>;
 
 export default function ApplyForm() {
   const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<ApplicationFormData>({
-    resolver: zodResolver(applicationSchema),
+  } = useForm<ApplicationFormValues>({
+    resolver: zodResolver(applicationFormSchema),
     defaultValues: {
-      offerType: "BOTH",
+      offerType: "ACCESS",
     },
   });
 
   const offerType = watch("offerType");
 
-  const onSubmit = async (data: ApplicationFormData) => {
-    setSubmitting(true);
+  const onSubmit = async (data: ApplicationFormValues) => {
+    setIsSubmitting(true);
+    setError(null);
 
     try {
       const res = await fetch("/api/applications", {
@@ -55,127 +45,146 @@ export default function ApplyForm() {
         body: JSON.stringify(data),
       });
 
-      const json = await res.json();
+      const body = await res.json();
 
-      if (!res.ok || !json.ok) {
-        toast(json.error || "Failed to submit application", "error");
-        setSubmitting(false);
-        return;
+      if (!res.ok) {
+        throw new Error(body.error || "Failed to submit application");
       }
 
-      toast("Application submitted successfully! Check your email.", "success");
-      
-      setTimeout(() => {
-        router.push("/apply/success");
-      }, 1500);
-    } catch (error) {
-      console.error("Submit error:", error);
-      toast("Something went wrong. Please try again.", "error");
-      setSubmitting(false);
+      // Success - redirect to success page
+      router.push("/apply/success");
+    } catch (err) {
+      console.error("[ApplyForm] Submit failed:", err);
+      setError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="fullName">Full Name</Label>
-          <Input
-            id="fullName"
-            placeholder="Jane Doe"
-            {...register("fullName")}
-          />
-          <FormFieldError message={errors.fullName?.message} />
-        </div>
-
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="jane@example.com"
-            {...register("email")}
-          />
-          <FormFieldError message={errors.email?.message} />
-        </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
+      {/* Full Name */}
+      <div>
+        <label htmlFor="fullName" className="mb-2 block text-sm font-medium text-white/90">
+          Full Name <span className="text-rose-400">*</span>
+        </label>
+        <Input
+          id="fullName"
+          {...register("fullName")}
+          placeholder="Your full name"
+        />
+        {errors.fullName?.message && <FormFieldError error={errors.fullName.message} />}
       </div>
 
+      {/* Email */}
       <div>
-        <Label htmlFor="topic">What will you mentor in?</Label>
+        <label htmlFor="email" className="mb-2 block text-sm font-medium text-white/90">
+          Email <span className="text-rose-400">*</span>
+        </label>
+        <Input
+          id="email"
+          type="email"
+          {...register("email")}
+          placeholder="you@example.com"
+        />
+        {errors.email?.message && <FormFieldError error={errors.email.message} />}
+      </div>
+
+      {/* Topic */}
+      <div>
+        <label htmlFor="topic" className="mb-2 block text-sm font-medium text-white/90">
+          What do you teach? <span className="text-rose-400">*</span>
+        </label>
         <Input
           id="topic"
-          placeholder="e.g., Advanced Valorant strategies and aim training"
           {...register("topic")}
+          placeholder="e.g., Crypto trading, Valorant coaching, UX design"
         />
-        <FormFieldError message={errors.topic?.message} />
+        {errors.topic?.message && <FormFieldError error={errors.topic.message} />}
+        <p className="mt-1 text-xs text-white/50">
+          Keep it short and clear (max 120 characters)
+        </p>
       </div>
 
+      {/* Proof Links */}
       <div>
-        <Label htmlFor="proofLinks">Proof Links</Label>
+        <label htmlFor="proofLinks" className="mb-2 block text-sm font-medium text-white/90">
+          Proof Links <span className="text-rose-400">*</span>
+        </label>
         <Textarea
           id="proofLinks"
-          placeholder="Provide links to your achievements, social profiles, certifications, etc."
-          rows={4}
           {...register("proofLinks")}
+          rows={4}
+          placeholder="Add links to your portfolio, rank screenshots, client results, social proof, etc."
         />
-        <FormFieldError message={errors.proofLinks?.message} />
+        {errors.proofLinks?.message && <FormFieldError error={errors.proofLinks.message} />}
+        <p className="mt-1 text-xs text-white/50">
+          Provide evidence of your expertise (portfolio, results, certifications, etc.)
+        </p>
       </div>
 
+      {/* Offer Type */}
       <div>
-        <Label htmlFor="offerType">What will you offer?</Label>
+        <label htmlFor="offerType" className="mb-2 block text-sm font-medium text-white/90">
+          What do you offer? <span className="text-rose-400">*</span>
+        </label>
         <Select id="offerType" {...register("offerType")}>
-          <option value="ACCESS">ACCESS only (community, resources)</option>
-          <option value="TIME">TIME only (1-on-1 sessions)</option>
-          <option value="BOTH">Both ACCESS and TIME</option>
+          <option value="ACCESS">ACCESS - Digital product (guide, course, community)</option>
+          <option value="TIME">TIME - Live 1-on-1 sessions</option>
+          <option value="BOTH">BOTH - Digital product + live sessions</option>
         </Select>
+        {errors.offerType?.message && <FormFieldError error={errors.offerType.message} />}
       </div>
 
+      {/* Conditional Pricing Fields */}
       {(offerType === "ACCESS" || offerType === "BOTH") && (
         <div>
-          <Label htmlFor="accessPrice">ACCESS price (monthly, USD)</Label>
+          <label htmlFor="price" className="mb-2 block text-sm font-medium text-white/90">
+            ACCESS Price (USD) <span className="text-rose-400">*</span>
+          </label>
           <Input
-            id="accessPrice"
+            id="price"
             type="number"
-            placeholder="25"
-            {...register("accessPrice", { valueAsNumber: true })}
+            {...register("price")}
+            placeholder="49"
           />
-          <FormFieldError message={errors.accessPrice?.message} />
+          {errors.price?.message && <FormFieldError error={errors.price.message} />}
+          <p className="mt-1 text-xs text-white/50">
+            One-time price for your digital product/community access
+          </p>
         </div>
       )}
 
       {(offerType === "TIME" || offerType === "BOTH") && (
         <div>
-          <Label htmlFor="hourlyRate">Hourly rate (USD)</Label>
+          <label htmlFor="hourlyRate" className="mb-2 block text-sm font-medium text-white/90">
+            Hourly Rate (USD) <span className="text-rose-400">*</span>
+          </label>
           <Input
             id="hourlyRate"
             type="number"
-            placeholder="50"
-            {...register("hourlyRate", { valueAsNumber: true })}
+            {...register("hourlyRate")}
+            placeholder="100"
           />
-          <FormFieldError message={errors.hourlyRate?.message} />
+          {errors.hourlyRate?.message && <FormFieldError error={errors.hourlyRate.message} />}
+          <p className="mt-1 text-xs text-white/50">
+            Your rate for 1-on-1 coaching sessions
+          </p>
         </div>
       )}
 
-      <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
-        <p className="text-sm text-blue-200">
-          We&apos;ll email you at <strong>{watch("email")}</strong> once we&apos;ve reviewed your application.
-        </p>
-      </div>
+      {/* Error Display */}
+      {error && (
+        <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-200">
+          {error}
+        </div>
+      )}
 
-      <Button
-        type="submit"
-        variant="primary"
-        className="w-full"
-        disabled={submitting}
-      >
-        {submitting ? (
-          <span className="flex items-center justify-center gap-2">
-            <Spinner size="sm" />
-            Submitting...
-          </span>
-        ) : (
-          "Submit Application"
-        )}
+      {/* Submit Button */}
+      <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+        {isSubmitting ? "Submitting..." : "Submit Application"}
       </Button>
     </form>
   );

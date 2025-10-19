@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import SaveButton from "@/components/mentors/SaveButton";
-import { formatCurrency, ratingLabel } from "@/lib/utils/format";
+import { formatCurrency } from "@/lib/utils/format";
 
 type Params = { id: string };
 
@@ -35,7 +35,7 @@ export default async function MentorPage({
   const { id } = await params;
 
   const mentor = await db.mentor.findUnique({
-    where: { id },
+    where: { id, isActive: true },
   });
 
   if (!mentor) notFound();
@@ -56,8 +56,10 @@ export default async function MentorPage({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="text-sm text-white/80">
-              {ratingLabel(mentor.rating, mentor.reviews)}
+            <div className="flex items-center gap-1 text-sm">
+              <span className="text-amber-400">★</span>
+              <span className="font-medium">{mentor.rating.toFixed(1)}</span>
+              <span className="text-white/60">({mentor.reviews} reviews)</span>
             </div>
             {badges.map((badge) => (
               <Badge key={badge} variant="success">
@@ -75,13 +77,15 @@ export default async function MentorPage({
               <CardContent>
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="font-semibold">ACCESS Pass</h3>
-                  <Badge variant="success">Popular</Badge>
+                  {mentor.offerType === "ACCESS" && (
+                    <Badge variant="success">Available</Badge>
+                  )}
                 </div>
                 <div className="mb-4">
                   <span className="text-3xl font-bold">
                     {formatCurrency(mentor.accessPrice)}
                   </span>
-                  <span className="text-white/60">/month</span>
+                  <span className="text-white/60"> one-time</span>
                 </div>
                 <ul className="mb-4 space-y-2 text-sm text-white/80">
                   <li className="flex items-start gap-2">
@@ -101,7 +105,7 @@ export default async function MentorPage({
                     <span>Exclusive templates & guides</span>
                   </li>
                 </ul>
-                <Button className="w-full" variant="primary">
+                <Button href={`/book/${mentor.id}`} className="w-full" variant="primary">
                   Get ACCESS Pass
                 </Button>
               </CardContent>
@@ -141,7 +145,9 @@ export default async function MentorPage({
                     <span>Follow-up support via chat</span>
                   </li>
                 </ul>
-                <Button className="w-full">Book a Session</Button>
+                <Button href={`/book/${mentor.id}`} className="w-full">
+                  Book a Session
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -152,80 +158,52 @@ export default async function MentorPage({
           <CardContent>
             <h2 className="mb-4 text-xl font-semibold">About {mentor.name}</h2>
             <div className="prose prose-invert max-w-none">
-              <p className="text-white/70">
-                {mentor.name} is an experienced {mentor.category} mentor specializing in{" "}
-                {mentor.tagline.toLowerCase()}. With a {mentor.rating.toFixed(1)} rating and{" "}
-                {mentor.reviews} reviews, they&apos;ve helped countless students achieve their goals.
-              </p>
-              <p className="mt-4 text-white/70">
-                Whether you&apos;re just starting out or looking to level up your skills,{" "}
-                {mentor.name} provides tailored guidance to help you succeed.
-              </p>
+              {mentor.bio ? (
+                <p className="text-white/70 whitespace-pre-wrap">{mentor.bio}</p>
+              ) : (
+                <>
+                  <p className="text-white/70">
+                    {mentor.name} is an experienced {mentor.category} mentor specializing in{" "}
+                    {mentor.tagline.toLowerCase()}. With a {mentor.rating.toFixed(1)} rating and{" "}
+                    {mentor.reviews} reviews, they&apos;ve helped countless students achieve their goals.
+                  </p>
+                  <p className="mt-4 text-white/70">
+                    Whether you&apos;re just starting out or looking to level up your skills,{" "}
+                    {mentor.name} provides tailored guidance to help you succeed.
+                  </p>
+                </>
+              )}
             </div>
-          </CardContent>
-        </Card>
 
-        {/* What You'll Learn */}
-        {badges.length > 0 && (
-          <Card className="mb-8">
-            <CardContent>
-              <h2 className="mb-4 text-xl font-semibold">What You&apos;ll Learn</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {badges.map((badge) => (
-                  <div key={badge} className="flex items-start gap-3">
-                    <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-                      ✓
-                    </div>
-                    <span className="text-white/80">{badge}</span>
-                  </div>
+            {/* Social Links */}
+            {mentor.socialLinks && typeof mentor.socialLinks === "object" && (
+              <div className="mt-6 flex flex-wrap gap-3">
+                {Object.entries(mentor.socialLinks as Record<string, string>).map(([platform, url]) => (
+                  <a
+                    key={platform}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-400 hover:text-blue-300 underline"
+                  >
+                    {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                  </a>
                 ))}
               </div>
+            )}
             </CardContent>
-          </Card>
-        )}
+            </Card>
 
-        {/* Reviews Section (Placeholder) */}
-        <Card>
-          <CardContent>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Reviews</h2>
-              <div className="text-sm text-white/60">
-                {mentor.reviews} {mentor.reviews === 1 ? "review" : "reviews"}
-              </div>
-            </div>
-
-            <div className="mb-6 flex items-center gap-4">
-              <div className="text-4xl font-bold">{mentor.rating.toFixed(1)}</div>
-              <div>
-                <div className="flex gap-1 text-yellow-400">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i}>
-                      {i < Math.floor(mentor.rating) ? "★" : "☆"}
-                    </span>
-                  ))}
+            {/* Reviews Section - Placeholder */}
+            <Card>
+              <CardContent>
+                <h2 className="mb-4 text-xl font-semibold">Reviews</h2>
+                <div className="py-8 text-center">
+                  <p className="text-white/60">Reviews coming soon</p>
                 </div>
-                <div className="text-sm text-white/60">
-                  Based on {mentor.reviews} reviews
-                </div>
-              </div>
-            </div>
-
-            {/* Placeholder for actual reviews */}
-            <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
-              <p className="text-white/60">
-                Reviews will be displayed here once students start leaving feedback.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Back to Catalog */}
-        <div className="mt-8 text-center">
-          <Button href="/catalog" variant="ghost">
-            ← Back to Catalog
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      );
+    }

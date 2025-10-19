@@ -1,5 +1,5 @@
 // components/common/FormFieldError.tsx
-export default function FormFieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return <p className="mt-1 text-sm text-rose-300">{message}</p>;
+export default function FormFieldError({ error }: { error?: string }) {
+  if (!error) return null;
+  return <p className="mt-1 text-sm text-rose-400">{error}</p>;
 }

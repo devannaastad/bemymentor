@@ -1,293 +1,187 @@
 // prisma/seed.ts
 import { PrismaClient, MentorCategory, OfferType } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const db = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting database seed...\n");
+  console.log("🌱 Seeding database...");
 
   const mentors = [
     // TRADING
     {
       id: "mtr-trading-001",
-      name: "Ava Thompson",
+      name: "Alex Thompson",
+      email: "alex.thompson@seed.internal",
       category: MentorCategory.trading,
-      tagline: "Price-action scalper with 62% WR",
-      rating: 4.8,
-      reviews: 128,
+      tagline: "Crypto trader • $2M+ profit in 2024",
+      bio: "Professional cryptocurrency trader with over 5 years of experience in the markets.",
+      rating: 4.9,
+      reviews: 234,
       offerType: OfferType.BOTH,
-      accessPrice: 20,
-      hourlyRate: 150,
-      badges: ["Live calls", "Risk rules", "Journaling templates"],
+      accessPrice: 49,
+      hourlyRate: 200,
+      badges: ["Top performer", "Verified results"],
+      isActive: true,
     },
     {
       id: "mtr-trading-002",
-      name: "Marcus Chen",
+      name: "Sarah Chen",
+      email: "sarah.chen@seed.internal",
       category: MentorCategory.trading,
-      tagline: "Swing trader • Stocks & crypto",
-      rating: 4.6,
-      reviews: 94,
-      offerType: OfferType.ACCESS,
-      accessPrice: 15,
-      hourlyRate: null,
-      badges: ["Watchlist", "Entry signals"],
-    },
-    {
-      id: "mtr-trading-003",
-      name: "Sofia Martinez",
-      category: MentorCategory.trading,
-      tagline: "Options flow & dark pool analysis",
-      rating: 4.9,
-      reviews: 156,
+      tagline: "Options strategist • Ex-Goldman Sachs",
+      bio: "Former Goldman Sachs trader specializing in options strategies.",
+      rating: 4.8,
+      reviews: 187,
       offerType: OfferType.TIME,
       accessPrice: null,
-      hourlyRate: 200,
-      badges: ["Institutional insights", "Risk mgmt"],
+      hourlyRate: 300,
+      badges: ["Wall Street veteran"],
+      isActive: true,
     },
 
     // GAMING
     {
       id: "mtr-gaming-001",
-      name: "Riley Chen",
+      name: "Tyler 'Ninja' Blevins",
+      email: "tyler.ninja@seed.internal",
       category: MentorCategory.gaming,
-      tagline: "Valorant Radiant coach (aim + comms)",
-      rating: 4.9,
-      reviews: 203,
-      offerType: OfferType.TIME,
-      accessPrice: null,
-      hourlyRate: 40,
-      badges: ["VOD reviews", "Aim routine", "Team comms"],
-    },
-    {
-      id: "mtr-gaming-002",
-      name: "Tyler Williams",
-      category: MentorCategory.gaming,
-      tagline: "League of Legends Challenger • Jungle main",
+      tagline: "Valorant Radiant • Former pro player",
+      bio: "Professional Valorant player and coach.",
       rating: 4.7,
-      reviews: 167,
+      reviews: 156,
       offerType: OfferType.BOTH,
-      accessPrice: 25,
-      hourlyRate: 50,
-      badges: ["Macro guide", "Live coaching"],
-    },
-    {
-      id: "mtr-gaming-003",
-      name: "Emma Rodriguez",
-      category: MentorCategory.gaming,
-      tagline: "CS2 Global Elite • IGL & strat caller",
-      rating: 4.8,
-      reviews: 142,
-      offerType: OfferType.ACCESS,
-      accessPrice: 18,
-      hourlyRate: null,
-      badges: ["Aim maps", "Smoke lineups", "Demo review"],
+      accessPrice: 29,
+      hourlyRate: 100,
+      badges: ["Radiant rank", "Tournament winner"],
+      isActive: true,
     },
 
     // DESIGN
     {
       id: "mtr-design-001",
-      name: "Maya Lopez",
+      name: "Emma Rodriguez",
+      email: "emma.rodriguez@seed.internal",
       category: MentorCategory.design,
-      tagline: "UX case studies that get hired",
-      rating: 4.7,
-      reviews: 89,
-      offerType: OfferType.ACCESS,
-      accessPrice: 15,
-      hourlyRate: null,
-      badges: ["Portfolio review", "Figma systems", "Whiteboard prep"],
-    },
-    {
-      id: "mtr-design-002",
-      name: "James Park",
-      category: MentorCategory.design,
-      tagline: "Product designer at FAANG • Figma master",
+      tagline: "Senior UX at Airbnb • 10+ years experience",
+      bio: "Senior UX designer at Airbnb with a decade of experience.",
       rating: 4.9,
-      reviews: 211,
-      offerType: OfferType.BOTH,
-      accessPrice: 30,
-      hourlyRate: 120,
-      badges: ["Design systems", "Component libraries"],
-    },
-    {
-      id: "mtr-design-003",
-      name: "Zoe Anderson",
-      category: MentorCategory.design,
-      tagline: "Brand designer • Freelancer making $200k/yr",
-      rating: 4.6,
-      reviews: 78,
-      offerType: OfferType.TIME,
-      accessPrice: null,
-      hourlyRate: 80,
-      badges: ["Client acquisition", "Pricing strategy"],
+      reviews: 203,
+      offerType: OfferType.ACCESS,
+      accessPrice: 39,
+      hourlyRate: null,
+      badges: ["Figma expert", "Design systems"],
+      isActive: true,
     },
 
     // FITNESS
     {
       id: "mtr-fitness-001",
-      name: "Alex Rodriguez",
+      name: "Marcus Williams",
+      email: "marcus.williams@seed.internal",
       category: MentorCategory.fitness,
-      tagline: "Certified PT • Body recomp specialist",
+      tagline: "Certified PT • Transformed 500+ clients",
+      bio: "Certified personal trainer who has helped over 500 clients transform their bodies.",
       rating: 4.8,
-      reviews: 134,
+      reviews: 312,
       offerType: OfferType.BOTH,
-      accessPrice: 12,
-      hourlyRate: 60,
-      badges: ["Custom programs", "Nutrition plans"],
-    },
-    {
-      id: "mtr-fitness-002",
-      name: "Sarah Kim",
-      category: MentorCategory.fitness,
-      tagline: "Powerlifting coach • 500+ lb deadlift",
-      rating: 4.9,
-      reviews: 187,
-      offerType: OfferType.ACCESS,
-      accessPrice: 20,
-      hourlyRate: null,
-      badges: ["Form checks", "Program templates"],
-    },
-    {
-      id: "mtr-fitness-003",
-      name: "Michael Chen",
-      category: MentorCategory.fitness,
-      tagline: "Sports medicine • Injury prevention & recovery",
-      rating: 4.7,
-      reviews: 92,
-      offerType: OfferType.TIME,
-      accessPrice: null,
-      hourlyRate: 100,
-      badges: ["Movement screening", "Rehab protocols"],
+      accessPrice: 19,
+      hourlyRate: 80,
+      badges: ["NASM certified", "Nutrition specialist"],
+      isActive: true,
     },
 
     // LANGUAGES
     {
       id: "mtr-languages-001",
       name: "Ana García",
+      email: "ana.garcia@seed.internal",
       category: MentorCategory.languages,
       tagline: "Spanish tutor • Native from Madrid",
+      bio: "Native Spanish speaker from Madrid with 8 years of teaching experience.",
       rating: 4.8,
       reviews: 156,
       offerType: OfferType.TIME,
       accessPrice: null,
       hourlyRate: 30,
       badges: ["Conversational practice", "DELE prep"],
-    },
-    {
-      id: "mtr-languages-002",
-      name: "Pierre Dubois",
-      category: MentorCategory.languages,
-      tagline: "French teacher • Lived in Paris 20 years",
-      rating: 4.6,
-      reviews: 103,
-      offerType: OfferType.BOTH,
-      accessPrice: 10,
-      hourlyRate: 35,
-      badges: ["Grammar guides", "Pronunciation drills"],
-    },
-    {
-      id: "mtr-languages-003",
-      name: "Yuki Tanaka",
-      category: MentorCategory.languages,
-      tagline: "Japanese tutor • JLPT N1 certified",
-      rating: 4.9,
-      reviews: 198,
-      offerType: OfferType.ACCESS,
-      accessPrice: 18,
-      hourlyRate: null,
-      badges: ["Kanji flashcards", "Anime immersion guide"],
+      isActive: true,
     },
 
     // CAREER
     {
       id: "mtr-career-001",
       name: "David Kumar",
+      email: "david.kumar@seed.internal",
       category: MentorCategory.career,
       tagline: "Ex-FAANG recruiter • 500+ hires",
+      bio: "Former FAANG recruiter who has conducted over 500 successful hires.",
       rating: 4.9,
       reviews: 243,
       offerType: OfferType.BOTH,
       accessPrice: 25,
       hourlyRate: 150,
       badges: ["Resume teardown", "Mock interviews"],
-    },
-    {
-      id: "mtr-career-002",
-      name: "Rachel Thompson",
-      category: MentorCategory.career,
-      tagline: "Career coach • Helped 200+ land $100k+ roles",
-      rating: 4.7,
-      reviews: 189,
-      offerType: OfferType.TIME,
-      accessPrice: null,
-      hourlyRate: 100,
-      badges: ["LinkedIn optimization", "Salary negotiation"],
-    },
-    {
-      id: "mtr-career-003",
-      name: "Chris Yang",
-      category: MentorCategory.career,
-      tagline: "Software engineer → Manager at Google",
-      rating: 4.8,
-      reviews: 167,
-      offerType: OfferType.ACCESS,
-      accessPrice: 20,
-      hourlyRate: null,
-      badges: ["System design prep", "Behavioral answers"],
+      isActive: true,
     },
   ];
 
-  let created = 0;
-  let updated = 0;
-
   for (const mentorData of mentors) {
-    const result = await prisma.mentor.upsert({
+    // Create a user for this mentor
+    const user = await db.user.upsert({
+      where: { email: mentorData.email },
+      update: {},
+      create: {
+        name: mentorData.name,
+        email: mentorData.email,
+      },
+    });
+
+    console.log(`✅ Created user: ${user.email}`);
+
+    // Create the mentor profile
+    await db.mentor.upsert({
       where: { id: mentorData.id },
-      update: { 
+      update: {
         name: mentorData.name,
         category: mentorData.category,
         tagline: mentorData.tagline,
+        bio: mentorData.bio,
         rating: mentorData.rating,
         reviews: mentorData.reviews,
         offerType: mentorData.offerType,
         accessPrice: mentorData.accessPrice,
         hourlyRate: mentorData.hourlyRate,
         badges: mentorData.badges,
-        updatedAt: new Date() 
+        isActive: mentorData.isActive,
       },
       create: {
         id: mentorData.id,
+        userId: user.id,
         name: mentorData.name,
         category: mentorData.category,
         tagline: mentorData.tagline,
+        bio: mentorData.bio,
         rating: mentorData.rating,
         reviews: mentorData.reviews,
         offerType: mentorData.offerType,
         accessPrice: mentorData.accessPrice,
         hourlyRate: mentorData.hourlyRate,
         badges: mentorData.badges,
+        isActive: mentorData.isActive,
       },
     });
-    
-    if (result.createdAt.getTime() === result.updatedAt.getTime()) {
-      created++;
-      console.log(`  ✅ Created: ${mentorData.name} (${mentorData.category})`);
-    } else {
-      updated++;
-      console.log(`  🔄 Updated: ${mentorData.name} (${mentorData.category})`);
-    }
+
+    console.log(`✅ Seeded mentor: ${mentorData.name}`);
   }
 
-  console.log(`\n🎉 Seed complete!`);
-  console.log(`   Created: ${created} mentors`);
-  console.log(`   Updated: ${updated} mentors`);
-  console.log(`   Total: ${mentors.length} mentors in database\n`);
+  console.log("🎉 Seeding complete!");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed failed:", e);
+    console.error("❌ Seeding failed:", e);
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await db.$disconnect();
   });

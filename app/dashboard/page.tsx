@@ -6,15 +6,29 @@ import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import MentorCard from "@/components/catalog/MentorCard";
+import Image from "next/image";
+
 
 export const dynamic = "force-dynamic";
 
+
 async function getDashboardData(email: string) {
-  const [savedMentors, application] = await Promise.all([
+  const user = await db.user.findUnique({
+    where: { email },
+    include: {
+      mentorProfile: true,
+    },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  const [savedMentors, application, bookings] = await Promise.all([
     // Get saved mentors
     db.savedMentor
       .findMany({
-        where: { user: { email } },
+        where: { userId: user.id },
         include: { mentor: true },
         orderBy: { createdAt: "desc" },
         take: 6,
@@ -26,9 +40,26 @@ async function getDashboardData(email: string) {
       where: { email },
       orderBy: { createdAt: "desc" },
     }),
+
+    // Get user's bookings
+    db.booking.findMany({
+      where: { userId: user.id },
+      include: {
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+            profileImage: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
   ]);
 
-  return { savedMentors, application };
+  return { user, savedMentors, application, bookings };
 }
 
 export default async function DashboardPage() {
@@ -39,9 +70,18 @@ export default async function DashboardPage() {
     redirect("/signin?callbackUrl=/dashboard");
   }
 
-  const { savedMentors, application } = await getDashboardData(email);
+  const data = await getDashboardData(email);
+
+  if (!data) {
+    redirect("/signin");
+  }
+
+  const { user, savedMentors, application, bookings } = data;
 
   const userName = session.user?.name?.split(" ")[0] || "there";
+
+  // Check if they have an approved application but no mentor profile yet
+  const needsSetup = application?.status === "APPROVED" && !user.mentorProfile;
 
   return (
     <section className="section">
@@ -52,8 +92,30 @@ export default async function DashboardPage() {
           <p className="text-white/60">Here&apos;s what&apos;s happening with your mentorship journey.</p>
         </div>
 
+        {/* Setup Prompt - Show if approved but no profile */}
+        {needsSetup && (
+          <Card className="mb-8 border-emerald-500/20 bg-emerald-500/5">
+            <CardContent>
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">🎉</div>
+                <div className="flex-1">
+                  <h2 className="mb-2 text-lg font-semibold text-emerald-200">
+                    Your Application Was Approved!
+                  </h2>
+                  <p className="mb-4 text-sm text-white/70">
+                    Complete your mentor profile to start accepting learners.
+                  </p>
+                  <Button href="/mentor-setup" variant="primary">
+                    Complete Profile Setup →
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Cards */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        <div className="mb-8 grid gap-4 sm:grid-cols-4">
           <Card>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -70,12 +132,11 @@ export default async function DashboardPage() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-white/60">Active Sessions</p>
-                  <p className="text-3xl font-bold">0</p>
+                  <p className="text-sm text-white/60">Bookings</p>
+                  <p className="text-3xl font-bold">{bookings.length}</p>
                 </div>
                 <div className="text-4xl">📅</div>
               </div>
-              <p className="mt-2 text-xs text-white/50">Coming soon</p>
             </CardContent>
           </Card>
 
@@ -83,15 +144,83 @@ export default async function DashboardPage() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-white/60">Hours Learned</p>
-                  <p className="text-3xl font-bold">0</p>
+                  <p className="text-sm text-white/60">Active Sessions</p>
+                  <p className="text-3xl font-bold">
+                    {bookings.filter((b) => b.status === "CONFIRMED").length}
+                  </p>
                 </div>
                 <div className="text-4xl">⏱️</div>
               </div>
-              <p className="mt-2 text-xs text-white/50">Coming soon</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-white/60">Completed</p>
+                  <p className="text-3xl font-bold">
+                    {bookings.filter((b) => b.status === "COMPLETED").length}
+                  </p>
+                </div>
+                <div className="text-4xl">✅</div>
+              </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Recent Bookings */}
+        {bookings.length > 0 && (
+          <div className="mb-8">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Recent Bookings</h2>
+            </div>
+
+            <div className="grid gap-4">
+              {bookings.map((booking) => (
+                <Card key={booking.id}>
+                  <CardContent className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      {booking.mentor.profileImage && (
+                        <Image
+                            src={booking.mentor.profileImage}
+                            alt={booking.mentor.name}
+                            width={48}
+                            height={48}
+                            className="h-12 w-12 rounded-full object-cover"
+                        />
+                        )}
+                      <div>
+                        <h3 className="font-semibold">{booking.mentor.name}</h3>
+                        <p className="text-sm text-white/60">
+                          {booking.type === "ACCESS" ? "ACCESS Pass" : "1-on-1 Session"}
+                          {booking.scheduledAt &&
+                            ` • ${new Date(booking.scheduledAt).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        variant={
+                          booking.status === "CONFIRMED"
+                            ? "success"
+                            : booking.status === "PENDING"
+                            ? "warning"
+                            : "default"
+                        }
+                      >
+                        {booking.status}
+                      </Badge>
+                      <Button href={`/bookings/${booking.id}/confirm`} variant="ghost" size="sm">
+                        View →
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Application Status */}
         {application && (
@@ -126,13 +255,24 @@ export default async function DashboardPage() {
                     </p>
                   )}
 
-                  {application.status === "APPROVED" && (
+                  {application.status === "APPROVED" && !user.mentorProfile && (
                     <div className="mt-3">
                       <p className="text-sm text-emerald-300">
                         Congratulations! Your application has been approved.
                       </p>
                       <Button href="/mentor-setup" className="mt-3" variant="primary">
                         Complete Setup →
+                      </Button>
+                    </div>
+                  )}
+
+                  {application.status === "APPROVED" && user.mentorProfile && (
+                    <div className="mt-3">
+                      <p className="text-sm text-emerald-300">
+                        ✓ Your mentor profile is live!
+                      </p>
+                      <Button href={`/mentors/${user.mentorProfile.id}`} className="mt-3" variant="ghost">
+                        View Your Profile →
                       </Button>
                     </div>
                   )}

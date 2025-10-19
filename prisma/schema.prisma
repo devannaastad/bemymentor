@@ -33,6 +33,19 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum BookingType {
+  ACCESS
+  SESSION
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
 /**
  * ---------- NextAuth core models (v5 compatible) ----------
  */
@@ -48,6 +61,12 @@ model User {
 
   // back-relation: all mentors this user saved
   savedMentors SavedMentor[]
+  
+  // back-relation: mentor profile if this user is a mentor
+  mentorProfile Mentor?
+  
+  // back-relation: all bookings made by this user
+  bookings Booking[]
 }
 
 model Account {
@@ -93,21 +112,35 @@ model VerificationToken {
  * ---------- App models ----------
  */
 model Mentor {
-  id          String         @id @default(cuid())
-  name        String
-  category    MentorCategory
-  tagline     String
-  rating      Float
-  reviews     Int
-  offerType   OfferType
-  accessPrice Int?
-  hourlyRate  Int?
-  badges      Json?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id           String         @id @default(cuid())
+  userId       String         @unique // Link to User who owns this profile
+  name         String
+  category     MentorCategory
+  tagline      String
+  bio          String?        @db.Text // Full bio/description
+  profileImage String?        // URL to profile photo
+  socialLinks  Json?          // { twitter, linkedin, website, etc }
+  rating       Float          @default(5.0)
+  reviews      Int            @default(0)
+  offerType    OfferType
+  accessPrice  Int?
+  hourlyRate   Int?
+  badges       Json?
+  isActive     Boolean        @default(true) // Can be toggled off by admin or mentor
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // back-relation: all users that saved this mentor
   savedBy SavedMentor[]
+  
+  // back-relation: all bookings for this mentor
+  bookings Booking[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([isActive])
 }
 
 /**
@@ -132,6 +165,7 @@ model SavedMentor {
  */
 model Application {
   id          String            @id @default(cuid())
+  userId      String?           // Link to User who submitted (if authenticated)
   fullName    String
   email       String
   topic       String
@@ -147,6 +181,46 @@ model Application {
   updatedAt   DateTime          @updatedAt
 
   @@index([email])
+  @@index([userId])
   @@index([status])
+  @@index([createdAt])
+}
+
+/**
+ * Bookings - purchases and sessions
+ */
+model Booking {
+  id              String        @id @default(cuid())
+  userId          String
+  mentorId        String
+  type            BookingType
+  status          BookingStatus @default(PENDING)
+  
+  // Pricing
+  totalPrice      Int           // Price in cents (USD)
+  
+  // For SESSION bookings only
+  scheduledAt     DateTime?     // When the session is scheduled
+  durationMinutes Int?          // Session duration (e.g., 60)
+  meetingLink     String?       // Zoom/Google Meet link
+  
+  // Metadata
+  notes           String?       @db.Text // User notes for the mentor
+  cancellationReason String?    @db.Text
+  
+  // Stripe info (for later)
+  stripePaymentIntentId String? @unique
+  stripePaidAt          DateTime?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentor Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([mentorId])
+  @@index([status])
+  @@index([scheduledAt])
   @@index([createdAt])
 }

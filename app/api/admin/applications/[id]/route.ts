@@ -1,49 +1,42 @@
 // app/api/admin/applications/[id]/route.ts
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { auth } from "@/auth";
-import { isAdmin } from "@/lib/admin";
-import { z } from "zod";
-import type { Application, MentorCategory } from "@prisma/client";
+import { requireAdmin } from "@/lib/admin";
 
-const updateSchema = z.object({
-  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
-  notes: z.string().optional(),
-  reviewedBy: z.string().optional(),
-});
+export const runtime = "nodejs";
 
+/**
+ * PATCH /api/admin/applications/:id
+ * Update application status (approve/reject) and optionally create mentor profile
+ */
 export async function PATCH(
   req: NextRequest,
-  ctx: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    const email = session?.user?.email;
-    
-    if (!isAdmin(email)) {
-      return NextResponse.json(
-        { ok: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    await requireAdmin();
 
-    const { id } = await ctx.params;
+    const { id } = await context.params;
     const body = await req.json();
-    const parsed = updateSchema.parse(body);
+
+    const parsed = {
+      status: body.status as "PENDING" | "APPROVED" | "REJECTED" | undefined,
+      notes: body.notes as string | undefined,
+      reviewedBy: body.reviewedBy as string | undefined,
+    };
 
     const application = await db.application.update({
       where: { id },
       data: {
-        status: parsed.status,
-        notes: parsed.notes,
-        reviewedBy: parsed.reviewedBy || email || "admin",
+        ...(parsed.status && { status: parsed.status }),
+        ...(parsed.notes !== undefined && { notes: parsed.notes }),
+        ...(parsed.reviewedBy && { reviewedBy: parsed.reviewedBy }),
         reviewedAt: parsed.status ? new Date() : undefined,
       },
     });
 
-    if (parsed.status === "APPROVED") {
-      await createMentorFromApplication(application);
-    }
+    // Note: We no longer auto-create mentor profiles here
+    // Users must complete the /mentor-setup flow after approval
 
     return NextResponse.json({ ok: true, data: application });
   } catch (error) {
@@ -53,64 +46,4 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
-
-async function createMentorFromApplication(app: Application) {
-  try {
-    const existing = await db.mentor.findFirst({
-      where: {
-        name: app.fullName,
-        category: inferCategory(app.topic),
-      },
-    });
-
-    if (existing) {
-      console.log("[admin:mentor] Already exists:", existing.id);
-      return;
-    }
-
-    const mentor = await db.mentor.create({
-      data: {
-        name: app.fullName,
-        category: inferCategory(app.topic),
-        tagline: app.topic,
-        rating: 5.0,
-        reviews: 0,
-        offerType: app.offerType,
-        accessPrice: app.accessPrice,
-        hourlyRate: app.hourlyRate,
-        badges: ["New mentor"],
-      },
-    });
-
-    console.log("[admin:mentor] Created:", mentor.id);
-    return mentor;
-  } catch (error) {
-    console.error("[admin:mentor] Failed to create:", error);
-  }
-}
-
-function inferCategory(topic: string): MentorCategory {
-  const lower = topic.toLowerCase();
-  
-  if (lower.includes("trading") || lower.includes("stocks") || lower.includes("crypto")) {
-    return "trading";
-  }
-  if (lower.includes("game") || lower.includes("valorant") || lower.includes("league") || lower.includes("cs")) {
-    return "gaming";
-  }
-  if (lower.includes("design") || lower.includes("ux") || lower.includes("ui") || lower.includes("figma")) {
-    return "design";
-  }
-  if (lower.includes("fitness") || lower.includes("workout") || lower.includes("gym")) {
-    return "fitness";
-  }
-  if (lower.includes("language") || lower.includes("spanish") || lower.includes("french") || lower.includes("japanese")) {
-    return "languages";
-  }
-  if (lower.includes("career") || lower.includes("resume") || lower.includes("interview")) {
-    return "career";
-  }
-  
-  return "career";
 }
