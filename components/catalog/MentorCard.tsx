@@ -10,10 +10,15 @@ import type { Mentor } from "@prisma/client";
 import { useSaved } from "./useSaved";
 
 export default function MentorCard({ m }: { m: Mentor }) {
-  const { isSaved, toggle, loading } = useSaved();
+  const { isSaved, toggle } = useSaved();
 
   const saved = isSaved(m.id);
   const badges = Array.isArray(m.badges) ? (m.badges as string[]) : [];
+
+  const handleSaveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    toggle(m.id);
+  };
 
   return (
     <Card>
@@ -50,11 +55,7 @@ export default function MentorCard({ m }: { m: Mentor }) {
           <Button href={`/mentors/${m.id}`}>View</Button>
           <Button
             variant={saved ? "primary" : "ghost"}
-            disabled={loading}
-            onClick={(e) => {
-              e.preventDefault();
-              toggle(m.id);
-            }}
+            onClick={handleSaveClick}
           >
             {saved ? "✓ Saved" : "Save"}
           </Button>

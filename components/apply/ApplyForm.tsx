@@ -4,13 +4,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  applicationFormSchema,
-  type ApplicationFormValues,
-} from "@/lib/schemas/application";
-
-import SectionHeader from "@/components/common/SectionHeader";
-import { Card, CardContent } from "@/components/common/Card";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
 import Label from "@/components/common/Label";
 import Input from "@/components/common/Input";
 import Textarea from "@/components/common/Textarea";
@@ -18,194 +13,170 @@ import Select from "@/components/common/Select";
 import Button from "@/components/common/Button";
 import FormFieldError from "@/components/common/FormFieldError";
 import Spinner from "@/components/common/Spinner";
+import { toast } from "@/components/common/Toast";
+
+const applicationSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  topic: z.string().min(5, "Topic must be at least 5 characters"),
+  proofLinks: z.string().min(10, "Please provide proof links"),
+  offerType: z.enum(["ACCESS", "TIME", "BOTH"]),
+  accessPrice: z.number().min(1).optional().nullable(),
+  hourlyRate: z.number().min(1).optional().nullable(),
+});
+
+type ApplicationFormData = z.infer<typeof applicationSchema>;
 
 export default function ApplyForm() {
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
     watch,
-    reset,
-  } = useForm<ApplicationFormValues>({
-    resolver: zodResolver(applicationFormSchema),
+    formState: { errors },
+  } = useForm<ApplicationFormData>({
+    resolver: zodResolver(applicationSchema),
     defaultValues: {
       offerType: "BOTH",
-      price: "",
-      hourlyRate: "",
     },
   });
 
   const offerType = watch("offerType");
 
-  async function onSubmit(values: ApplicationFormValues) {
-    setServerError(null);
-    setSuccessMessage(null);
+  const onSubmit = async (data: ApplicationFormData) => {
+    setSubmitting(true);
 
-    const res = await fetch("/api/applications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    try {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-    const data = await res.json();
+      const json = await res.json();
 
-    if (!res.ok) {
-      const message = data?.message ?? "Could not submit. Please try again.";
-      setServerError(message);
-      return;
+      if (!res.ok || !json.ok) {
+        toast(json.error || "Failed to submit application", "error");
+        setSubmitting(false);
+        return;
+      }
+
+      toast("Application submitted successfully! Check your email.", "success");
+      
+      setTimeout(() => {
+        router.push("/apply/success");
+      }, 1500);
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast("Something went wrong. Please try again.", "error");
+      setSubmitting(false);
     }
-
-    setSuccessMessage(data.message ?? "Application submitted successfully!");
-    reset({ offerType: "BOTH", price: "", hourlyRate: "" });
-    
-    // Scroll to top to see success message
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  };
 
   return (
-    <section className="section">
-      <SectionHeader
-        title="Apply to become a mentor"
-        subtitle="Tell us what you teach, show proof of expertise, and we'll review your application. After approval you'll connect payouts via Stripe."
-      />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="fullName">Full Name</Label>
+          <Input
+            id="fullName"
+            placeholder="Jane Doe"
+            {...register("fullName")}
+          />
+          <FormFieldError message={errors.fullName?.message} />
+        </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="container mt-8 grid gap-4 md:max-w-2xl">
-        {/* Success Message */}
-        {successMessage && (
-          <Card className="border-emerald-500/20 bg-emerald-500/10">
-            <CardContent>
-              <div className="flex items-start gap-3">
-                <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <p className="font-medium text-emerald-200">{successMessage}</p>
-                  <p className="mt-1 text-sm text-emerald-300/80">
-                    We&apos;ll email you at <strong>{watch("email")}</strong> once we&apos;ve reviewed your application.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="jane@example.com"
+            {...register("email")}
+          />
+          <FormFieldError message={errors.email?.message} />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="topic">What will you mentor in?</Label>
+        <Input
+          id="topic"
+          placeholder="e.g., Advanced Valorant strategies and aim training"
+          {...register("topic")}
+        />
+        <FormFieldError message={errors.topic?.message} />
+      </div>
+
+      <div>
+        <Label htmlFor="proofLinks">Proof Links</Label>
+        <Textarea
+          id="proofLinks"
+          placeholder="Provide links to your achievements, social profiles, certifications, etc."
+          rows={4}
+          {...register("proofLinks")}
+        />
+        <FormFieldError message={errors.proofLinks?.message} />
+      </div>
+
+      <div>
+        <Label htmlFor="offerType">What will you offer?</Label>
+        <Select id="offerType" {...register("offerType")}>
+          <option value="ACCESS">ACCESS only (community, resources)</option>
+          <option value="TIME">TIME only (1-on-1 sessions)</option>
+          <option value="BOTH">Both ACCESS and TIME</option>
+        </Select>
+      </div>
+
+      {(offerType === "ACCESS" || offerType === "BOTH") && (
+        <div>
+          <Label htmlFor="accessPrice">ACCESS price (monthly, USD)</Label>
+          <Input
+            id="accessPrice"
+            type="number"
+            placeholder="25"
+            {...register("accessPrice", { valueAsNumber: true })}
+          />
+          <FormFieldError message={errors.accessPrice?.message} />
+        </div>
+      )}
+
+      {(offerType === "TIME" || offerType === "BOTH") && (
+        <div>
+          <Label htmlFor="hourlyRate">Hourly rate (USD)</Label>
+          <Input
+            id="hourlyRate"
+            type="number"
+            placeholder="50"
+            {...register("hourlyRate", { valueAsNumber: true })}
+          />
+          <FormFieldError message={errors.hourlyRate?.message} />
+        </div>
+      )}
+
+      <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
+        <p className="text-sm text-blue-200">
+          We&apos;ll email you at <strong>{watch("email")}</strong> once we&apos;ve reviewed your application.
+        </p>
+      </div>
+
+      <Button
+        type="submit"
+        variant="primary"
+        className="w-full"
+        disabled={submitting}
+      >
+        {submitting ? (
+          <span className="flex items-center justify-center gap-2">
+            <Spinner size="sm" />
+            Submitting...
+          </span>
+        ) : (
+          "Submit Application"
         )}
-
-        {/* Error Message */}
-        {serverError && (
-          <Card className="border-rose-500/20 bg-rose-500/10">
-            <CardContent>
-              <div className="flex items-start gap-3">
-                <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <p className="text-rose-200">{serverError}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardContent className="grid gap-2">
-            <Label htmlFor="fullName">Full name</Label>
-            <Input id="fullName" placeholder="Your name" {...register("fullName")} />
-            <FormFieldError message={errors.fullName?.message} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email"
-              type="email" 
-              placeholder="you@example.com" 
-              autoComplete="email" 
-              {...register("email")} 
-            />
-            <FormFieldError message={errors.email?.message} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="grid gap-2">
-            <Label htmlFor="topic">What do you teach?</Label>
-            <Input 
-              id="topic"
-              placeholder="e.g., Day trading, Valorant coaching" 
-              {...register("topic")} 
-            />
-            <FormFieldError message={errors.topic?.message} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="grid gap-2">
-            <Label htmlFor="proofLinks">Proof links</Label>
-            <Textarea 
-              id="proofLinks"
-              placeholder="Portfolio, ranks, results, testimonials…" 
-              {...register("proofLinks")} 
-            />
-            <FormFieldError message={errors.proofLinks?.message} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="grid gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="offerType">What will you offer?</Label>
-              <Select id="offerType" {...register("offerType")}>
-                <option value="ACCESS">ACCESS (digital assets)</option>
-                <option value="TIME">TIME (live sessions)</option>
-                <option value="BOTH">Both</option>
-              </Select>
-              <FormFieldError message={errors.offerType?.message} />
-            </div>
-
-            {offerType !== "TIME" && (
-              <div className="grid gap-2">
-                <Label htmlFor="price">ACCESS price (USD)</Label>
-                <Input 
-                  id="price"
-                  placeholder="e.g., 20" 
-                  type="number"
-                  min="0"
-                  step="1"
-                  {...register("price")} 
-                />
-                <FormFieldError message={errors.price?.message} />
-              </div>
-            )}
-
-            {offerType !== "ACCESS" && (
-              <div className="grid gap-2">
-                <Label htmlFor="hourlyRate">TIME hourly rate (USD)</Label>
-                <Input 
-                  id="hourlyRate"
-                  placeholder="e.g., 30" 
-                  type="number"
-                  min="0"
-                  step="1"
-                  {...register("hourlyRate")} 
-                />
-                <FormFieldError message={errors.hourlyRate?.message} />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Button type="submit" disabled={isSubmitting || !!successMessage}>
-          {isSubmitting ? (
-            <span className="inline-flex items-center gap-2">
-              <Spinner size={16} /> Submitting…
-            </span>
-          ) : (
-            "Submit application"
-          )}
-        </Button>
-      </form>
-    </section>
+      </Button>
+    </form>
   );
 }

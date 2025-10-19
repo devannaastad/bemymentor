@@ -1,25 +1,69 @@
 // app/saved/page.tsx
 import { Suspense } from "react";
-import { headers } from "next/headers";
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+import { redirect } from "next/navigation";
 import MentorCard from "@/components/catalog/MentorCard";
 import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
 import type { Mentor } from "@prisma/client";
 
-export const dynamic = "force-dynamic"; // per-user page; do not prerender
+export const dynamic = "force-dynamic";
 
-async function fetchSaved(absoluteUrl: string) {
-  const res = await fetch(absoluteUrl, { cache: "no-store" });
-  if (!res.ok) return [] as Mentor[];
-  const json = (await res.json()) as { ok: boolean; data: Mentor[] };
-  return json?.data ?? [];
+async function getSavedMentors(): Promise<Mentor[]> {
+  try {
+    const session = await auth();
+    const email = session?.user?.email;
+    
+    if (!email) {
+      redirect("/signin?callbackUrl=/saved");
+    }
+
+    // Get saved mentor IDs
+    const saved = await db.savedMentor.findMany({
+      where: { user: { email } },
+      select: { mentorId: true },
+    });
+
+    if (saved.length === 0) {
+      return [];
+    }
+
+    const ids = saved.map((s) => s.mentorId);
+
+    // Fetch the actual mentors
+    const mentors = await db.mentor.findMany({
+      where: { id: { in: ids } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return mentors;
+  } catch (err) {
+    console.error("[saved/page] Error:", err);
+    return [];
+  }
 }
 
-async function SavedResults({ url }: { url: string }) {
-  const mentors = await fetchSaved(url);
+async function SavedResults() {
+  const mentors = await getSavedMentors();
+  
   if (mentors.length === 0) {
-    return <p className="muted">No saved mentors yet.</p>;
+    return (
+      <div className="col-span-full text-center py-12">
+        <p className="text-lg text-white/60 mb-4">No saved mentors yet.</p>
+        <p className="text-sm text-white/40">
+          Browse the catalog and save mentors you&apos;re interested in!
+        </p>
+      </div>
+    );
   }
-  return <>{mentors.map((m) => <MentorCard key={m.id} m={m} />)}</>;
+  
+  return (
+    <>
+      {mentors.map((m) => (
+        <MentorCard key={m.id} m={m} />
+      ))}
+    </>
+  );
 }
 
 function SavedFallback() {
@@ -33,12 +77,6 @@ function SavedFallback() {
 }
 
 export default async function SavedPage() {
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  const host = h.get("host") ?? "localhost:3000";
-  const baseUrl = `${proto}://${host}`;
-  const apiUrl = `${baseUrl}/api/saved`;
-
   return (
     <section className="section">
       <div className="container">
@@ -46,7 +84,7 @@ export default async function SavedPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Suspense fallback={<SavedFallback />}>
-            <SavedResults url={apiUrl} />
+            <SavedResults />
           </Suspense>
         </div>
       </div>

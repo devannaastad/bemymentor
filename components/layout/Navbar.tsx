@@ -23,6 +23,7 @@ export default function Navbar() {
 
   const items: NavItem[] = [
     { label: "Home", href: "/" },
+    { label: "Dashboard", href: "/dashboard" }, // Add this
     { label: "Catalog", href: "/catalog" },
     { label: "Apply as Mentor", href: "/apply" },
     { label: "Saved", href: "/saved" },
