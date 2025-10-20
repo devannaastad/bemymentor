@@ -1,120 +1,96 @@
 // app/settings/page.tsx
-"use client";
-
-import { useSession } from "next-auth/react";
-import AvatarUploader from "@/components/settings/AvatarUploader";
-import { Card, CardContent } from "@/components/common/Card";
-import Button from "@/components/common/Button";
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+import { Card, CardContent } from "@/components/common/Card";
+import AvatarUploader from "@/components/settings/AvatarUploader";
+import ProfileForm from "@/components/settings/ProfileForm";
+import NotificationPreferences from "@/components/settings/NotificationPreferences";
+import SavedMentorsManager from "@/components/settings/SavedMentorsManager";
+import DangerZone from "@/components/settings/DangerZone";
 
-export default function SettingsPage() {
-  const { data: session, status } = useSession();
+export const metadata = {
+  title: "Settings • BeMyMentor",
+};
 
-  // Redirect if not authenticated
-  if (status === "unauthenticated") {
+export default async function SettingsPage() {
+  const session = await auth();
+  const email = session?.user?.email;
+
+  if (!email) {
     redirect("/signin?callbackUrl=/settings");
   }
 
-  if (status === "loading") {
-    return (
-      <section className="section">
-        <div className="container max-w-2xl">
-          <div className="animate-pulse">
-            <div className="mb-6 h-8 w-48 rounded bg-white/10"></div>
-            <div className="space-y-4">
-              <div className="h-32 rounded-lg bg-white/5"></div>
-              <div className="h-32 rounded-lg bg-white/5"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
+  const user = await db.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      emailVerified: true,
+    },
+  });
+
+  if (!user) {
+    redirect("/signin");
   }
+
+  // Get saved mentors count
+  const savedCount = await db.savedMentor.count({
+    where: { userId: user.id },
+  });
 
   return (
     <section className="section">
-      <div className="container max-w-2xl">
-        <h1 className="h1 mb-6">Settings</h1>
+      <div className="container max-w-4xl">
+        <div className="mb-8">
+          <h1 className="h1">Settings</h1>
+          <p className="muted mt-2">Manage your account settings and preferences.</p>
+        </div>
 
-        {/* Profile Photo */}
-        <Card className="mb-6">
-          <CardContent>
-            <h2 className="mb-4 text-lg font-semibold">Profile Photo</h2>
-            <AvatarUploader initialUrl={session?.user?.image ?? null} />
-          </CardContent>
-        </Card>
+        <div className="grid gap-6">
+          {/* Profile Photo */}
+          <Card>
+            <CardContent>
+              <h2 className="mb-4 text-lg font-semibold">Profile Photo</h2>
+              <AvatarUploader initialUrl={user.image} />
+            </CardContent>
+          </Card>
 
-        {/* Profile Section */}
-        <Card className="mb-6">
-          <CardContent>
-            <h2 className="mb-4 text-lg font-semibold">Profile Information</h2>
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm text-white/60">Name</label>
-                <p className="text-white">{session?.user?.name || "Not set"}</p>
+          {/* Profile Information */}
+          <Card>
+            <CardContent>
+              <h2 className="mb-4 text-lg font-semibold">Profile Information</h2>
+              <ProfileForm user={user} />
+            </CardContent>
+          </Card>
+
+          {/* Notification Preferences */}
+          <Card>
+            <CardContent>
+              <h2 className="mb-4 text-lg font-semibold">Notification Preferences</h2>
+              <NotificationPreferences />
+            </CardContent>
+          </Card>
+
+          {/* Saved Mentors */}
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold">Saved Mentors</h2>
+                  <p className="text-sm text-white/60 mt-1">
+                    You have {savedCount} saved {savedCount === 1 ? "mentor" : "mentors"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <label className="text-sm text-white/60">Email</label>
-                <p className="text-white">{session?.user?.email}</p>
-              </div>
-            </div>
-            <Button className="mt-4" variant="ghost" disabled>
-              Edit Profile (Coming Soon)
-            </Button>
-          </CardContent>
-        </Card>
+              <SavedMentorsManager userId={user.id} />
+            </CardContent>
+          </Card>
 
-        {/* Notifications */}
-        <Card className="mb-6">
-          <CardContent>
-            <h2 className="mb-4 text-lg font-semibold">Notifications</h2>
-            <p className="text-sm text-white/60">
-              Email notifications are currently enabled for application updates and new messages from mentors.
-            </p>
-            <Button className="mt-4" variant="ghost" disabled>
-              Manage Notifications (Coming Soon)
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Privacy & Security */}
-        <Card className="mb-6">
-          <CardContent>
-            <h2 className="mb-4 text-lg font-semibold">Privacy & Security</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-white/70">Two-factor authentication</span>
-                <Button variant="ghost" size="sm" disabled>
-                  Enable (Coming Soon)
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/70">Connected accounts</span>
-                <Button variant="ghost" size="sm" disabled>
-                  Manage (Coming Soon)
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card className="border-rose-500/20 bg-rose-500/5">
-          <CardContent>
-            <h2 className="mb-2 text-lg font-semibold text-rose-300">Danger Zone</h2>
-            <p className="mb-4 text-sm text-white/60">
-              Permanently delete your account and all associated data.
-            </p>
-            <Button variant="danger" disabled>
-              Delete Account (Coming Soon)
-            </Button>
-          </CardContent>
-        </Card>
-
-        <div className="mt-6 text-center">
-          <Button href="/dashboard" variant="ghost">
-            ← Back to Dashboard
-          </Button>
+          {/* Danger Zone */}
+          <DangerZone />
         </div>
       </div>
     </section>
