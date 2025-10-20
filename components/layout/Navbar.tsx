@@ -2,13 +2,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/common";
 import NavDropdown, { NavItem } from "./NavDropdown";
+import Modal from "@/components/common/Modal";
 import PrefetchLink from "./PrefetchLink";
-import Image from "next/image";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -23,6 +24,7 @@ export default function Navbar() {
   const items: NavItem[] = [
     { label: "Home", href: "/" },
     { label: "Dashboard", href: "/dashboard" },
+    { label: "Mentor Dashboard", href: "/mentor-dashboard" },
     { label: "Catalog", href: "/catalog" },
     { label: "Apply as Mentor", href: "/apply" },
     { label: "Saved", href: "/saved" },
@@ -52,13 +54,16 @@ export default function Navbar() {
             <TopLink href="/apply" active={pathname === "/apply"}>
               Apply
             </TopLink>
+            <TopLink href="/saved" active={pathname === "/saved"}>
+              Saved
+            </TopLink>
             {status === "authenticated" && (
               <>
                 <TopLink href="/dashboard" active={pathname === "/dashboard"}>
                   Dashboard
                 </TopLink>
-                <TopLink href="/saved" active={pathname === "/saved"}>
-                  Saved
+                <TopLink href="/mentor-dashboard" active={pathname === "/mentor-dashboard"}>
+                  Mentor
                 </TopLink>
               </>
             )}
@@ -70,71 +75,66 @@ export default function Navbar() {
               <div className="h-8 w-28 animate-pulse rounded-md bg-white/10" />
             )}
 
-            {status !== "authenticated" && status !== "loading" && (
-              <>
-                <Button href="/signin" variant="ghost" size="sm">
-                  Sign in
-                </Button>
-                <Button href="/apply" size="sm">
-                  Apply
-                </Button>
-              </>
-            )}
-
-            {status === "authenticated" && (
+            {status !== "authenticated" ? (
+              <Link
+                href="/login"
+                className="inline-flex h-9 items-center rounded-md border border-white/15 px-3 text-sm text-neutral-200 hover:bg-white/5"
+              >
+                Sign in
+              </Link>
+            ) : (
               <NavDropdown
                 trigger={
-                  <button className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm hover:bg-white/10">
-                    {avatar && (
-                      <Image
-                        src={avatar}
-                        alt={username}
-                        width={24}
-                        height={24}
-                        className="h-6 w-6 rounded-full"
+                  <Button
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-transparent px-3 py-1.5 text-sm text-neutral-100 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+                    aria-label="Account menu"
+                  >
+                    <div className="relative h-8 w-8 overflow-hidden rounded-full bg-white/10">
+                      {avatar ? (
+                        <Image src={avatar} alt="Avatar" fill className="object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-neutral-300">
+                          {username.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <span className="max-w-[10rem] truncate">{username}</span>
+                    <svg className="ml-1 h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path
+                        fillRule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                        clipRule="evenodd"
                       />
-                    )}
-                    <span>{username}</span>
-                  </button>
+                    </svg>
+                  </Button>
                 }
                 items={items}
-                signedInAs={session?.user?.email || undefined}
+                signedInAs={session?.user?.email ?? username}
               />
             )}
           </div>
         </nav>
       </header>
 
-      {/* Sign out confirmation modal */}
-      {showSignOutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg border border-white/10 bg-neutral-900 p-6">
-            <h2 className="mb-2 text-lg font-semibold">Sign out?</h2>
-            <p className="mb-6 text-sm text-white/70">
-              Are you sure you want to sign out?
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button
-                onClick={() => setShowSignOutConfirm(false)}
-                variant="ghost"
-                size="sm"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  signOut({ callbackUrl: "/" });
-                  setShowSignOutConfirm(false);
-                }}
-                variant="danger"
-                size="sm"
-              >
-                Sign out
-              </Button>
-            </div>
-          </div>
+      {/* Confirm Sign Out Modal */}
+      <Modal open={showSignOutConfirm} onClose={() => setShowSignOutConfirm(false)}>
+        <h3 className="text-base font-semibold text-white">Sign out?</h3>
+        <p className="mt-1 text-sm text-neutral-300">You can always sign back in later.</p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button onClick={() => setShowSignOutConfirm(false)} variant="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setShowSignOutConfirm(false);
+              void signOut({ callbackUrl: "/" });
+            }}
+            variant="danger"
+          >
+            Sign out
+          </Button>
         </div>
-      )}
+      </Modal>
     </>
   );
 }
@@ -145,7 +145,7 @@ function TopLink({
   children,
 }: {
   href: string;
-  active: boolean;
+  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
