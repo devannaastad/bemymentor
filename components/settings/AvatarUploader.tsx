@@ -3,102 +3,97 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { UploadButton } from "@uploadthing/react";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
-import { Button } from "@/components/common";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import Button from "@/components/common/Button";
+import { toast } from "@/components/common/Toast";
+import { UploadButton } from "@/lib/uploadthing";
 
-type Props = { initialUrl?: string | null };
+interface AvatarUploaderProps {
+  initialUrl: string | null;
+}
 
-export default function AvatarUploader({ initialUrl }: Props) {
-  const [preview, setPreview] = useState<string | null>(initialUrl ?? null);
-  const [saving, setSaving] = useState(false);
-  const router = useRouter();
-  const { update } = useSession(); // ← client-side session refresh
+export default function AvatarUploader({ initialUrl }: AvatarUploaderProps) {
+  const [avatarUrl, setAvatarUrl] = useState(initialUrl);
+  const [removing, setRemoving] = useState(false);
 
-  async function persist(url: string) {
-    setSaving(true);
+  const handleRemove = async () => {
+    if (!confirm("Remove your profile photo?")) return;
+
+    setRemoving(true);
+
     try {
-      // 1) Save URL to DB
-      const res = await fetch("/api/avatar/save", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ url }),
+      const res = await fetch("/api/user/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: "" }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Failed to save avatar");
-      }
 
-      // 2) Update local preview immediately
-      setPreview(url);
+      if (!res.ok) throw new Error("Failed to remove");
 
-      // 3) Refresh NextAuth session (client) so Navbar picks the new image
-      try {
-        await update(); // v5 client API to refetch the session
-      } catch {
-        // no-op
-      }
-
-      // 4) Revalidate RSC tree
-      router.refresh();
+      setAvatarUrl(null);
+      toast("Profile photo removed", "success");
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (err) {
+      console.error("[AvatarUploader] Remove failed:", err);
+      toast("Failed to remove photo", "error");
     } finally {
-      setSaving(false);
+      setRemoving(false);
     }
-  }
+  };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-4">
-      <div className="flex items-center gap-4">
-        <div className="relative h-16 w-16 overflow-hidden rounded-full bg-white/5">
-          {preview ? (
-            <Image src={preview} alt="Profile avatar" fill className="object-cover" />
+    <div className="flex items-start gap-6">
+      <div className="relative">
+        <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-white/10 bg-white/5">
+          {avatarUrl ? (
+            <Image
+              src={avatarUrl}
+              alt="Profile photo"
+              width={96}
+              height={96}
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
-              No photo
+            <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-white/40">
+              ?
             </div>
           )}
         </div>
+      </div>
 
-        <div className="flex flex-1 flex-col gap-2">
-          <UploadButton<OurFileRouter, "avatarUploader">
-            endpoint="avatarUploader"
-            content={{
-              button({ isUploading }) {
-                return isUploading ? "Uploading…" : "Choose photo";
-              },
-            }}
-            appearance={{
-              button:
-                "rounded-md border border-white/15 px-3 py-1.5 text-sm text-neutral-100 bg-white/5 hover:bg-white/10",
-              allowedContent: "text-xs text-neutral-400 mt-1",
-            }}
-            onClientUploadComplete={async (files) => {
-              const url = files?.[0]?.url;
-              if (!url) return;
-              await persist(url);
-            }}
-            onUploadError={(err) => {
-              console.error(err);
-              alert(err.message || "Upload failed");
-            }}
-          />
+      <div className="flex-1 space-y-3">
+        <UploadButton
+          endpoint="avatarUploader"
+          onClientUploadComplete={(res) => {
+            if (res?.[0]?.url) {
+              setAvatarUrl(res[0].url);
+              toast("Profile photo updated!", "success");
+              setTimeout(() => {
+                window.location.reload();
+              }, 500);
+            }
+          }}
+          onUploadError={(error: Error) => {
+            toast(`Upload failed: ${error.message}`, "error");
+          }}
+        />
 
-          <div className="flex gap-2">
-            <Button
-              disabled={saving}
-              onClick={() => setPreview(initialUrl ?? null)}
-            >
-              Reset
-            </Button>
-          </div>
+        {avatarUrl && (
+          <Button
+            onClick={handleRemove}
+            variant="ghost"
+            size="sm"
+            disabled={removing}
+          >
+            {removing ? "Removing..." : "Remove Photo"}
+          </Button>
+        )}
 
-          <p className="text-xs text-neutral-400">
-            JPG/PNG/WebP up to 4MB. Cropped to a circle in the UI.
-          </p>
-        </div>
+        <p className="text-xs text-white/50">
+          JPG, PNG or GIF. Max size 4MB.
+        </p>
       </div>
     </div>
   );

@@ -50,7 +50,12 @@ export default function ProfileForm({ user }: ProfileFormProps) {
       }
 
       toast("Profile updated successfully", "success");
-      router.refresh();
+      
+      // With database sessions, the navbar will update automatically on next request
+      setTimeout(() => {
+        router.refresh();
+        window.location.reload(); // Force a full page reload to refresh session
+      }, 500);
     } catch (err) {
       console.error("[ProfileForm] Submit failed:", err);
       toast("Failed to update profile", "error");

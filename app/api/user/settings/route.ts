@@ -2,14 +2,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { updateProfileSchema } from "@/lib/schemas/settings";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 
-/**
- * GET /api/user/settings
- * Get current user's settings
- */
+const updateSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  image: z.string().url().optional().or(z.literal("")),
+});
+
 export async function GET() {
   try {
     const session = await auth();
@@ -44,10 +45,6 @@ export async function GET() {
   }
 }
 
-/**
- * PATCH /api/user/settings
- * Update user profile settings
- */
 export async function PATCH(req: NextRequest) {
   try {
     const session = await auth();
@@ -58,7 +55,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const validation = updateProfileSchema.safeParse(body);
+    const validation = updateSchema.safeParse(body);
 
     if (!validation.success) {
       return NextResponse.json(
@@ -67,12 +64,9 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const { name, image } = validation.data;
-
-    // Build update data (only include defined fields)
     const updateData: { name?: string; image?: string | null } = {};
-    if (name !== undefined) updateData.name = name;
-    if (image !== undefined) updateData.image = image || null;
+    if (validation.data.name !== undefined) updateData.name = validation.data.name;
+    if (validation.data.image !== undefined) updateData.image = validation.data.image || null;
 
     const user = await db.user.update({
       where: { email },

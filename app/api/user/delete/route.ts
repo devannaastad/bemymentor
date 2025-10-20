@@ -28,14 +28,6 @@ export async function DELETE() {
     }
 
     // Delete the user (cascade will handle related data)
-    // Cascade deletes will handle:
-    // - Account (OAuth connections)
-    // - Session (active sessions)
-    // - SavedMentor (saved mentors)
-    // - Booking (bookings as a learner)
-    // - Mentor (if they are a mentor, which cascades to their bookings)
-    // - Application (not cascade, but we'll delete manually to be safe)
-    
     await db.$transaction([
       // Explicitly delete applications (not set up with cascade in schema)
       db.application.deleteMany({

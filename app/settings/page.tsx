@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/common/Card";
 import AvatarUploader from "@/components/settings/AvatarUploader";
 import ProfileForm from "@/components/settings/ProfileForm";
 import NotificationPreferences from "@/components/settings/NotificationPreferences";
-import SavedMentorsManager from "@/components/settings/SavedMentorsManager";
 import DangerZone from "@/components/settings/DangerZone";
 
 export const metadata = {
@@ -35,11 +34,6 @@ export default async function SettingsPage() {
   if (!user) {
     redirect("/signin");
   }
-
-  // Get saved mentors count
-  const savedCount = await db.savedMentor.count({
-    where: { userId: user.id },
-  });
 
   return (
     <section className="section">
@@ -71,21 +65,6 @@ export default async function SettingsPage() {
             <CardContent>
               <h2 className="mb-4 text-lg font-semibold">Notification Preferences</h2>
               <NotificationPreferences />
-            </CardContent>
-          </Card>
-
-          {/* Saved Mentors */}
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold">Saved Mentors</h2>
-                  <p className="text-sm text-white/60 mt-1">
-                    You have {savedCount} saved {savedCount === 1 ? "mentor" : "mentors"}
-                  </p>
-                </div>
-              </div>
-              <SavedMentorsManager userId={user.id} />
             </CardContent>
           </Card>
 

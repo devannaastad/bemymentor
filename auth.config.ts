@@ -24,18 +24,11 @@ const authConfig = {
       }
       return true;
     },
-    async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
-      }
-      return session;
-    },
-    async jwt({ token }) {
-      return token;
-    },
   },
   session: {
-    strategy: "jwt" as const,
+    strategy: "database" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
 } satisfies NextAuthConfig;
 
