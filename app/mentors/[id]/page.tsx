@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import SaveButton from "@/components/mentors/SaveButton";
+import ReviewList from "@/components/reviews/ReviewList";
 import { formatCurrency } from "@/lib/utils/format";
 
 type Params = { id: string };
@@ -40,6 +41,27 @@ export default async function MentorPage({
   });
 
   if (!mentor) notFound();
+
+  // Fetch reviews for this mentor
+  const reviews = await db.review.findMany({
+    where: { mentorId: id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      booking: {
+        select: {
+          type: true,
+          createdAt: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   const badges = Array.isArray(mentor.badges) ? (mentor.badges as string[]) : [];
 
@@ -216,13 +238,13 @@ export default async function MentorPage({
             </CardContent>
             </Card>
 
-            {/* Reviews Section - Placeholder */}
+            {/* Reviews Section */}
             <Card>
               <CardContent>
-                <h2 className="mb-4 text-xl font-semibold">Reviews</h2>
-                <div className="py-8 text-center">
-                  <p className="text-white/60">Reviews coming soon</p>
-                </div>
+                <h2 className="mb-4 text-xl font-semibold">
+                  Reviews ({reviews.length})
+                </h2>
+                <ReviewList reviews={reviews} />
               </CardContent>
             </Card>
           </div>

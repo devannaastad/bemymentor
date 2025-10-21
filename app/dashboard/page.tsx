@@ -53,6 +53,7 @@ async function getDashboardData(email: string) {
             profileImage: true,
           },
         },
+        review: true,
       },
       orderBy: { createdAt: "desc" },
       take: 5,
@@ -206,11 +207,21 @@ export default async function DashboardPage() {
                             ? "success"
                             : booking.status === "PENDING"
                             ? "warning"
+                            : booking.status === "COMPLETED"
+                            ? "default"
                             : "default"
                         }
                       >
                         {booking.status}
                       </Badge>
+                      {booking.status === "COMPLETED" && !booking.review && (
+                        <Button href={`/bookings/${booking.id}/review`} variant="primary" size="sm">
+                          Write Review
+                        </Button>
+                      )}
+                      {booking.status === "COMPLETED" && booking.review && (
+                        <Badge variant="success">Reviewed</Badge>
+                      )}
                       <Button href={`/bookings/${booking.id}/confirm`} variant="ghost" size="sm">
                         View →
                       </Button>
