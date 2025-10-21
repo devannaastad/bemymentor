@@ -8,8 +8,59 @@ import NextTopLoader from "nextjs-toploader";
 import ToastContainer from "@/components/common/Toast";
 
 export const metadata: Metadata = {
-  title: "BeMyMentor",
-  description: "Connect mentors and learners.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  title: {
+    default: "BeMyMentor - Find Your Perfect Mentor",
+    template: "%s | BeMyMentor",
+  },
+  description:
+    "Connect with expert mentors in trading, gaming, design, fitness, languages, and career development. Book 1-on-1 sessions or get exclusive access to mentor communities.",
+  keywords: [
+    "mentorship",
+    "online coaching",
+    "trading mentor",
+    "gaming coach",
+    "design mentor",
+    "fitness coach",
+    "language tutor",
+    "career coaching",
+  ],
+  authors: [{ name: "BeMyMentor" }],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "BeMyMentor",
+    title: "BeMyMentor - Find Your Perfect Mentor",
+    description:
+      "Connect with expert mentors in trading, gaming, design, fitness, languages, and career development.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "BeMyMentor",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BeMyMentor - Find Your Perfect Mentor",
+    description:
+      "Connect with expert mentors in trading, gaming, design, fitness, languages, and career development.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

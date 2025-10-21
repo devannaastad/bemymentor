@@ -9,6 +9,18 @@ import MentorCard from "@/components/catalog/MentorCard";
 import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
 import Badge from "@/components/common/Badge";
 import type { Mentor } from "@prisma/client";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Browse Mentors",
+  description:
+    "Explore our catalog of expert mentors in trading, gaming, design, fitness, languages, and career coaching. Filter by category, price, and availability.",
+  openGraph: {
+    title: "Browse Mentors | BeMyMentor",
+    description:
+      "Find the perfect mentor for your goals. Browse expert coaches and mentors across multiple categories.",
+  },
+};
 
 export const revalidate = 60;
 
