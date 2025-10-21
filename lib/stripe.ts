@@ -6,11 +6,6 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-12-18.acacia",
+  // Remove apiVersion to use the library's default
   typescript: true,
 });
-
-export const STRIPE_CONFIG = {
-  currency: "usd",
-  paymentMethodTypes: ["card"] as const,
-};
