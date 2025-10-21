@@ -1,5 +1,6 @@
 // app/mentors/[id]/page.tsx
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import type { Metadata } from "next";
 import { Card, CardContent } from "@/components/common/Card";
@@ -47,12 +48,33 @@ export default async function MentorPage({
       <div className="container max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="mb-4 flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h1 className="h1 mb-2">{mentor.name}</h1>
-              <p className="text-lg text-white/70">{mentor.tagline}</p>
+          <div className="mb-4 flex items-start gap-6">
+            {/* Profile Image */}
+            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-white/10 md:h-32 md:w-32">
+              {mentor.profileImage ? (
+                <Image
+                  src={mentor.profileImage}
+                  alt={mentor.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 96px, 128px"
+                  priority
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 text-4xl font-bold text-white md:text-5xl">
+                  {mentor.name.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
-            <SaveButton mentorId={mentor.id} />
+
+            {/* Mentor Info */}
+            <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h1 className="h1 mb-2">{mentor.name}</h1>
+                <p className="text-lg text-white/70">{mentor.tagline}</p>
+              </div>
+              <SaveButton mentorId={mentor.id} />
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">

@@ -23,6 +23,9 @@ importers:
       '@react-email/render':
         specifier: ^1.4.0
         version: 1.4.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@stripe/stripe-js':
+        specifier: ^8.1.0
+        version: 8.1.0
       '@uploadthing/react':
         specifier: ^7.3.3
         version: 7.3.3(next@15.5.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(uploadthing@7.7.4(next@15.5.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwindcss@4.1.14))
@@ -53,6 +56,9 @@ importers:
       resend:
         specifier: ^6.2.0
         version: 6.2.0(@react-email/render@1.4.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))
+      stripe:
+        specifier: ^19.1.0
+        version: 19.1.0(@types/node@20.19.22)
       uploadthing:
         specifier: ^7.7.4
         version: 7.7.4(next@15.5.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwindcss@4.1.14)
@@ -685,6 +691,10 @@ packages:
 
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
+
+  '@stripe/stripe-js@8.1.0':
+    resolution: {integrity: sha512-bhhi0iSHDFRa2pPVv3WOHC6x/iGEu5AZqIiAvXsT8VOucsEre9gzgsK0jFzbzfGW2eeubF+mCdTTYwNAQCMJKg==}
+    engines: {node: '>=12.16'}
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
@@ -2107,6 +2117,10 @@ packages:
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
+  qs@6.14.0:
+    resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
+    engines: {node: '>=0.6'}
+
   querystringify@2.2.0:
     resolution: {integrity: sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==}
 
@@ -2299,6 +2313,15 @@ packages:
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
+
+  stripe@19.1.0:
+    resolution: {integrity: sha512-FjgIiE98dMMTNssfdjMvFdD4eZyEzdWAOwPYqzhPRNZeg9ggFWlPXmX1iJKD5pPIwZBaPlC3SayQQkwsPo6/YQ==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      '@types/node': '>=16'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
 
   styled-jsx@5.1.6:
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}
@@ -2916,6 +2939,8 @@ snapshots:
   '@standard-schema/spec@1.0.0-beta.4': {}
 
   '@standard-schema/utils@0.3.0': {}
+
+  '@stripe/stripe-js@8.1.0': {}
 
   '@swc/helpers@0.5.15':
     dependencies:
@@ -4510,6 +4535,10 @@ snapshots:
 
   pure-rand@6.1.0: {}
 
+  qs@6.14.0:
+    dependencies:
+      side-channel: 1.1.0
+
   querystringify@2.2.0: {}
 
   queue-microtask@1.2.3: {}
@@ -4769,6 +4798,12 @@ snapshots:
   strip-bom@3.0.0: {}
 
   strip-json-comments@3.1.1: {}
+
+  stripe@19.1.0(@types/node@20.19.22):
+    dependencies:
+      qs: 6.14.0
+    optionalDependencies:
+      '@types/node': 20.19.22
 
   styled-jsx@5.1.6(react@19.1.0):
     dependencies:

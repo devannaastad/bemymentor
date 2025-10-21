@@ -6,21 +6,31 @@ import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import Image from "next/image";
+import PaymentButton from "@/components/booking/PaymentButton";
 
 type Params = { id: string };
+type SearchParams = {
+  session_id?: string;
+  canceled?: string;
+};
 
 export default async function BookingConfirmPage({
   params,
+  searchParams,
 }: {
   params: Promise<Params>;
+  searchParams?: Promise<SearchParams>;
 }) {
   const session = await auth();
-  
+
   if (!session?.user?.email) {
     redirect("/signin");
   }
 
   const { id } = await params;
+  const sp = (await searchParams) || {};
+  const paymentCanceled = sp.canceled === "true";
+  const paymentCompleted = !!sp.session_id;
 
   const user = await db.user.findUnique({
     where: { email: session.user.email },
@@ -56,19 +66,56 @@ export default async function BookingConfirmPage({
       })
     : null;
 
+  const isPaid = booking.status === "CONFIRMED" && booking.stripePaidAt;
+  const isPending = booking.status === "PENDING" && !booking.stripePaymentIntentId;
+
   return (
     <section className="section">
       <div className="container max-w-3xl">
-        {/* Success Header */}
-        <Card className="mb-8 border-emerald-500/20 bg-emerald-500/5">
-          <CardContent className="text-center">
-            <div className="mb-4 text-6xl">✅</div>
-            <h1 className="h2 mb-2">Booking Created!</h1>
-            <p className="text-white/70">
-              Your booking has been created. Payment integration coming soon.
-            </p>
-          </CardContent>
-        </Card>
+        {/* Success/Status Header */}
+        {isPaid ? (
+          <Card className="mb-8 border-emerald-500/20 bg-emerald-500/5">
+            <CardContent className="text-center">
+              <div className="mb-4 text-6xl">✅</div>
+              <h1 className="h2 mb-2">Payment Successful!</h1>
+              <p className="text-white/70">
+                Your booking is confirmed. {booking.type === "ACCESS"
+                  ? "You'll receive access details shortly."
+                  : "You'll receive a calendar invite and meeting link soon."}
+              </p>
+            </CardContent>
+          </Card>
+        ) : paymentCanceled ? (
+          <Card className="mb-8 border-amber-500/20 bg-amber-500/5">
+            <CardContent className="text-center">
+              <div className="mb-4 text-6xl">⚠️</div>
+              <h1 className="h2 mb-2">Payment Canceled</h1>
+              <p className="text-white/70">
+                Your booking is saved but not confirmed. Complete payment below to confirm.
+              </p>
+            </CardContent>
+          </Card>
+        ) : isPending ? (
+          <Card className="mb-8 border-blue-500/20 bg-blue-500/5">
+            <CardContent className="text-center">
+              <div className="mb-4 text-6xl">💳</div>
+              <h1 className="h2 mb-2">Complete Your Booking</h1>
+              <p className="text-white/70">
+                Your booking is created. Complete payment to confirm.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="mb-8 border-emerald-500/20 bg-emerald-500/5">
+            <CardContent className="text-center">
+              <div className="mb-4 text-6xl">✅</div>
+              <h1 className="h2 mb-2">Booking Confirmed!</h1>
+              <p className="text-white/70">
+                Your booking has been confirmed and is being processed.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Booking Details */}
         <Card className="mb-8">
@@ -160,25 +207,55 @@ export default async function BookingConfirmPage({
                   <p className="text-sm text-white/60">Total Amount</p>
                   <p className="text-3xl font-bold">${formattedPrice}</p>
                 </div>
-                <Badge variant="warning">Payment Pending</Badge>
+                {isPaid ? (
+                  <Badge variant="success">Paid</Badge>
+                ) : (
+                  <Badge variant="warning">Payment Pending</Badge>
+                )}
               </div>
+
+              {/* Payment Button - Only show if payment is pending */}
+              {isPending && (
+                <>
+                  <div className="h-px bg-white/10" />
+                  <div className="text-center">
+                    <PaymentButton bookingId={booking.id} />
+                  </div>
+                </>
+              )}
 
               {/* Info Box */}
               <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
                 <h3 className="mb-2 font-semibold text-blue-200">What&apos;s Next?</h3>
                 <ul className="space-y-2 text-sm text-blue-100">
-                  {booking.type === "ACCESS" ? (
-                    <>
-                      <li>• Payment processing will be available soon via Stripe</li>
-                      <li>• Once paid, you&apos;ll get instant access to all resources</li>
-                      <li>• Check your email for access instructions</li>
-                    </>
+                  {isPaid ? (
+                    booking.type === "ACCESS" ? (
+                      <>
+                        <li>• Check your email for access instructions and credentials</li>
+                        <li>• Join the private community (link in email)</li>
+                        <li>• Access all digital resources immediately</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>• You&apos;ll receive a calendar invite via email</li>
+                        <li>• The meeting link will be shared before the session</li>
+                        <li>• The mentor may reach out with preparation materials</li>
+                      </>
+                    )
                   ) : (
-                    <>
-                      <li>• Payment processing will be available soon via Stripe</li>
-                      <li>• You&apos;ll receive a calendar invite and meeting link</li>
-                      <li>• The mentor will contact you 24 hours before the session</li>
-                    </>
+                    booking.type === "ACCESS" ? (
+                      <>
+                        <li>• Complete payment to confirm your booking</li>
+                        <li>• Once paid, you&apos;ll get instant access to all resources</li>
+                        <li>• Check your email for access instructions</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>• Complete payment to confirm your booking</li>
+                        <li>• You&apos;ll receive a calendar invite and meeting link</li>
+                        <li>• The mentor will contact you before the session</li>
+                      </>
+                    )
                   )}
                 </ul>
               </div>
