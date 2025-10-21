@@ -61,12 +61,15 @@ model User {
 
   // back-relation: all mentors this user saved
   savedMentors SavedMentor[]
-  
+
   // back-relation: mentor profile if this user is a mentor
   mentorProfile Mentor?
-  
+
   // back-relation: all bookings made by this user
   bookings Booking[]
+
+  // back-relation: all reviews written by this user
+  reviews Review[]
 }
 
 model Account {
@@ -134,9 +137,12 @@ model Mentor {
 
   // back-relation: all users that saved this mentor
   savedBy SavedMentor[]
-  
+
   // back-relation: all bookings for this mentor
   bookings Booking[]
+
+  // back-relation: all reviews for this mentor
+  mentorReviews Review[]
 
   @@index([userId])
   @@index([category])
@@ -195,32 +201,59 @@ model Booking {
   mentorId        String
   type            BookingType
   status          BookingStatus @default(PENDING)
-  
+
   // Pricing
   totalPrice      Int           // Price in cents (USD)
-  
+
   // For SESSION bookings only
   scheduledAt     DateTime?     // When the session is scheduled
   durationMinutes Int?          // Session duration (e.g., 60)
   meetingLink     String?       // Zoom/Google Meet link
-  
+
   // Metadata
   notes           String?       @db.Text // User notes for the mentor
   cancellationReason String?    @db.Text
-  
+
   // Stripe info (for later)
   stripePaymentIntentId String? @unique
   stripePaidAt          DateTime?
-  
+
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   mentor Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  // back-relation: review for this booking (if any)
+  review Review?
 
   @@index([userId])
   @@index([mentorId])
   @@index([status])
   @@index([scheduledAt])
+  @@index([createdAt])
+}
+
+/**
+ * Reviews - user reviews for mentors (only after completed bookings)
+ */
+model Review {
+  id                String   @id @default(cuid())
+  bookingId         String   @unique // One review per booking
+  userId            String   // Who wrote the review
+  mentorId          String   // Who is being reviewed
+  rating            Int      // 1-5 stars
+  comment           String?  @db.Text // Optional review text
+  isVerifiedPurchase Boolean @default(true) // Always true if tied to booking
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentor  Mentor  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([mentorId])
+  @@index([bookingId])
   @@index([createdAt])
 }

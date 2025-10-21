@@ -11,9 +11,15 @@ export async function GET(req: Request) {
   const priceMaxRaw = searchParams.get("priceMax");
   const offerTypeRaw = (searchParams.get("type") ?? "").trim().toUpperCase();
   const idsRaw = (searchParams.get("ids") ?? "").trim();
+  const sortBy = searchParams.get("sort") ?? "rating";
+  const pageRaw = searchParams.get("page");
+  const limitRaw = searchParams.get("limit");
 
   const priceMin = priceMinRaw ? Number(priceMinRaw) : undefined;
   const priceMax = priceMaxRaw ? Number(priceMaxRaw) : undefined;
+  const page = pageRaw ? Math.max(1, Number(pageRaw)) : 1;
+  const limit = limitRaw ? Math.min(100, Math.max(1, Number(limitRaw))) : 24;
+  const skip = (page - 1) * limit;
 
   const where: Prisma.MentorWhereInput = {};
 
@@ -61,18 +67,56 @@ export async function GET(req: Request) {
     where.AND = andClauses;
   }
 
-  try {
-    const mentors = await prisma.mentor.findMany({
-      where,
-      orderBy: [{ rating: "desc" }, { reviews: "desc" }],
-      take: 48,
-    });
+  // Determine sort order
+  let orderBy: Prisma.MentorOrderByWithRelationInput[] = [];
+  switch (sortBy) {
+    case "rating":
+      orderBy = [{ rating: "desc" }, { reviews: "desc" }];
+      break;
+    case "newest":
+      orderBy = [{ createdAt: "desc" }];
+      break;
+    case "reviews":
+      orderBy = [{ reviews: "desc" }, { rating: "desc" }];
+      break;
+    case "price-low":
+      orderBy = [{ accessPrice: "asc" }, { hourlyRate: "asc" }];
+      break;
+    case "price-high":
+      orderBy = [{ accessPrice: "desc" }, { hourlyRate: "desc" }];
+      break;
+    default:
+      orderBy = [{ rating: "desc" }, { reviews: "desc" }];
+  }
 
-    return NextResponse.json({ ok: true, data: mentors });
+  try {
+    const [mentors, total] = await Promise.all([
+      prisma.mentor.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      prisma.mentor.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return NextResponse.json({
+      ok: true,
+      data: mentors,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasMore: page < totalPages,
+      }
+    });
   } catch (error) {
     console.error("[api/mentors] Query failed:", error);
     return NextResponse.json(
-      { ok: false, error: "Failed to fetch mentors" }, 
+      { ok: false, error: "Failed to fetch mentors" },
       { status: 500 }
     );
   }
