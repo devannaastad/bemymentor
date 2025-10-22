@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/common/Card";
 import AvatarUploader from "@/components/settings/AvatarUploader";
 import ProfileForm from "@/components/settings/ProfileForm";
 import NotificationPreferences from "@/components/settings/NotificationPreferences";
+import TwoFactorSettings from "@/components/settings/TwoFactorSettings";
 import DangerZone from "@/components/settings/DangerZone";
 
 export const metadata = {
@@ -28,6 +29,7 @@ export default async function SettingsPage() {
       email: true,
       image: true,
       emailVerified: true,
+      twoFactorEnabled: true,
     },
   });
 
@@ -65,6 +67,13 @@ export default async function SettingsPage() {
             <CardContent>
               <h2 className="mb-4 text-lg font-semibold">Notification Preferences</h2>
               <NotificationPreferences />
+            </CardContent>
+          </Card>
+
+          {/* Two-Factor Authentication */}
+          <Card>
+            <CardContent>
+              <TwoFactorSettings initialEnabled={user.twoFactorEnabled} />
             </CardContent>
           </Card>
 

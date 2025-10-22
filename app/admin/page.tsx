@@ -186,7 +186,6 @@ export default async function AdminDashboardPage() {
                               ? "warning"
                               : "default"
                           }
-                          size="sm"
                         >
                           {booking.status}
                         </Badge>
@@ -223,7 +222,7 @@ export default async function AdminDashboardPage() {
                         </p>
                       </div>
                       {user.emailVerified && (
-                        <Badge variant="success" size="sm">
+                        <Badge variant="success">
                           Verified
                         </Badge>
                       )}

@@ -23,6 +23,7 @@ export function MentorBookingNotificationEmail({
   scheduledAt,
   durationMinutes,
   notes,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   bookingId,
   dashboardUrl,
 }: MentorBookingNotificationEmailProps) {

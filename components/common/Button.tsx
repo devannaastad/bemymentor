@@ -29,10 +29,10 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
       "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed";
 
     const variants = {
-      primary: "bg-white text-black hover:bg-white/90 active:bg-white/80",
-      secondary: "bg-white/10 text-white hover:bg-white/15 active:bg-white/20",
-      ghost: "text-white/70 hover:bg-white/5 hover:text-white",
-      danger: "bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800",
+      primary: "text-black hover:scale-[1.02]",
+      secondary: "text-black hover:scale-[1.02]",
+      ghost: "bg-white/10 text-white hover:bg-white/15 border border-white/20",
+      danger: "bg-gradient-to-r from-rose-600 to-rose-700 text-white hover:shadow-lg hover:scale-[1.02]",
     };
 
     const sizes = {
@@ -42,6 +42,22 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
     };
 
     const classes = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`;
+
+    const getGradientStyle = (): React.CSSProperties | undefined => {
+      if (variant === "primary") {
+        return {
+          background: "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
+          boxShadow: "0 4px 6px -1px rgba(245, 158, 11, 0.5), 0 2px 4px -1px rgba(245, 158, 11, 0.06)",
+        };
+      }
+      if (variant === "secondary") {
+        return {
+          background: "linear-gradient(135deg, #eab308 0%, #fde047 100%)",
+          boxShadow: "0 4px 6px -1px rgba(234, 179, 8, 0.5), 0 2px 4px -1px rgba(234, 179, 8, 0.06)",
+        };
+      }
+      return undefined;
+    };
 
     const content = loading ? (
       <>
@@ -54,7 +70,7 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
 
     if ("href" in props && props.href) {
       return (
-        <Link href={props.href} className={classes} ref={ref as React.Ref<HTMLAnchorElement>}>
+        <Link href={props.href} className={classes} style={getGradientStyle()} ref={ref as React.Ref<HTMLAnchorElement>}>
           {content}
         </Link>
       );
@@ -68,6 +84,7 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
         onClick={onClick}
         disabled={disabled || loading}
         className={classes}
+        style={getGradientStyle()}
         ref={ref as React.Ref<HTMLButtonElement>}
         {...buttonProps}
       >

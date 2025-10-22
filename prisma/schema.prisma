@@ -55,6 +55,12 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  password      String?   // For email/password authentication
+
+  // Two-Factor Authentication
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?  // TOTP secret (encrypted)
+  backupCodes      String?  // JSON array of backup codes (encrypted)
 
   accounts Account[]
   sessions Session[]
@@ -70,6 +76,9 @@ model User {
 
   // back-relation: all reviews written by this user
   reviews Review[]
+
+  // back-relation: all notifications for this user
+  notifications Notification[]
 }
 
 model Account {
@@ -130,6 +139,20 @@ model Mentor {
   hourlyRate   Int?
   badges       Json?
   isActive     Boolean        @default(true) // Can be toggled off by admin or mentor
+
+  // Anti-fraud / Trust system
+  isTrusted    Boolean        @default(false) // True after 5 verified bookings
+  verifiedBookingsCount Int   @default(0)     // Count of verified non-scam bookings
+
+  // Stripe Connect
+  stripeConnectId String?      @unique        // Stripe Connect account ID
+  stripeOnboarded Boolean      @default(false) // True when Stripe onboarding complete
+
+  // Onboarding progress tracking
+  onboardingStep   Int         @default(0)    // Current step in onboarding (0-5)
+  onboardingComplete Boolean   @default(false) // True when all steps complete
+  profileCompleteness Int      @default(0)    // 0-100 percentage
+
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
@@ -144,9 +167,19 @@ model Mentor {
   // back-relation: all reviews for this mentor
   mentorReviews Review[]
 
+  // back-relation: availability schedule
+  availability Availability[]
+
+  // back-relation: specific available time slots
+  availableSlots AvailableSlot[]
+
+  // back-relation: blocked time slots
+  blockedSlots BlockedSlot[]
+
   @@index([userId])
   @@index([category])
   @@index([isActive])
+  @@index([isTrusted])
 }
 
 /**
@@ -204,6 +237,8 @@ model Booking {
 
   // Pricing
   totalPrice      Int           // Price in cents (USD)
+  platformFee     Int?          // Platform fee in cents (calculated at booking time)
+  mentorPayout    Int?          // Amount mentor receives in cents
 
   // For SESSION bookings only
   scheduledAt     DateTime?     // When the session is scheduled
@@ -214,7 +249,19 @@ model Booking {
   notes           String?       @db.Text // User notes for the mentor
   cancellationReason String?    @db.Text
 
-  // Stripe info (for later)
+  // Anti-fraud verification
+  isVerified      Boolean       @default(false) // Customer verified no scam
+  verifiedAt      DateTime?     // When customer verified
+  isFraudReported Boolean       @default(false) // Customer reported fraud
+  fraudReportedAt DateTime?     // When fraud was reported
+  fraudNotes      String?       @db.Text // Admin notes on fraud report
+
+  // Payout tracking
+  payoutStatus    String        @default("HELD") // HELD, RELEASED, PAID_OUT, REFUNDED
+  payoutReleasedAt DateTime?    // When funds released to mentor
+  payoutId        String?       // Stripe payout/transfer ID
+
+  // Stripe info
   stripePaymentIntentId String? @unique
   stripePaidAt          DateTime?
 
@@ -232,6 +279,8 @@ model Booking {
   @@index([status])
   @@index([scheduledAt])
   @@index([createdAt])
+  @@index([isVerified])
+  @@index([payoutStatus])
 }
 
 /**
@@ -255,5 +304,98 @@ model Review {
   @@index([userId])
   @@index([mentorId])
   @@index([bookingId])
+  @@index([createdAt])
+}
+/**
+ * Mentor Availability - Defines when mentors are available for sessions
+ */
+model Availability {
+  id        String   @id @default(cuid())
+  mentorId  String
+
+  // Day of week (0 = Sunday, 1 = Monday, ... 6 = Saturday)
+  dayOfWeek Int
+
+  // Time slots in 24-hour format (e.g., "09:00", "14:30")
+  startTime String
+  endTime   String
+
+  // Timezone (e.g., "America/New_York", "Europe/London")
+  timezone  String   @default("America/New_York")
+
+  // Allow mentor to temporarily disable specific slots
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mentor Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@index([mentorId])
+  @@index([dayOfWeek])
+  @@index([isActive])
+}
+
+/**
+ * Available Time Slots - For specific dates/times when mentor is available
+ * (one-off availability for specific dates)
+ */
+model AvailableSlot {
+  id        String   @id @default(cuid())
+  mentorId  String
+
+  startTime DateTime
+  endTime   DateTime
+
+  createdAt DateTime @default(now())
+
+  mentor Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@index([mentorId])
+  @@index([startTime])
+}
+
+/**
+ * Blocked Time Slots - For specific dates/times when mentor is unavailable
+ * (e.g., vacation, one-off appointments)
+ */
+model BlockedSlot {
+  id        String   @id @default(cuid())
+  mentorId  String
+
+  startTime DateTime
+  endTime   DateTime
+
+  reason    String?  @db.Text // Optional note (e.g., "On vacation")
+
+  createdAt DateTime @default(now())
+
+  mentor Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@index([mentorId])
+  @@index([startTime])
+}
+
+/**
+ * Notifications - In-app notifications for users
+ */
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+
+  type      String   // BOOKING_CONFIRMED, BOOKING_CANCELLED, REVIEW_RECEIVED, etc.
+  title     String
+  message   String   @db.Text
+  link      String?  // Optional link to related resource
+
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
   @@index([createdAt])
 }

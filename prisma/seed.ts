@@ -14,7 +14,12 @@ async function main() {
       email: "alex.thompson@seed.internal",
       category: MentorCategory.trading,
       tagline: "Crypto trader • $2M+ profit in 2024",
-      bio: "Professional cryptocurrency trader with over 5 years of experience in the markets.",
+      bio: "Professional cryptocurrency trader with over 5 years of experience in the markets. Specializing in technical analysis, risk management, and portfolio optimization. I've helped hundreds of traders develop consistent strategies.",
+      profileImage: "https://i.pravatar.cc/400?img=12",
+      socialLinks: {
+        twitter: "https://twitter.com/alexthompson",
+        website: "https://alexthompson.trading",
+      },
       rating: 4.9,
       reviews: 234,
       offerType: OfferType.BOTH,
@@ -29,7 +34,11 @@ async function main() {
       email: "sarah.chen@seed.internal",
       category: MentorCategory.trading,
       tagline: "Options strategist • Ex-Goldman Sachs",
-      bio: "Former Goldman Sachs trader specializing in options strategies.",
+      bio: "Former Goldman Sachs trader specializing in options strategies. 12 years of institutional trading experience. I teach advanced options strategies, spreads, and volatility trading.",
+      profileImage: "https://i.pravatar.cc/400?img=47",
+      socialLinks: {
+        linkedin: "https://linkedin.com/in/sarahchen",
+      },
       rating: 4.8,
       reviews: 187,
       offerType: OfferType.TIME,
@@ -46,7 +55,12 @@ async function main() {
       email: "tyler.ninja@seed.internal",
       category: MentorCategory.gaming,
       tagline: "Valorant Radiant • Former pro player",
-      bio: "Professional Valorant player and coach.",
+      bio: "Professional Valorant player and coach with tournament experience. Peaked Radiant multiple seasons. I focus on game sense, crosshair placement, and mental game. Great for players looking to climb from Diamond to Immortal+.",
+      profileImage: "https://i.pravatar.cc/400?img=33",
+      socialLinks: {
+        twitter: "https://twitter.com/tylerninja",
+        twitch: "https://twitch.tv/ninja",
+      },
       rating: 4.7,
       reviews: 156,
       offerType: OfferType.BOTH,
@@ -63,7 +77,12 @@ async function main() {
       email: "emma.rodriguez@seed.internal",
       category: MentorCategory.design,
       tagline: "Senior UX at Airbnb • 10+ years experience",
-      bio: "Senior UX designer at Airbnb with a decade of experience.",
+      bio: "Senior UX designer at Airbnb with a decade of experience. I've shipped products used by millions. Expert in user research, design systems, and accessibility. Get access to my portfolio reviews, design critique sessions, and career growth templates.",
+      profileImage: "https://i.pravatar.cc/400?img=45",
+      socialLinks: {
+        linkedin: "https://linkedin.com/in/emmarodriguez",
+        website: "https://emmarodriguez.design",
+      },
       rating: 4.9,
       reviews: 203,
       offerType: OfferType.ACCESS,
@@ -80,7 +99,12 @@ async function main() {
       email: "marcus.williams@seed.internal",
       category: MentorCategory.fitness,
       tagline: "Certified PT • Transformed 500+ clients",
-      bio: "Certified personal trainer who has helped over 500 clients transform their bodies.",
+      bio: "Certified personal trainer who has helped over 500 clients transform their bodies. NASM-CPT and nutrition specialist. I create custom workout plans, meal prep guides, and accountability coaching. Whether you want to lose fat, build muscle, or improve athletic performance - I've got you covered.",
+      profileImage: "https://i.pravatar.cc/400?img=15",
+      socialLinks: {
+        instagram: "https://instagram.com/marcuswilliamsfit",
+        youtube: "https://youtube.com/@marcuswilliams",
+      },
       rating: 4.8,
       reviews: 312,
       offerType: OfferType.BOTH,
@@ -97,7 +121,11 @@ async function main() {
       email: "ana.garcia@seed.internal",
       category: MentorCategory.languages,
       tagline: "Spanish tutor • Native from Madrid",
-      bio: "Native Spanish speaker from Madrid with 8 years of teaching experience.",
+      bio: "Native Spanish speaker from Madrid with 8 years of teaching experience. I offer conversational practice, DELE exam prep, and business Spanish. My students consistently reach B2/C1 levels. Sessions are fun, practical, and focused on real-world communication.",
+      profileImage: "https://i.pravatar.cc/400?img=48",
+      socialLinks: {
+        linkedin: "https://linkedin.com/in/anagarcia",
+      },
       rating: 4.8,
       reviews: 156,
       offerType: OfferType.TIME,
@@ -114,7 +142,12 @@ async function main() {
       email: "david.kumar@seed.internal",
       category: MentorCategory.career,
       tagline: "Ex-FAANG recruiter • 500+ hires",
-      bio: "Former FAANG recruiter who has conducted over 500 successful hires.",
+      bio: "Former FAANG recruiter who has conducted over 500 successful hires at Google and Meta. I know exactly what top companies look for. I offer resume teardowns, mock interviews, salary negotiation coaching, and career transition guidance. My students have landed offers at FAANG, startups, and Fortune 500 companies.",
+      profileImage: "https://i.pravatar.cc/400?img=68",
+      socialLinks: {
+        linkedin: "https://linkedin.com/in/davidkumar",
+        website: "https://davidkumar.coach",
+      },
       rating: 4.9,
       reviews: 243,
       offerType: OfferType.BOTH,
@@ -124,6 +157,31 @@ async function main() {
       isActive: true,
     },
   ];
+
+  // Create sample review users
+  const reviewerUsers = [
+    { name: "John Smith", email: "john.smith@example.com", image: "https://i.pravatar.cc/150?img=1" },
+    { name: "Emily Davis", email: "emily.davis@example.com", image: "https://i.pravatar.cc/150?img=5" },
+    { name: "Michael Brown", email: "michael.brown@example.com", image: "https://i.pravatar.cc/150?img=13" },
+    { name: "Jessica Wilson", email: "jessica.wilson@example.com", image: "https://i.pravatar.cc/150?img=20" },
+    { name: "Chris Taylor", email: "chris.taylor@example.com", image: "https://i.pravatar.cc/150?img=27" },
+  ];
+
+  const createdReviewers = [];
+  for (const reviewerData of reviewerUsers) {
+    const reviewer = await db.user.upsert({
+      where: { email: reviewerData.email },
+      update: {},
+      create: {
+        name: reviewerData.name,
+        email: reviewerData.email,
+        image: reviewerData.image,
+      },
+    });
+    createdReviewers.push(reviewer);
+  }
+
+  console.log(`✅ Created ${createdReviewers.length} review users`);
 
   for (const mentorData of mentors) {
     // Create a user for this mentor
@@ -139,13 +197,15 @@ async function main() {
     console.log(`✅ Created user: ${user.email}`);
 
     // Create the mentor profile
-    await db.mentor.upsert({
+    const mentor = await db.mentor.upsert({
       where: { id: mentorData.id },
       update: {
         name: mentorData.name,
         category: mentorData.category,
         tagline: mentorData.tagline,
         bio: mentorData.bio,
+        profileImage: mentorData.profileImage,
+        socialLinks: mentorData.socialLinks,
         rating: mentorData.rating,
         reviews: mentorData.reviews,
         offerType: mentorData.offerType,
@@ -161,6 +221,8 @@ async function main() {
         category: mentorData.category,
         tagline: mentorData.tagline,
         bio: mentorData.bio,
+        profileImage: mentorData.profileImage,
+        socialLinks: mentorData.socialLinks,
         rating: mentorData.rating,
         reviews: mentorData.reviews,
         offerType: mentorData.offerType,
@@ -172,6 +234,50 @@ async function main() {
     });
 
     console.log(`✅ Seeded mentor: ${mentorData.name}`);
+
+    // Create sample bookings and reviews for each mentor
+    const reviewsToCreate = Math.min(3, createdReviewers.length); // Create 3 reviews per mentor
+    for (let i = 0; i < reviewsToCreate; i++) {
+      const reviewer = createdReviewers[i];
+
+      // Create a completed booking
+      const booking = await db.booking.create({
+        data: {
+          userId: reviewer.id,
+          mentorId: mentor.id,
+          type: i % 2 === 0 ? "SESSION" : "ACCESS",
+          status: "COMPLETED",
+          totalPrice: mentor.accessPrice || mentor.hourlyRate || 5000,
+          scheduledAt: i % 2 === 0 ? new Date(Date.now() - (i + 1) * 7 * 24 * 60 * 60 * 1000) : null,
+          durationMinutes: i % 2 === 0 ? 60 : null,
+          stripePaidAt: new Date(Date.now() - (i + 2) * 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      // Sample review comments
+      const comments = [
+        "Absolutely amazing experience! Really helped me level up my skills. Highly recommend!",
+        "Great mentor with lots of practical advice. Worth every penny.",
+        "Very knowledgeable and patient. Learned so much in just one session!",
+        "Excellent communication and clear explanations. Will book again!",
+        "Fantastic mentor! Changed my entire approach to the subject.",
+      ];
+
+      // Create a review for the booking
+      await db.review.create({
+        data: {
+          bookingId: booking.id,
+          userId: reviewer.id,
+          mentorId: mentor.id,
+          rating: 4 + Math.floor(Math.random() * 2), // Random rating 4-5
+          comment: comments[i % comments.length],
+          isVerifiedPurchase: true,
+          createdAt: new Date(Date.now() - (i + 1) * 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+    }
+
+    console.log(`✅ Created ${reviewsToCreate} reviews for ${mentorData.name}`);
   }
 
   console.log("🎉 Seeding complete!");

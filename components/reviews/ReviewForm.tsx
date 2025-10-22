@@ -10,10 +10,10 @@ import { Star } from "lucide-react";
 interface ReviewFormProps {
   bookingId: string;
   mentorName: string;
-  onSuccess?: () => void;
+  redirectUrl?: string;
 }
 
-export default function ReviewForm({ bookingId, mentorName, onSuccess }: ReviewFormProps) {
+export default function ReviewForm({ bookingId, mentorName, redirectUrl = "/dashboard" }: ReviewFormProps) {
   const router = useRouter();
   const [rating, setRating] = useState(5);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -44,12 +44,9 @@ export default function ReviewForm({ bookingId, mentorName, onSuccess }: ReviewF
         return;
       }
 
-      // Success
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        router.refresh();
-      }
+      // Success - redirect to the specified URL
+      router.push(redirectUrl);
+      router.refresh();
     } catch (err) {
       console.error("Review submission error:", err);
       setError("An unexpected error occurred");

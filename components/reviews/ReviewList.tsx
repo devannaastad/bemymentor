@@ -1,5 +1,6 @@
 import { Star, CheckCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import Image from "next/image";
 
 interface Review {
   id: string;
@@ -46,9 +47,11 @@ export default function ReviewList({ reviews }: ReviewListProps) {
             {/* User Avatar */}
             <div className="flex-shrink-0">
               {review.user.image ? (
-                <img
+                <Image
                   src={review.user.image}
                   alt={review.user.name || "User"}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full"
                 />
               ) : (

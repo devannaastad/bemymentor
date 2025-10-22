@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "public.blob.vercel-storage.com", pathname: "/**" },
       // UploadThing CDN (utfs.io)
       { protocol: "https", hostname: "utfs.io", pathname: "/**" },
+      // Pravatar (for seed data profile images)
+      { protocol: "https", hostname: "i.pravatar.cc", pathname: "/**" },
     ],
   },
 };

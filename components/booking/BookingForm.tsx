@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/common/Button";
 import Textarea from "@/components/common/Textarea";
-import SessionTimePicker from "./SessionTimePicker";
+import SessionScheduler from "./SessionScheduler";
 import type { Mentor } from "@prisma/client";
 
 interface BookingFormProps {
@@ -17,13 +17,13 @@ export default function BookingForm({ mentor }: BookingFormProps) {
   const [bookingType, setBookingType] = useState<"ACCESS" | "SESSION">(
     mentor.offerType === "ACCESS" ? "ACCESS" : "SESSION"
   );
-  const [scheduledAt, setScheduledAt] = useState<string>("");
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleTimeSelect = (datetime: string, duration: number) => {
+  const handleSchedule = (datetime: Date, duration: number) => {
     setScheduledAt(datetime);
     setDurationMinutes(duration);
   };
@@ -46,7 +46,7 @@ export default function BookingForm({ mentor }: BookingFormProps) {
           setIsSubmitting(false);
           return;
         }
-        payload.scheduledAt = scheduledAt;
+        payload.scheduledAt = scheduledAt.toISOString();
         payload.durationMinutes = durationMinutes;
       }
 
@@ -112,9 +112,13 @@ export default function BookingForm({ mentor }: BookingFormProps) {
         </div>
       )}
 
-      {/* Session Time Picker (only for SESSION type) */}
+      {/* Session Scheduler (only for SESSION type) */}
       {bookingType === "SESSION" && mentor.hourlyRate && (
-        <SessionTimePicker onTimeSelect={handleTimeSelect} hourlyRate={mentor.hourlyRate} />
+        <SessionScheduler
+          mentorId={mentor.id}
+          onSchedule={handleSchedule}
+          hourlyRate={mentor.hourlyRate}
+        />
       )}
 
       {/* ACCESS Summary */}

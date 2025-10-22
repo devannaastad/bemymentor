@@ -7,7 +7,12 @@ import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import MentorCard from "@/components/catalog/MentorCard";
 import Image from "next/image";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Dashboard - BeMyMentor",
+  description: "Manage your bookings, saved mentors, and mentorship journey",
+};
 
 export const dynamic = "force-dynamic";
 

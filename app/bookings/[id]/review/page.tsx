@@ -5,6 +5,7 @@ import { redirect, notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/common/Card";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import Badge from "@/components/common/Badge";
+import Image from "next/image";
 
 type Params = { id: string };
 
@@ -118,9 +119,11 @@ export default async function ReviewBookingPage({
           <CardContent>
             <div className="flex items-center gap-4">
               {booking.mentor.profileImage && (
-                <img
+                <Image
                   src={booking.mentor.profileImage}
                   alt={booking.mentor.name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover"
                 />
               )}
@@ -143,9 +146,7 @@ export default async function ReviewBookingPage({
             <ReviewForm
               bookingId={booking.id}
               mentorName={booking.mentor.name}
-              onSuccess={() => {
-                window.location.href = "/dashboard";
-              }}
+              redirectUrl="/dashboard"
             />
           </CardContent>
         </Card>

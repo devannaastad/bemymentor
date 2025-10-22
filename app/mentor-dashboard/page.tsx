@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import BookingList from "@/components/mentor-dashboard/BookingList";
+import MentorCalendar from "@/components/mentor/MentorCalendar";
 
 export const dynamic = "force-dynamic";
 
@@ -185,23 +186,10 @@ export default async function MentorDashboardPage() {
           </Card>
         )}
 
-        {/* Quick Actions */}
-        <Card className="mb-8">
-          <CardContent>
-            <h2 className="mb-4 text-lg font-semibold">Quick Actions</h2>
-            <div className="flex flex-wrap gap-3">
-              <Button href={`/mentors/${mentor.id}`} variant="secondary" size="sm">
-                👁️ View My Public Profile
-              </Button>
-              <Button href="/settings" variant="secondary" size="sm">
-                ⚙️ Edit Settings
-              </Button>
-              <Button href="/catalog" variant="secondary" size="sm">
-                🔍 Browse Other Mentors
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Calendar */}
+        <div className="mb-8">
+          <MentorCalendar mentorId={mentor.id} />
+        </div>
 
         {/* Bookings List */}
         <Card>

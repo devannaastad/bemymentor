@@ -7,6 +7,7 @@ import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import Image from "next/image";
 import PaymentButton from "@/components/booking/PaymentButton";
+import BookingVerification from "@/components/booking/BookingVerification";
 
 type Params = { id: string };
 type SearchParams = {
@@ -30,7 +31,6 @@ export default async function BookingConfirmPage({
   const { id } = await params;
   const sp = (await searchParams) || {};
   const paymentCanceled = sp.canceled === "true";
-  const paymentCompleted = !!sp.session_id;
 
   const user = await db.user.findUnique({
     where: { email: session.user.email },
@@ -262,6 +262,18 @@ export default async function BookingConfirmPage({
             </div>
           </CardContent>
         </Card>
+
+        {/* Verification Section - Only show for COMPLETED bookings that are paid */}
+        {booking.status === "COMPLETED" && isPaid && (
+          <div className="mb-8">
+            <BookingVerification
+              bookingId={booking.id}
+              mentorName={booking.mentor.name}
+              isVerified={booking.isVerified}
+              isFraudReported={booking.isFraudReported}
+            />
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-wrap justify-center gap-3">

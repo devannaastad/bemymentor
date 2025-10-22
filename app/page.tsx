@@ -4,6 +4,18 @@ import Categories from "@/components/landing/Categories";
 import Trust from "@/components/landing/Trust";
 import CTA from "@/components/landing/CTA";
 import FAQ from "@/components/landing/FAQ";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "BeMyMentor - Find Expert Mentors in Trading, Gaming, Design & More",
+  description: "Connect with expert mentors in trading, gaming, design, fitness, languages, and career coaching. Book 1-on-1 sessions or get lifetime access to exclusive content and communities.",
+  openGraph: {
+    title: "BeMyMentor - Expert Mentorship Platform",
+    description: "Transform your skills with personalized mentorship from industry experts. Choose from ACCESS passes or 1-on-1 sessions.",
+    type: "website",
+  },
+  keywords: ["mentorship", "coaching", "trading mentor", "gaming coach", "design mentor", "fitness coach", "career coaching", "online learning"],
+};
 
 export default function HomePage() {
   return (

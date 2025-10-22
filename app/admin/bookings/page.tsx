@@ -123,11 +123,10 @@ export default async function AdminBookingsPage() {
                               ? "default"
                               : "danger"
                           }
-                          size="sm"
                         >
                           {booking.status}
                         </Badge>
-                        <Badge variant="outline" size="sm">
+                        <Badge variant="outline">
                           {booking.type}
                         </Badge>
                       </div>

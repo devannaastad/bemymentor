@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import { requireAdmin } from "@/lib/admin";
-import { formatDistanceToNow } from "date-fns";
 
 export const dynamic = "force-dynamic";
 
@@ -67,14 +66,13 @@ export default async function AdminUsersPage() {
                           {user.name || "No name"}
                         </h3>
                         {user.emailVerified && (
-                          <Badge variant="success" size="sm">
+                          <Badge variant="success">
                             Verified
                           </Badge>
                         )}
                         {user.mentorProfile && (
                           <Badge
                             variant={user.mentorProfile.isActive ? "success" : "default"}
-                            size="sm"
                           >
                             Mentor
                           </Badge>

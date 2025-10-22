@@ -70,11 +70,10 @@ export default async function AdminMentorsPage() {
                           <h3 className="text-lg font-semibold">{mentor.name}</h3>
                           <Badge
                             variant={mentor.isActive ? "success" : "default"}
-                            size="sm"
                           >
                             {mentor.isActive ? "Active" : "Inactive"}
                           </Badge>
-                          <Badge variant="outline" size="sm">
+                          <Badge variant="outline">
                             {mentor.category}
                           </Badge>
                         </div>
