@@ -36,18 +36,22 @@ export async function GET(
 
     // Parse the requested date
     const requestedDate = parse(dateParam, "yyyy-MM-dd", new Date());
-    const dayOfWeek = requestedDate.getDay(); // 0 = Sunday
 
-    // Get mentor's availability for this day of week
-    const availability = await db.availability.findMany({
+    // Get available slots for this specific date
+    const dayStart = startOfDay(requestedDate);
+    const dayEnd = endOfDay(requestedDate);
+
+    const availableSlots = await db.availableSlot.findMany({
       where: {
         mentorId,
-        dayOfWeek,
-        isActive: true,
+        startTime: {
+          gte: dayStart,
+          lte: dayEnd,
+        },
       },
     });
 
-    if (availability.length === 0) {
+    if (availableSlots.length === 0) {
       return NextResponse.json({
         ok: true,
         data: {
@@ -59,9 +63,6 @@ export async function GET(
     }
 
     // Get blocked slots for this date
-    const dayStart = startOfDay(requestedDate);
-    const dayEnd = endOfDay(requestedDate);
-
     const blockedSlots = await db.blockedSlot.findMany({
       where: {
         mentorId,
@@ -86,28 +87,22 @@ export async function GET(
       },
     });
 
-    // Generate available slots
+    // Generate available slots based on AvailableSlot records
     const slots: string[] = [];
 
-    for (const avail of availability) {
-      // Parse start and end times (e.g., "09:00", "17:00")
-      const [startHour, startMin] = avail.startTime.split(":").map(Number);
-      const [endHour, endMin] = avail.endTime.split(":").map(Number);
-
-      let slotStart = new Date(requestedDate);
-      slotStart.setHours(startHour, startMin, 0, 0);
-
-      const slotEnd = new Date(requestedDate);
-      slotEnd.setHours(endHour, endMin, 0, 0);
+    for (const avail of availableSlots) {
+      // Get the start and end times from the AvailableSlot DateTime fields
+      let currentSlotStart = new Date(avail.startTime);
+      const availEnd = new Date(avail.endTime);
 
       // Generate slots in 30-min increments (or duration if smaller)
       const increment = Math.min(duration, 30);
 
-      while (isBefore(slotStart, slotEnd)) {
-        const slotEndTime = addMinutes(slotStart, duration);
+      while (isBefore(currentSlotStart, availEnd)) {
+        const slotEndTime = addMinutes(currentSlotStart, duration);
 
         // Check if slot end time is within availability window
-        if (isAfter(slotEndTime, slotEnd)) {
+        if (isAfter(slotEndTime, availEnd)) {
           break;
         }
 
@@ -116,9 +111,9 @@ export async function GET(
           const blockedStart = new Date(blocked.startTime);
           const blockedEnd = new Date(blocked.endTime);
           return (
-            (slotStart >= blockedStart && slotStart < blockedEnd) ||
+            (currentSlotStart >= blockedStart && currentSlotStart < blockedEnd) ||
             (slotEndTime > blockedStart && slotEndTime <= blockedEnd) ||
-            (slotStart <= blockedStart && slotEndTime >= blockedEnd)
+            (currentSlotStart <= blockedStart && slotEndTime >= blockedEnd)
           );
         });
 
@@ -128,18 +123,18 @@ export async function GET(
           const bookingStart = new Date(booking.scheduledAt);
           const bookingEnd = addMinutes(bookingStart, booking.durationMinutes);
           return (
-            (slotStart >= bookingStart && slotStart < bookingEnd) ||
+            (currentSlotStart >= bookingStart && currentSlotStart < bookingEnd) ||
             (slotEndTime > bookingStart && slotEndTime <= bookingEnd) ||
-            (slotStart <= bookingStart && slotEndTime >= bookingEnd)
+            (currentSlotStart <= bookingStart && slotEndTime >= bookingEnd)
           );
         });
 
         // Only add if not blocked and not booked
         if (!isBlocked && !isBooked) {
-          slots.push(format(slotStart, "HH:mm"));
+          slots.push(format(currentSlotStart, "HH:mm"));
         }
 
-        slotStart = addMinutes(slotStart, increment);
+        currentSlotStart = addMinutes(currentSlotStart, increment);
       }
     }
 
@@ -149,7 +144,7 @@ export async function GET(
         date: dateParam,
         duration,
         slots: slots.sort(), // Sort chronologically
-        timezone: availability[0]?.timezone || "America/New_York",
+        timezone: "America/New_York", // TODO: Make timezone configurable per mentor
       },
     });
   } catch (err) {

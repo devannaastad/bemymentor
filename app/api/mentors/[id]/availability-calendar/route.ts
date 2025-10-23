@@ -25,24 +25,28 @@ export async function GET(
       );
     }
 
-    // Parse month and get all dates in that month
-    const monthDate = new Date(`${monthParam}-01`);
+    // Parse month - fix timezone issues like in mentor calendar
+    const [year, month] = monthParam.split("-").map(Number);
+    const monthDate = new Date(year, month - 1, 1);
     const monthStart = startOfMonth(monthDate);
     const monthEnd = endOfMonth(monthDate);
-    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    monthEnd.setHours(23, 59, 59, 999);
 
-    // Get mentor's availability patterns
-    const availability = await db.availability.findMany({
+    // Get mentor's available slots for this month
+    const availableSlots = await db.availableSlot.findMany({
       where: {
         mentorId,
-        isActive: true,
+        startTime: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
       },
       select: {
-        dayOfWeek: true,
+        startTime: true,
       },
     });
 
-    if (availability.length === 0) {
+    if (availableSlots.length === 0) {
       return NextResponse.json({
         ok: true,
         data: {
@@ -53,19 +57,14 @@ export async function GET(
       });
     }
 
-    // Get unique days of week mentor is available
-    const availableDaysOfWeek = new Set(availability.map((a) => a.dayOfWeek));
-
-    // Check which dates match available days of week
-    const availableDates: string[] = [];
-
-    for (const date of daysInMonth) {
-      const dayOfWeek = date.getDay(); // 0 = Sunday
-
-      if (availableDaysOfWeek.has(dayOfWeek)) {
-        availableDates.push(format(date, "yyyy-MM-dd"));
-      }
+    // Extract unique dates from available slots
+    const availableDatesSet = new Set<string>();
+    for (const slot of availableSlots) {
+      const dateStr = format(new Date(slot.startTime), "yyyy-MM-dd");
+      availableDatesSet.add(dateStr);
     }
+
+    const availableDates = Array.from(availableDatesSet).sort();
 
     return NextResponse.json({
       ok: true,

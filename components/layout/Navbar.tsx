@@ -10,6 +10,7 @@ import { Button } from "@/components/common";
 import NavDropdown, { NavItem } from "./NavDropdown";
 import Modal from "@/components/common/Modal";
 import PrefetchLink from "./PrefetchLink";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -69,7 +70,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Right: Account */}
+          {/* Right: Notifications & Account */}
           <div className="flex items-center gap-2">
             {status === "loading" && (
               <div className="h-8 w-28 animate-pulse rounded-md bg-white/10" />
@@ -83,7 +84,9 @@ export default function Navbar() {
                 Sign in
               </Link>
             ) : (
-              <NavDropdown
+              <>
+                <NotificationBell />
+                <NavDropdown
                 trigger={
                   <Button
                     className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-transparent px-3 py-1.5 text-sm text-neutral-100 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
@@ -111,6 +114,7 @@ export default function Navbar() {
                 items={items}
                 signedInAs={session?.user?.email ?? username}
               />
+              </>
             )}
           </div>
         </nav>
