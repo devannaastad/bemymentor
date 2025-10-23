@@ -90,8 +90,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log("[available-slots] Created slot:", availableSlot);
-
     return NextResponse.json({ ok: true, data: availableSlot }, { status: 201 });
   } catch (err) {
     console.error("[api/mentor/available-slots] POST failed:", err);

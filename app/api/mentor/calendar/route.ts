@@ -86,9 +86,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    console.log("[calendar] Querying for mentorId:", mentorId);
-    console.log("[calendar] Month range:", monthStart, "to", monthEnd);
-
     // Fetch available slots for this month
     const availableSlots = await db.availableSlot.findMany({
       where: {
@@ -102,9 +99,6 @@ export async function GET(req: NextRequest) {
         startTime: "asc",
       },
     });
-
-    console.log("[calendar] Available slots found:", availableSlots.length);
-    console.log("[calendar] Available slots data:", availableSlots);
 
     // Generate available dates based on available slots
     const availableDates: string[] = [];
@@ -124,16 +118,12 @@ export async function GET(req: NextRequest) {
         );
       });
 
-      console.log(`[calendar] Processing slot for ${dateStr}, isBlocked: ${isBlocked}`);
-
       // If not blocked and not already added, add to available dates
       if (!isBlocked && !availableDateSet.has(dateStr)) {
         availableDateSet.add(dateStr);
         availableDates.push(dateStr);
       }
     });
-
-    console.log("[calendar] Available dates:", availableDates);
 
     return NextResponse.json({
       ok: true,

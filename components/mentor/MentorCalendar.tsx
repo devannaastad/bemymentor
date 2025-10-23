@@ -70,8 +70,6 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
         const data = await res.json();
 
         if (data.ok) {
-          console.log("[MentorCalendar] Received data:", data.data);
-          console.log("[MentorCalendar] Available dates:", data.data.availableDates);
           const dataMap = new Map<string, DayData>();
 
           // Process bookings
