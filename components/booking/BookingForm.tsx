@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Button from "@/components/common/Button";
 import Textarea from "@/components/common/Textarea";
 import Modal from "@/components/common/Modal";
@@ -14,7 +13,6 @@ interface BookingFormProps {
 }
 
 export default function BookingForm({ mentor }: BookingFormProps) {
-  const router = useRouter();
   const [bookingType, setBookingType] = useState<"ACCESS" | "SESSION">(
     mentor.offerType === "ACCESS" ? "ACCESS" : "SESSION"
   );

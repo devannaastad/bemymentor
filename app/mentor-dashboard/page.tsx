@@ -3,7 +3,6 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/common/Card";
-import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import BookingList from "@/components/mentor-dashboard/BookingList";
 import MentorCalendar from "@/components/mentor/MentorCalendar";

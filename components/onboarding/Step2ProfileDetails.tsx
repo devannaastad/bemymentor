@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Button from "@/components/common/Button";
 import Textarea from "@/components/common/Textarea";
 import Input from "@/components/common/Input";
@@ -139,9 +140,11 @@ export default function Step2ProfileDetails({
           </p>
           {profileImage && (
             <div className="mt-2">
-              <img
+              <Image
                 src={profileImage}
                 alt="Profile preview"
+                width={96}
+                height={96}
                 className="w-24 h-24 rounded-full object-cover border-2 border-white/20"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = "none";

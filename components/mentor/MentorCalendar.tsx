@@ -73,7 +73,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
           const dataMap = new Map<string, DayData>();
 
           // Process bookings
-          data.data.bookings?.forEach((booking: any) => {
+          data.data.bookings?.forEach((booking: Booking) => {
             const dateStr = format(new Date(booking.scheduledAt), "yyyy-MM-dd");
             if (!dataMap.has(dateStr)) {
               dataMap.set(dateStr, {
@@ -89,7 +89,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
           });
 
           // Process blocked slots
-          data.data.blockedSlots?.forEach((slot: any) => {
+          data.data.blockedSlots?.forEach((slot: BlockedSlot) => {
             const dateStr = format(new Date(slot.startTime), "yyyy-MM-dd");
             if (!dataMap.has(dateStr)) {
               dataMap.set(dateStr, {

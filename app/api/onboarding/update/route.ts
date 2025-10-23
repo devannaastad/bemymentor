@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Prepare update data based on step
-    let updateData: any = {};
+    let updateData: Record<string, unknown> = {};
 
     switch (step) {
       case 1:

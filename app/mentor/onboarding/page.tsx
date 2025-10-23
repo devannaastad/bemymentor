@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/common/Card";
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
@@ -75,7 +75,7 @@ export default function MentorOnboardingPage() {
     },
   ];
 
-  const saveStep = async (stepNumber: number, data: any) => {
+  const saveStep = async (stepNumber: number, data: Record<string, unknown>) => {
     setLoading(true);
     setError("");
 

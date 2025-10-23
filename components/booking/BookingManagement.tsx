@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Booking, Mentor, BookingType, BookingStatus } from "@prisma/client";
+import { Booking, Mentor, BookingStatus } from "@prisma/client";
+import Image from "next/image";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import { Calendar, Clock, User, MoreVertical } from "lucide-react";
@@ -81,9 +82,11 @@ export default function BookingManagement({
               <div className="flex items-start gap-4 flex-1">
                 {/* Mentor Image */}
                 {booking.mentor.profileImage && (
-                  <img
+                  <Image
                     src={booking.mentor.profileImage}
                     alt={booking.mentor.name}
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-full object-cover"
                   />
                 )}
