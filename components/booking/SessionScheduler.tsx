@@ -27,16 +27,12 @@ export default function SessionScheduler({
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
-    // Don't automatically proceed to payment - user must click "Continue to Payment" button
-  };
 
-  const handleContinueToPayment = () => {
-    if (selectedDate && selectedTime) {
-      // Combine date and time into a full datetime
-      const [hours, minutes] = selectedTime.split(":").map(Number);
+    // Automatically update the parent with the scheduled datetime
+    if (selectedDate) {
+      const [hours, minutes] = time.split(":").map(Number);
       const scheduledDateTime = new Date(selectedDate);
       scheduledDateTime.setHours(hours, minutes, 0, 0);
-
       onSchedule(scheduledDateTime, duration);
     }
   };
@@ -116,46 +112,38 @@ export default function SessionScheduler({
 
       {/* Confirmation Summary - Only show when both date and time selected */}
       {selectedDate && selectedTime && (
-        <div className="space-y-4">
-          <div className="rounded-lg border border-primary-500/30 bg-primary-500/10 p-4">
-            <h4 className="mb-3 font-semibold text-white text-lg">
-              Session Details
-            </h4>
-            <div className="space-y-2 text-sm text-white/80">
-              <div className="flex justify-between">
-                <span className="text-white/60">Date:</span>
-                <span className="font-medium">
-                  {selectedDate.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Time:</span>
-                <span className="font-medium">{selectedTime}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Duration:</span>
-                <span className="font-medium">{duration} minutes</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-white/10">
-                <span className="text-white/60">Total Price:</span>
-                <span className="font-bold text-primary-400 text-lg">
-                  ${calculatePrice()}
-                </span>
-              </div>
+        <div className="rounded-lg border border-primary-500/50 bg-gradient-to-br from-primary-500/20 to-primary-600/10 p-5 shadow-lg">
+          <h4 className="mb-4 font-semibold text-white text-lg flex items-center gap-2">
+            <span className="text-2xl">✓</span>
+            Selected Session
+          </h4>
+          <div className="space-y-2.5 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-white/70">Date:</span>
+              <span className="font-semibold text-white">
+                {selectedDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-white/70">Time:</span>
+              <span className="font-semibold text-white">{selectedTime}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-white/70">Duration:</span>
+              <span className="font-semibold text-white">{duration} minutes</span>
+            </div>
+            <div className="flex justify-between items-center pt-3 border-t border-white/20">
+              <span className="text-white/70">Total Price:</span>
+              <span className="font-bold text-primary-300 text-xl">
+                ${calculatePrice()}
+              </span>
             </div>
           </div>
-
-          <button
-            onClick={handleContinueToPayment}
-            className="w-full py-3 px-6 bg-gradient-to-r from-primary-500 to-primary-400 text-black font-semibold rounded-lg hover:scale-[1.02] transition-transform shadow-lg"
-          >
-            Continue to Payment
-          </button>
         </div>
       )}
     </div>

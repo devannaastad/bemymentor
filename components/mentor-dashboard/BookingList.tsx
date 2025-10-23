@@ -16,12 +16,103 @@ interface BookingListProps {
   bookings: BookingWithUser[];
 }
 
+type TabType = "all" | "pending" | "awaiting-payment" | "upcoming" | "completed" | "cancelled";
+
 export default function BookingList({ bookings }: BookingListProps) {
+  const [activeTab, setActiveTab] = useState<TabType>("all");
+
+  // Filter bookings based on active tab
+  const filteredBookings = bookings.filter((booking) => {
+    if (activeTab === "all") return true;
+
+    if (activeTab === "pending") {
+      return booking.status === "PENDING" && !booking.stripePaymentIntentId;
+    }
+
+    if (activeTab === "awaiting-payment") {
+      return booking.status === "PENDING" && booking.stripePaymentIntentId;
+    }
+
+    if (activeTab === "upcoming") {
+      return booking.status === "CONFIRMED";
+    }
+
+    if (activeTab === "completed") {
+      return booking.status === "COMPLETED";
+    }
+
+    if (activeTab === "cancelled") {
+      return booking.status === "CANCELLED" || booking.status === "REFUNDED";
+    }
+
+    return true;
+  });
+
+  // Calculate counts for each tab
+  const counts = {
+    all: bookings.length,
+    pending: bookings.filter((b) => b.status === "PENDING" && !b.stripePaymentIntentId).length,
+    awaitingPayment: bookings.filter((b) => b.status === "PENDING" && b.stripePaymentIntentId).length,
+    upcoming: bookings.filter((b) => b.status === "CONFIRMED").length,
+    completed: bookings.filter((b) => b.status === "COMPLETED").length,
+    cancelled: bookings.filter((b) => b.status === "CANCELLED" || b.status === "REFUNDED").length,
+  };
+
+  const tabs = [
+    { id: "all" as TabType, label: "All", count: counts.all, emoji: "📊" },
+    { id: "pending" as TabType, label: "Pending Requests", count: counts.pending, emoji: "⏳" },
+    { id: "awaiting-payment" as TabType, label: "Awaiting Payment", count: counts.awaitingPayment, emoji: "💳" },
+    { id: "upcoming" as TabType, label: "Upcoming", count: counts.upcoming, emoji: "📅" },
+    { id: "completed" as TabType, label: "Completed", count: counts.completed, emoji: "✅" },
+    { id: "cancelled" as TabType, label: "Cancelled", count: counts.cancelled, emoji: "❌" },
+  ];
+
   return (
-    <div className="space-y-4">
-      {bookings.map((booking) => (
-        <BookingCard key={booking.id} booking={booking} />
-      ))}
+    <div>
+      {/* Tabs */}
+      <div className="mb-6 overflow-x-auto">
+        <div className="flex gap-2 border-b border-white/10 pb-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 whitespace-nowrap rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "bg-primary-500/20 text-primary-300 border-b-2 border-primary-500"
+                  : "text-white/60 hover:bg-white/5 hover:text-white/80"
+              }`}
+            >
+              <span>{tab.emoji}</span>
+              <span>{tab.label}</span>
+              <Badge variant={activeTab === tab.id ? "default" : "outline"} className="text-xs">
+                {tab.count}
+              </Badge>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Bookings List */}
+      {filteredBookings.length === 0 ? (
+        <div className="py-12 text-center">
+          <div className="mb-4 text-6xl">📭</div>
+          <h3 className="mb-2 text-lg font-semibold">No Bookings</h3>
+          <p className="text-white/60">
+            {activeTab === "all" && "When learners book sessions with you, they'll appear here."}
+            {activeTab === "pending" && "No pending booking requests at this time."}
+            {activeTab === "awaiting-payment" && "No bookings awaiting payment."}
+            {activeTab === "upcoming" && "No upcoming confirmed sessions."}
+            {activeTab === "completed" && "No completed sessions yet."}
+            {activeTab === "cancelled" && "No cancelled bookings."}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredBookings.map((booking) => (
+            <BookingCard key={booking.id} booking={booking} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -40,6 +131,22 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
         timeStyle: "short",
       })
     : null;
+
+  // Check if the session date/time has passed
+  const canMarkCompleted = () => {
+    // For ACCESS bookings, can be marked completed anytime
+    if (booking.type === "ACCESS") return true;
+
+    // For SESSION bookings, check if scheduled time + duration has passed
+    if (!booking.scheduledAt || !booking.durationMinutes) return false;
+
+    const sessionEnd = new Date(booking.scheduledAt);
+    sessionEnd.setMinutes(sessionEnd.getMinutes() + booking.durationMinutes);
+
+    return new Date() >= sessionEnd;
+  };
+
+  const isSessionComplete = canMarkCompleted();
 
   async function handleUpdateStatus(newStatus: "CONFIRMED" | "COMPLETED" | "CANCELLED") {
     setIsUpdating(true);
@@ -149,9 +256,22 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
 
         {currentStatus === "CONFIRMED" && (
           <>
-            <Button onClick={() => handleUpdateStatus("COMPLETED")} disabled={isUpdating} variant="primary" size="sm">
-              ✅ Mark as Completed
-            </Button>
+            <div className="flex flex-col gap-1">
+              <Button
+                onClick={() => handleUpdateStatus("COMPLETED")}
+                disabled={isUpdating || !isSessionComplete}
+                variant="primary"
+                size="sm"
+                title={!isSessionComplete ? "Session must be completed before marking as done" : ""}
+              >
+                ✅ Mark as Completed
+              </Button>
+              {!isSessionComplete && booking.type === "SESSION" && (
+                <p className="text-xs text-amber-400">
+                  Available after session ends
+                </p>
+              )}
+            </div>
             <Button onClick={() => setShowCancelModal(true)} disabled={isUpdating} variant="ghost" size="sm">
               ❌ Cancel
             </Button>

@@ -94,7 +94,7 @@ export default function Navbar() {
                   >
                     <div className="relative h-8 w-8 overflow-hidden rounded-full bg-white/10">
                       {avatar ? (
-                        <Image src={avatar} alt="Avatar" fill className="object-cover" />
+                        <Image src={avatar} alt="Avatar" fill sizes="32px" className="object-cover" />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs text-neutral-300">
                           {username.slice(0, 2).toUpperCase()}

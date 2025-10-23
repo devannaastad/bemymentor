@@ -194,22 +194,8 @@ export default async function MentorDashboardPage() {
         {/* Bookings List */}
         <Card>
           <CardContent>
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">All Bookings</h2>
-              <Badge variant="outline">{bookings.length} total</Badge>
-            </div>
-
-            {bookings.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="mb-4 text-6xl">📭</div>
-                <h3 className="mb-2 text-lg font-semibold">No Bookings Yet</h3>
-                <p className="text-white/60">
-                  When learners book sessions with you, they&apos;ll appear here.
-                </p>
-              </div>
-            ) : (
-              <BookingList bookings={bookings} />
-            )}
+            <h2 className="mb-6 text-lg font-semibold">Your Bookings</h2>
+            <BookingList bookings={bookings} />
           </CardContent>
         </Card>
       </div>

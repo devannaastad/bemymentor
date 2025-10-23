@@ -2,12 +2,14 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { stripe } from "@/lib/stripe";
 import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import Image from "next/image";
 import PaymentButton from "@/components/booking/PaymentButton";
 import BookingVerification from "@/components/booking/BookingVerification";
+import AddToCalendarButton from "@/components/booking/AddToCalendarButton";
 
 type Params = { id: string };
 type SearchParams = {
@@ -31,6 +33,7 @@ export default async function BookingConfirmPage({
   const { id } = await params;
   const sp = (await searchParams) || {};
   const paymentCanceled = sp.canceled === "true";
+  const stripeSessionId = sp.session_id;
 
   const user = await db.user.findUnique({
     where: { email: session.user.email },
@@ -41,7 +44,7 @@ export default async function BookingConfirmPage({
     redirect("/signin");
   }
 
-  const booking = await db.booking.findUnique({
+  let booking = await db.booking.findUnique({
     where: { id, userId: user.id },
     include: {
       mentor: {
@@ -57,6 +60,42 @@ export default async function BookingConfirmPage({
   });
 
   if (!booking) notFound();
+
+  // If returning from Stripe with session_id, verify the payment
+  if (stripeSessionId && booking.status === "PENDING") {
+    try {
+      const stripeSession = await stripe.checkout.sessions.retrieve(stripeSessionId);
+
+      // If payment was successful and booking hasn't been updated yet
+      if (stripeSession.payment_status === "paid" && !booking.stripePaymentIntentId) {
+        // Update booking to confirmed
+        booking = await db.booking.update({
+          where: { id },
+          data: {
+            stripePaymentIntentId: stripeSession.payment_intent as string,
+            stripePaidAt: new Date(),
+            status: "CONFIRMED",
+          },
+          include: {
+            mentor: {
+              select: {
+                id: true,
+                name: true,
+                category: true,
+                tagline: true,
+                profileImage: true,
+              },
+            },
+          },
+        });
+
+        console.log("[BookingConfirmPage] Payment verified and booking updated:", id);
+      }
+    } catch (err) {
+      console.error("[BookingConfirmPage] Failed to verify Stripe session:", err);
+      // Don't fail the page - just log the error and continue
+    }
+  }
 
   const formattedPrice = (booking.totalPrice / 100).toFixed(2);
   const scheduledDate = booking.scheduledAt
@@ -262,6 +301,29 @@ export default async function BookingConfirmPage({
             </div>
           </CardContent>
         </Card>
+
+        {/* Add to Calendar - Only show for paid SESSION bookings */}
+        {isPaid && booking.type === "SESSION" && booking.scheduledAt && booking.durationMinutes && (
+          <Card className="mb-8 border-primary-500/20 bg-primary-500/5">
+            <CardContent>
+              <h3 className="mb-4 text-lg font-semibold text-white flex items-center gap-2">
+                <span className="text-2xl">📅</span>
+                Add to Your Calendar
+              </h3>
+              <p className="mb-4 text-sm text-white/70">
+                Save this session to your calendar and get reminded 30 minutes before it starts.
+              </p>
+              <AddToCalendarButton
+                title={`1-on-1 Session with ${booking.mentor.name}`}
+                description={`${booking.durationMinutes}-minute coaching session with ${booking.mentor.name}${booking.notes ? `\n\nNotes: ${booking.notes}` : ""}`}
+                location="Online (Meeting link will be shared via email)"
+                startTime={new Date(booking.scheduledAt)}
+                endTime={new Date(new Date(booking.scheduledAt).getTime() + booking.durationMinutes * 60000)}
+                mentorName={booking.mentor.name}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Verification Section - Only show for COMPLETED bookings that are paid */}
         {booking.status === "COMPLETED" && isPaid && (

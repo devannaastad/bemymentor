@@ -117,15 +117,20 @@ export async function GET(
           );
         });
 
-        // Check if slot overlaps with existing booking
+        // Check if slot overlaps with existing booking (+ 30min buffer)
         const isBooked = existingBookings.some((booking) => {
           if (!booking.scheduledAt || !booking.durationMinutes) return false;
           const bookingStart = new Date(booking.scheduledAt);
           const bookingEnd = addMinutes(bookingStart, booking.durationMinutes);
+
+          // Add 30-minute buffer after each booking
+          const bufferEnd = addMinutes(bookingEnd, 30);
+
+          // Check overlap with booking + buffer
           return (
-            (currentSlotStart >= bookingStart && currentSlotStart < bookingEnd) ||
-            (slotEndTime > bookingStart && slotEndTime <= bookingEnd) ||
-            (currentSlotStart <= bookingStart && slotEndTime >= bookingEnd)
+            (currentSlotStart >= bookingStart && currentSlotStart < bufferEnd) ||
+            (slotEndTime > bookingStart && slotEndTime <= bufferEnd) ||
+            (currentSlotStart <= bookingStart && slotEndTime >= bufferEnd)
           );
         });
 
