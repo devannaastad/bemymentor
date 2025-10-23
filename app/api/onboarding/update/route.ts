@@ -8,7 +8,7 @@ import { calculateProfileCompleteness, getCurrentOnboardingStep, isOnboardingCom
 
 const UpdateOnboardingSchema = z.object({
   step: z.number().int().min(1).max(5),
-  data: z.record(z.any()),
+  data: z.record(z.string(), z.unknown()),
 });
 
 export async function POST(req: NextRequest) {
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: user.id,
           ...updateData,
-        },
+        } as Parameters<typeof db.mentor.create>[0]['data'],
       });
     }
 

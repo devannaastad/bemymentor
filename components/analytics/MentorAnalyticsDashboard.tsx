@@ -141,7 +141,7 @@ export default function MentorAnalyticsDashboard({
                               booking.status === "CONFIRMED"
                                 ? "success"
                                 : booking.status === "COMPLETED"
-                                ? "info"
+                                ? "default"
                                 : booking.status === "PENDING"
                                 ? "warning"
                                 : "danger"

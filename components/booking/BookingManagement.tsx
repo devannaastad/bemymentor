@@ -51,7 +51,7 @@ export default function BookingManagement({
       case "CONFIRMED":
         return "success";
       case "COMPLETED":
-        return "info";
+        return "default";
       case "PENDING":
         return "warning";
       case "CANCELLED":
