@@ -37,9 +37,17 @@ interface BlockedSlot {
   reason: string | null;
 }
 
+interface AvailableSlot {
+  id: string;
+  startTime: Date;
+  endTime: Date;
+  isFreeSession: boolean;
+}
+
 interface DayData {
   bookings: Booking[];
   blockedSlots: BlockedSlot[];
+  availableSlots: AvailableSlot[];
   hasAvailability: boolean;
 }
 
@@ -58,6 +66,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
     startTime: "09:00",
     endTime: "17:00",
   });
+  const [isFreeSession, setIsFreeSession] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -79,6 +88,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
               dataMap.set(dateStr, {
                 bookings: [],
                 blockedSlots: [],
+                availableSlots: [],
                 hasAvailability: false,
               });
             }
@@ -95,10 +105,31 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
               dataMap.set(dateStr, {
                 bookings: [],
                 blockedSlots: [],
+                availableSlots: [],
                 hasAvailability: false,
               });
             }
             dataMap.get(dateStr)!.blockedSlots.push({
+              ...slot,
+              startTime: new Date(slot.startTime),
+              endTime: new Date(slot.endTime),
+            });
+          });
+
+          // Process available slots (includes free session info)
+          data.data.availableSlots?.forEach((slot: AvailableSlot) => {
+            const dateStr = format(new Date(slot.startTime), "yyyy-MM-dd");
+            if (!dataMap.has(dateStr)) {
+              dataMap.set(dateStr, {
+                bookings: [],
+                blockedSlots: [],
+                availableSlots: [],
+                hasAvailability: true,
+              });
+            } else {
+              dataMap.get(dateStr)!.hasAvailability = true;
+            }
+            dataMap.get(dateStr)!.availableSlots.push({
               ...slot,
               startTime: new Date(slot.startTime),
               endTime: new Date(slot.endTime),
@@ -111,6 +142,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
               dataMap.set(dateStr, {
                 bookings: [],
                 blockedSlots: [],
+                availableSlots: [],
                 hasAvailability: true,
               });
             } else {
@@ -201,12 +233,14 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
           date: dateStr,
           startTime: availabilityTime.startTime,
           endTime: availabilityTime.endTime,
+          isFreeSession,
         }),
       });
 
       if (res.ok) {
         setShowAvailabilityModal(false);
         setAvailabilityTime({ startTime: "09:00", endTime: "17:00" });
+        setIsFreeSession(false);
         // Trigger calendar data refresh
         setRefreshKey(prev => prev + 1);
       } else {
@@ -232,19 +266,19 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
       {/* Smooth gradient overlay to blend with background */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/20 rounded-lg -z-10" />
       {/* Calendar Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Calendar className="w-6 h-6 text-primary-400" />
-          <h2 className="text-2xl font-bold text-white">My Calendar</h2>
+          <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-primary-400" />
+          <h2 className="text-xl sm:text-2xl font-bold text-white">My Calendar</h2>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={handlePrevMonth}
-            className="rounded-lg p-2 hover:bg-white/10 transition-colors"
+            className="rounded-lg p-1.5 sm:p-2 hover:bg-white/10 transition-colors"
           >
             <svg
-              className="h-5 w-5"
+              className="h-4 w-4 sm:h-5 sm:w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -258,16 +292,16 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
             </svg>
           </button>
 
-          <h3 className="text-lg font-semibold text-white min-w-[160px] text-center">
+          <h3 className="text-base sm:text-lg font-semibold text-white min-w-[140px] sm:min-w-[160px] text-center">
             {format(currentMonth, "MMMM yyyy")}
           </h3>
 
           <button
             onClick={handleNextMonth}
-            className="rounded-lg p-2 hover:bg-white/10 transition-colors"
+            className="rounded-lg p-1.5 sm:p-2 hover:bg-white/10 transition-colors"
           >
             <svg
-              className="h-5 w-5"
+              className="h-4 w-4 sm:h-5 sm:w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -284,7 +318,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-xs text-white/60 bg-white/5 p-4 rounded-lg">
+      <div className="flex flex-wrap gap-2 sm:gap-4 text-xs text-white/60 bg-white/5 p-3 sm:p-4 rounded-lg">
         <div className="flex items-center gap-2">
           <div className="h-3 w-3 rounded bg-red-500/30 border-2 border-red-500"></div>
           <span>Blocked (Default)</span>
@@ -294,28 +328,39 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
           <span>Available for Booking</span>
         </div>
         <div className="flex items-center gap-2">
+          <div className="h-3 w-3 rounded bg-emerald-500/30 border-2 border-emerald-500"></div>
+          <span>Free Session Available</span>
+        </div>
+        <div className="flex items-center gap-2">
           <div className="h-3 w-3 rounded bg-blue-500/30 border-2 border-blue-500"></div>
           <span>Has Bookings</span>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Calendar Grid */}
         <div className="lg:col-span-2">
-          <div className="bg-gradient-to-b from-gray-900 to-gray-900/95 border border-white/20 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
+          <div className="bg-gradient-to-b from-gray-900 to-gray-900/95 border border-white/20 rounded-xl p-3 sm:p-6 shadow-2xl backdrop-blur-sm">
             {/* Weekday Headers */}
-            <div className="mb-2 grid grid-cols-7 gap-1 text-center text-xs font-medium text-white/60">
-              <div>Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
+            <div className="mb-2 grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-[10px] sm:text-xs font-medium text-white/60">
+              <div className="hidden sm:block">Sun</div>
+              <div className="hidden sm:block">Mon</div>
+              <div className="hidden sm:block">Tue</div>
+              <div className="hidden sm:block">Wed</div>
+              <div className="hidden sm:block">Thu</div>
+              <div className="hidden sm:block">Fri</div>
+              <div className="hidden sm:block">Sat</div>
+              <div className="sm:hidden">S</div>
+              <div className="sm:hidden">M</div>
+              <div className="sm:hidden">T</div>
+              <div className="sm:hidden">W</div>
+              <div className="sm:hidden">T</div>
+              <div className="sm:hidden">F</div>
+              <div className="sm:hidden">S</div>
             </div>
 
             {/* Calendar Days */}
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
               {days.map((day, index) => {
                 const isCurrentMonth = isSameMonth(day, currentMonth);
                 const isToday = isSameDay(day, new Date());
@@ -326,12 +371,17 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                 const hasBookings = dayInfo && dayInfo.bookings.length > 0;
                 const isBlocked = dayInfo && dayInfo.blockedSlots.length > 0;
                 const hasAvailability = dayInfo && dayInfo.hasAvailability;
+                const hasFreeSession = dayInfo && dayInfo.availableSlots.some(slot => slot.isFreeSession);
 
-                // Determine color: Blue (bookings) > Green (available) > Red (blocked/default)
+                // Determine color: Blue (bookings) > Emerald (free session) > Green (available) > Red (blocked/default)
                 let dayColor = "bg-red-500/30 border-2 border-red-500"; // Default: blocked/unavailable
 
                 if (hasAvailability && !isBlocked) {
                   dayColor = "bg-green-500/30 border-2 border-green-500"; // Available for booking
+                }
+
+                if (hasFreeSession && !isBlocked) {
+                  dayColor = "bg-emerald-500/30 border-2 border-emerald-500"; // Free session available
                 }
 
                 if (hasBookings) {
@@ -344,20 +394,20 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                     onClick={() => !isPast && handleDateClick(day)}
                     disabled={isPast}
                     className={`
-                      aspect-square rounded-lg p-2 text-sm font-medium transition-all relative
+                      aspect-square rounded-md sm:rounded-lg p-1 sm:p-2 text-xs sm:text-sm font-medium transition-all relative
                       ${!isCurrentMonth ? "text-white/30 opacity-40" : "text-white"}
-                      ${isSelected ? "ring-2 ring-primary-400 ring-offset-2 ring-offset-gray-900" : ""}
-                      ${isToday && !isSelected ? "ring-2 ring-white/40" : ""}
+                      ${isSelected ? "ring-1 sm:ring-2 ring-primary-400 ring-offset-1 sm:ring-offset-2 ring-offset-gray-900" : ""}
+                      ${isToday && !isSelected ? "ring-1 sm:ring-2 ring-white/40" : ""}
                       ${isPast ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:opacity-90"}
-                      ${isCurrentMonth && !isPast ? dayColor : "bg-white/5 border-2 border-transparent"}
+                      ${isCurrentMonth && !isPast ? dayColor : "bg-white/5 border border-sm:border-2 border-transparent"}
                     `}
                   >
-                    <div>{format(day, "d")}</div>
+                    <div className="text-[10px] sm:text-sm">{format(day, "d")}</div>
                     {hasBookings && (
-                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2">
+                      <div className="absolute bottom-0.5 sm:bottom-1 left-1/2 -translate-x-1/2">
                         <div className="flex gap-0.5">
                           {dayInfo.bookings.slice(0, 3).map((_, i) => (
-                            <div key={i} className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                            <div key={i} className="h-0.5 w-0.5 sm:h-1 sm:w-1 rounded-full bg-blue-400" />
                           ))}
                         </div>
                       </div>
@@ -461,6 +511,40 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                         </div>
                       )}
 
+                      {/* Available Slots / Free Sessions */}
+                      {dayInfo.availableSlots.length > 0 && (
+                        <div>
+                          <h4 className="text-xs font-medium text-white/60 mb-3 uppercase">
+                            Available Time Slots
+                          </h4>
+                          <div className="space-y-2">
+                            {dayInfo.availableSlots.map((slot) => (
+                              <div
+                                key={slot.id}
+                                className={`p-3 rounded-lg text-sm ${
+                                  slot.isFreeSession
+                                    ? "bg-emerald-500/10 border border-emerald-500/30"
+                                    : "bg-green-500/10 border border-green-500/30"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 text-white/80">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  <span>
+                                    {format(slot.startTime, "h:mm a")} -{" "}
+                                    {format(slot.endTime, "h:mm a")}
+                                  </span>
+                                </div>
+                                {slot.isFreeSession && (
+                                  <div className="mt-2 flex items-center gap-2 text-xs text-emerald-400 font-medium">
+                                    <span>🎁 Free Session</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Blocked Slots */}
                       {dayInfo.blockedSlots.length > 0 && (
                         <div>
@@ -515,6 +599,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                 onClick={() => {
                   setShowAvailabilityModal(false);
                   setAvailabilityTime({ startTime: "09:00", endTime: "17:00" });
+                  setIsFreeSession(false);
                 }}
                 className="text-white/60 hover:text-white transition-colors"
               >
@@ -559,6 +644,21 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
                 />
               </div>
+
+              <div className="p-4 bg-emerald-500/5 rounded-lg border border-emerald-500/20">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isFreeSession}
+                    onChange={(e) => setIsFreeSession(e.target.checked)}
+                    className="w-5 h-5 rounded border-white/20 bg-white/10 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <span className="text-white font-medium block">Mark as Free Session</span>
+                    <span className="text-xs text-white/60">Offer this time slot as a free intro session</span>
+                  </div>
+                </label>
+              </div>
             </div>
 
             <div className="flex gap-3">
@@ -568,6 +668,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                 onClick={() => {
                   setShowAvailabilityModal(false);
                   setAvailabilityTime({ startTime: "09:00", endTime: "17:00" });
+                  setIsFreeSession(false);
                 }}
                 className="flex-1"
               >

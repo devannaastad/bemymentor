@@ -11,6 +11,7 @@ export async function GET(req: Request) {
   const priceMaxRaw = searchParams.get("priceMax");
   const offerTypeRaw = (searchParams.get("type") ?? "").trim().toUpperCase();
   const idsRaw = (searchParams.get("ids") ?? "").trim();
+  const skillsRaw = (searchParams.get("skills") ?? "").trim();
   const sortBy = searchParams.get("sort") ?? "rating";
   const pageRaw = searchParams.get("page");
   const limitRaw = searchParams.get("limit");
@@ -29,11 +30,13 @@ export async function GET(req: Request) {
     if (ids.length) where.id = { in: ids };
   }
 
-  // Text search (case-insensitive)
+  // Text search (case-insensitive) - searches name, tagline, and skills
   if (q) {
     where.OR = [
       { name: { contains: q, mode: "insensitive" } },
       { tagline: { contains: q, mode: "insensitive" } },
+      { skills: { has: q } }, // Exact match for skill
+      { skills: { hasSome: [q] } }, // Match if query appears in any skill
     ];
   }
 
@@ -45,6 +48,16 @@ export async function GET(req: Request) {
   // Offer type filter
   if (["ACCESS", "TIME", "BOTH"].includes(offerTypeRaw)) {
     where.offerType = offerTypeRaw as OfferType;
+  }
+
+  // Skills filter - match mentors that have ANY of the requested skills
+  if (skillsRaw) {
+    const skills = skillsRaw.split(",").map((s) => s.trim()).filter(Boolean);
+    if (skills.length > 0) {
+      where.skills = {
+        hasSome: skills, // Postgres array operator - matches if ANY skill is in the mentor's skills array
+      };
+    }
   }
 
   // Price range filter

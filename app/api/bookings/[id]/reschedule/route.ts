@@ -2,7 +2,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { sendBookingReschedule } from "@/lib/email";
 import { z } from "zod";
+import { format } from "date-fns";
 
 const RescheduleSchema = z.object({
   newScheduledAt: z.string().datetime(),
@@ -56,7 +58,14 @@ export async function POST(
       where: { id },
       include: {
         user: { select: { email: true, name: true } },
-        mentor: { select: { id: true, name: true, userId: true } },
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            userId: true,
+            user: { select: { email: true } }
+          }
+        },
       },
     });
 
@@ -105,6 +114,22 @@ export async function POST(
       );
     }
 
+    // Determine who initiated the reschedule
+    const initiatedByMentor = isMentor;
+
+    // Format old and new dates
+    const oldScheduledAt = booking.scheduledAt;
+    let oldDate: string | undefined;
+    let oldTime: string | undefined;
+
+    if (oldScheduledAt) {
+      oldDate = format(new Date(oldScheduledAt), "MMMM dd, yyyy");
+      oldTime = format(new Date(oldScheduledAt), "h:mm a");
+    }
+
+    const newDateFormatted = format(newDate, "MMMM dd, yyyy");
+    const newTimeFormatted = format(newDate, "h:mm a");
+
     // Update the booking
     const updatedBooking = await db.booking.update({
       where: { id },
@@ -116,7 +141,43 @@ export async function POST(
       },
     });
 
-    // TODO: Send notification to both parties about the reschedule
+    // Send reschedule notification to student
+    const studentEmailResult = await sendBookingReschedule({
+      to: booking.user.email || "",
+      recipientName: booking.user.name || "Student",
+      bookingId: id,
+      mentorName: booking.mentor.name,
+      oldDate,
+      oldTime,
+      newDate: newDateFormatted,
+      newTime: newTimeFormatted,
+      reason,
+      isMentor: false,
+      initiatedByMentor,
+    });
+
+    if (!studentEmailResult.ok) {
+      console.error("[reschedule-booking] Failed to send student email:", studentEmailResult.error);
+    }
+
+    // Send reschedule notification to mentor
+    const mentorEmailResult = await sendBookingReschedule({
+      to: booking.mentor.user.email || "",
+      recipientName: booking.mentor.name,
+      bookingId: id,
+      mentorName: booking.mentor.name,
+      oldDate,
+      oldTime,
+      newDate: newDateFormatted,
+      newTime: newTimeFormatted,
+      reason,
+      isMentor: true,
+      initiatedByMentor,
+    });
+
+    if (!mentorEmailResult.ok) {
+      console.error("[reschedule-booking] Failed to send mentor email:", mentorEmailResult.error);
+    }
 
     return NextResponse.json({
       ok: true,

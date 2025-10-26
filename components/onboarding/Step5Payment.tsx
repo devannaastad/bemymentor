@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "@/components/common/Button";
 import FormFieldError from "@/components/common/FormFieldError";
 import { CreditCard, ExternalLink, Shield } from "lucide-react";
@@ -14,17 +14,38 @@ interface Step5PaymentProps {
 export default function Step5Payment({
   onComplete,
   onBack,
-  stripeOnboarded,
+  stripeOnboarded: initialStripeOnboarded,
 }: Step5PaymentProps) {
   const [loading, setLoading] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [stripeOnboarded, setStripeOnboarded] = useState(initialStripeOnboarded || false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    checkStripeStatus();
+  }, []);
+
+  const checkStripeStatus = async () => {
+    try {
+      const res = await fetch("/api/mentor/stripe-connect");
+      const data = await res.json();
+
+      if (data.ok && data.data.isOnboarded) {
+        setStripeOnboarded(true);
+      }
+    } catch (err) {
+      console.error("Failed to check Stripe status:", err);
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
 
   const handleConnectStripe = async () => {
     setLoading(true);
     setError("");
 
     try {
-      const res = await fetch("/api/stripe/connect/onboard", {
+      const res = await fetch("/api/mentor/stripe-connect", {
         method: "POST",
       });
 
@@ -37,7 +58,12 @@ export default function Step5Payment({
       }
 
       // Redirect to Stripe Connect onboarding
-      window.location.href = data.url;
+      if (data.data?.url) {
+        window.location.href = data.data.url;
+      } else {
+        setError("No onboarding URL received");
+        setLoading(false);
+      }
     } catch (err) {
       console.error("Stripe Connect error:", err);
       setError("An unexpected error occurred");
@@ -49,6 +75,22 @@ export default function Step5Payment({
     // Allow skipping but warn that they can't receive payments yet
     onComplete();
   };
+
+  if (checkingStatus) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">Payment Setup</h2>
+          <p className="text-white/60">
+            Checking your Stripe connection status...
+          </p>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

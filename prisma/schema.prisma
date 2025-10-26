@@ -138,7 +138,13 @@ model Mentor {
   accessPrice  Int?
   hourlyRate   Int?
   badges       Json?
+  skills       String[]       @default([]) // Searchable skills/tags (e.g., ["Bitcoin", "Technical Analysis"])
   isActive     Boolean        @default(true) // Can be toggled off by admin or mentor
+
+  // Free session support
+  offersFreeSession Boolean      @default(false) // Whether mentor offers a free intro session
+  freeSessionDuration Int?                        // Duration in minutes (e.g., 15, 30)
+  freeSessionsRemaining Int?                      // Limit free sessions (null = unlimited)
 
   // Anti-fraud / Trust system
   isTrusted    Boolean        @default(false) // True after 5 verified bookings
@@ -152,6 +158,9 @@ model Mentor {
   onboardingStep   Int         @default(0)    // Current step in onboarding (0-5)
   onboardingComplete Boolean   @default(false) // True when all steps complete
   profileCompleteness Int      @default(0)    // 0-100 percentage
+
+  // Timezone
+  timezone String @default("America/New_York") // IANA timezone identifier
 
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
@@ -347,12 +356,16 @@ model AvailableSlot {
   startTime DateTime
   endTime   DateTime
 
+  // Free session support - mark specific slots as free intro sessions
+  isFreeSession Boolean @default(false)
+
   createdAt DateTime @default(now())
 
   mentor Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
 
   @@index([mentorId])
   @@index([startTime])
+  @@index([isFreeSession])
 }
 
 /**

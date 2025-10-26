@@ -88,7 +88,7 @@ export async function GET(
     });
 
     // Generate available slots based on AvailableSlot records
-    const slots: string[] = [];
+    const slots: Array<{ time: string; isFreeSession: boolean }> = [];
 
     for (const avail of availableSlots) {
       // Get the start and end times from the AvailableSlot DateTime fields
@@ -136,19 +136,25 @@ export async function GET(
 
         // Only add if not blocked and not booked
         if (!isBlocked && !isBooked) {
-          slots.push(format(currentSlotStart, "HH:mm"));
+          slots.push({
+            time: format(currentSlotStart, "HH:mm"),
+            isFreeSession: avail.isFreeSession,
+          });
         }
 
         currentSlotStart = addMinutes(currentSlotStart, increment);
       }
     }
 
+    // Sort by time
+    slots.sort((a, b) => a.time.localeCompare(b.time));
+
     return NextResponse.json({
       ok: true,
       data: {
         date: dateParam,
         duration,
-        slots: slots.sort(), // Sort chronologically
+        slots,
         timezone: "America/New_York", // TODO: Make timezone configurable per mentor
       },
     });

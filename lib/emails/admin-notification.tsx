@@ -10,6 +10,7 @@ interface AdminNotificationEmailProps {
   hourlyRate?: number;
   proofLinks: string;
   applicationId: string;
+  appUrl?: string;
 }
 
 export function AdminNotificationEmail({
@@ -21,6 +22,7 @@ export function AdminNotificationEmail({
   hourlyRate,
   proofLinks,
   applicationId,
+  appUrl = "http://localhost:3000",
 }: AdminNotificationEmailProps) {
   return (
     <div style={{ fontFamily: "Arial, sans-serif", maxWidth: "600px", margin: "0 auto" }}>
@@ -74,8 +76,8 @@ export function AdminNotificationEmail({
         </div>
         
         <div style={{ marginTop: "32px", textAlign: "center" }}>
-          <a 
-            href={`http://localhost:3000/admin/applications?highlight=${applicationId}`}
+          <a
+            href={`${appUrl}/admin/applications?highlight=${applicationId}`}
             style={{
               display: "inline-block",
               backgroundColor: "#000",

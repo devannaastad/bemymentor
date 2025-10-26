@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { processBookingPayout } from "@/lib/payout-processor";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -100,7 +101,26 @@ export async function PATCH(
           status === "CANCELLED" ? cancellationReason || "Cancelled by mentor" : undefined,
         meetingLink: meetingLink || undefined,
       },
+      include: {
+        mentor: true,
+      },
     });
+
+    // Process payout if marking as COMPLETED (for SESSION bookings)
+    if (status === "COMPLETED") {
+      try {
+        const payoutResult = await processBookingPayout(updated.id);
+
+        if (payoutResult?.status === "HELD" && "releaseDate" in payoutResult) {
+          console.log(`[mentor/bookings/[id]] Payout HELD until ${payoutResult.releaseDate}: ${payoutResult.reason}`);
+        } else if (payoutResult?.status === "PAID_OUT" && "transferId" in payoutResult) {
+          console.log(`[mentor/bookings/[id]] Payout PAID_OUT immediately (trusted mentor): ${payoutResult.transferId}`);
+        }
+      } catch (payoutError) {
+        console.error("[mentor/bookings/[id]] Failed to process payout:", payoutError);
+        // Don't fail the booking update, payout can be retried
+      }
+    }
 
     return NextResponse.json(
       { ok: true, data: updated },

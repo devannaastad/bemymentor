@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/common/Card";
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
 import Step1BasicInfo from "@/components/onboarding/Step1BasicInfo";
@@ -35,12 +35,42 @@ interface OnboardingData {
   };
 }
 
-export default function MentorOnboardingPage() {
+function OnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({});
   const [error, setError] = useState("");
+  const [stripeOnboarded, setStripeOnboarded] = useState(false);
+
+  const checkStripeStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/mentor/stripe-connect");
+      const data = await res.json();
+
+      if (data.ok && data.data.isOnboarded) {
+        setStripeOnboarded(true);
+      }
+    } catch (err) {
+      console.error("Failed to check Stripe status:", err);
+    }
+  }, []);
+
+  // Check if returning from Stripe onboarding
+  useEffect(() => {
+    const step = searchParams.get("step");
+    const success = searchParams.get("success");
+
+    if (step) {
+      setCurrentStep(parseInt(step));
+    }
+
+    // If returning from Stripe with success, check the onboarding status
+    if (success === "true" || searchParams.get("stripe") === "success") {
+      checkStripeStatus();
+    }
+  }, [searchParams, checkStripeStatus]);
 
   const steps = [
     {
@@ -218,6 +248,7 @@ export default function MentorOnboardingPage() {
                   <Step5Payment
                     onComplete={handleComplete}
                     onBack={() => setCurrentStep(4)}
+                    stripeOnboarded={stripeOnboarded}
                   />
                 )}
               </>
@@ -226,5 +257,13 @@ export default function MentorOnboardingPage() {
         </Card>
       </div>
     </section>
+  );
+}
+
+export default function MentorOnboardingPage() {
+  return (
+    <Suspense fallback={<div className="section min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>}>
+      <OnboardingContent />
+    </Suspense>
   );
 }

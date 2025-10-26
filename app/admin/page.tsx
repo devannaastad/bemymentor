@@ -111,7 +111,7 @@ export default async function AdminDashboardPage() {
                 <div>
                   <p className="text-sm text-white/60">Total Revenue</p>
                   <p className="text-3xl font-bold">
-                    {formatCurrency(totalRevenue / 100)}
+                    {formatCurrency(totalRevenue)}
                   </p>
                 </div>
                 <div className="text-4xl">💰</div>
@@ -190,7 +190,7 @@ export default async function AdminDashboardPage() {
                           {booking.status}
                         </Badge>
                         <span className="text-sm font-medium">
-                          {formatCurrency(booking.totalPrice / 100)}
+                          {formatCurrency(booking.totalPrice)}
                         </span>
                       </div>
                     </div>

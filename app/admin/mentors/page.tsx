@@ -104,7 +104,7 @@ export default async function AdminMentorsPage() {
                           <div>
                             <p className="text-xs text-white/60">Earnings</p>
                             <p className="font-medium">
-                              {formatCurrency(totalEarnings / 100)}
+                              {formatCurrency(totalEarnings)}
                             </p>
                           </div>
                         </div>

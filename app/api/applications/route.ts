@@ -4,9 +4,26 @@ import { applicationSchema } from "@/lib/schemas/application";
 import { ZodError } from "zod";
 import { db } from "@/lib/db";
 import { sendApplicationConfirmation, sendAdminNotification } from "@/lib/email";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    // Rate limit by IP: 3 submissions per hour
+    const clientIp = getClientIp(request);
+    const rateLimitResult = rateLimit(clientIp, { max: 3, windowMs: 60 * 60 * 1000 });
+
+    if (!rateLimitResult.success) {
+      const resetTime = new Date(rateLimitResult.resetAt).toLocaleTimeString();
+      console.log("[application:rate-limited]", clientIp);
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Too many applications. Please try again after ${resetTime}.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const data = await request.json();
     console.log("[application:received]", data);
 

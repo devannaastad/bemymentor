@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { mentorId, type, scheduledAt, durationMinutes, notes } = validation.data;
+    const { mentorId, type, scheduledAt, durationMinutes, notes, isFreeSession } = validation.data;
 
     // Get mentor to calculate price
     const mentor = await db.mentor.findUnique({
@@ -110,8 +110,11 @@ export async function POST(req: NextRequest) {
 
     // Calculate price based on booking type
     let totalPrice = 0;
-    
-    if (type === "ACCESS") {
+
+    // If this is a free session, price is 0
+    if (isFreeSession && type === "SESSION") {
+      totalPrice = 0;
+    } else if (type === "ACCESS") {
       if (mentor.offerType === "TIME") {
         return NextResponse.json(
           { ok: false, error: "This mentor only offers sessions, not access" },

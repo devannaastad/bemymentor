@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { sendBookingConfirmation, sendMentorBookingNotification } from "@/lib/email";
+import { calculatePayoutAmounts } from "@/lib/stripe-connect";
+import { processBookingPayout } from "@/lib/payout-processor";
 import Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -120,6 +122,9 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     return;
   }
 
+  // Calculate platform fee and mentor payout
+  const { platformFee, mentorPayout } = calculatePayoutAmounts(booking.totalPrice);
+
   // Update booking with payment info
   const updatedBooking = await db.booking.update({
     where: { id: bookingId },
@@ -127,10 +132,13 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       stripePaymentIntentId: session.payment_intent as string,
       stripePaidAt: new Date(),
       status: "CONFIRMED", // Move to CONFIRMED after successful payment
+      platformFee,
+      mentorPayout,
     },
   });
 
   console.log("[stripe-webhook] Booking updated to CONFIRMED:", updatedBooking.id);
+  console.log(`[stripe-webhook] Platform fee: $${platformFee / 100}, Mentor payout: $${mentorPayout / 100}`);
 
   // Get mentor's user email for notification
   const mentorUser = await db.user.findUnique({
@@ -174,5 +182,22 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   } catch (emailError) {
     console.error("[stripe-webhook] Failed to send emails:", emailError);
     // Don't throw - booking is already confirmed, email failure shouldn't break the flow
+  }
+
+  // Process payout for ACCESS bookings using new anti-fraud system
+  // Note: ACCESS bookings processed here, SESSION bookings when marked COMPLETED
+  if (booking.type === "ACCESS") {
+    try {
+      const payoutResult = await processBookingPayout(updatedBooking.id);
+
+      if (payoutResult?.status === "HELD" && "releaseDate" in payoutResult) {
+        console.log(`[stripe-webhook] Payout HELD until ${payoutResult.releaseDate}: ${payoutResult.reason}`);
+      } else if (payoutResult?.status === "PAID_OUT" && "transferId" in payoutResult) {
+        console.log(`[stripe-webhook] Payout PAID_OUT immediately (trusted mentor): ${payoutResult.transferId}`);
+      }
+    } catch (payoutError) {
+      console.error("[stripe-webhook] Failed to process payout:", payoutError);
+      // Don't throw - booking is confirmed, payout can be retried later
+    }
   }
 }

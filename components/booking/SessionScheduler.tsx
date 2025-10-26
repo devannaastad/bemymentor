@@ -7,7 +7,7 @@ import { addDays } from "date-fns";
 
 interface SessionSchedulerProps {
   mentorId: string;
-  onSchedule: (scheduledAt: Date, duration: number) => void;
+  onSchedule: (scheduledAt: Date, duration: number, isFreeSession: boolean) => void;
   hourlyRate: number;
 }
 
@@ -18,22 +18,25 @@ export default function SessionScheduler({
 }: SessionSchedulerProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [, setSelectedIsFreeSession] = useState<boolean>(false);
   const [duration, setDuration] = useState<number>(60);
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     setSelectedTime(null); // Reset time when date changes
+    setSelectedIsFreeSession(false);
   };
 
-  const handleTimeSelect = (time: string) => {
+  const handleTimeSelect = (time: string, isFreeSession: boolean) => {
     setSelectedTime(time);
+    setSelectedIsFreeSession(isFreeSession);
 
     // Automatically update the parent with the scheduled datetime
     if (selectedDate) {
       const [hours, minutes] = time.split(":").map(Number);
       const scheduledDateTime = new Date(selectedDate);
       scheduledDateTime.setHours(hours, minutes, 0, 0);
-      onSchedule(scheduledDateTime, duration);
+      onSchedule(scheduledDateTime, duration, isFreeSession);
     }
   };
 

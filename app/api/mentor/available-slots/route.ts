@@ -8,6 +8,7 @@ const availableSlotSchema = z.object({
   date: z.string(), // YYYY-MM-DD format
   startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
   endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
+  isFreeSession: z.boolean().default(false),
 });
 
 /**
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { date, startTime, endTime } = validation.data;
+    const { date, startTime, endTime, isFreeSession } = validation.data;
 
     // Validate end time is after start time
     if (endTime <= startTime) {
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
         mentorId: user.mentorProfile.id,
         startTime: startDateTime,
         endTime: endDateTime,
+        isFreeSession,
       },
     });
 

@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import BookingList from "@/components/mentor-dashboard/BookingList";
 import MentorCalendar from "@/components/mentor/MentorCalendar";
+import EarningsDashboard from "@/components/mentor-dashboard/EarningsDashboard";
+import ProfileCompletenessCard from "@/components/mentor/ProfileCompletenessCard";
 
 export const dynamic = "force-dynamic";
 
@@ -167,6 +169,11 @@ export default async function MentorDashboardPage() {
           </Card>
         </div>
 
+        {/* Profile Completeness */}
+        <div className="mb-8">
+          <ProfileCompletenessCard mentor={mentor} />
+        </div>
+
         {/* Profile Status Banner */}
         {!mentor.isActive && (
           <Card className="mb-8 border-rose-500/20 bg-rose-500/5">
@@ -185,8 +192,15 @@ export default async function MentorDashboardPage() {
           </Card>
         )}
 
+        {/* Earnings Dashboard */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Earnings & Payouts</h2>
+          <EarningsDashboard />
+        </div>
+
         {/* Calendar */}
         <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Your Calendar</h2>
           <MentorCalendar mentorId={mentor.id} />
         </div>
 

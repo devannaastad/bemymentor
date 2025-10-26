@@ -23,8 +23,9 @@ async function main() {
       rating: 4.9,
       reviews: 234,
       offerType: OfferType.BOTH,
-      accessPrice: 49,
-      hourlyRate: 200,
+      accessPrice: 4900, // $49 in cents
+      hourlyRate: 20000, // $200/hr in cents
+      skills: ["Cryptocurrency", "Bitcoin", "Technical Analysis", "Risk Management", "Day Trading", "Swing Trading"],
       badges: ["Top performer", "Verified results"],
       isActive: true,
     },
@@ -43,8 +44,9 @@ async function main() {
       reviews: 187,
       offerType: OfferType.TIME,
       accessPrice: null,
-      hourlyRate: 300,
+      hourlyRate: 30000, // $300/hr in cents
       badges: ["Wall Street veteran"],
+      skills: ["Options Trading", "Spreads", "Volatility Trading", "Institutional Trading", "Portfolio Management"],
       isActive: true,
     },
 
@@ -64,8 +66,9 @@ async function main() {
       rating: 4.7,
       reviews: 156,
       offerType: OfferType.BOTH,
-      accessPrice: 29,
-      hourlyRate: 100,
+      accessPrice: 2900, // $29 in cents
+      hourlyRate: 10000, // $100/hr in cents
+      skills: ["Valorant", "FPS Games", "Aim Training", "Game Sense", "Crosshair Placement", "Team Strategy"],
       badges: ["Radiant rank", "Tournament winner"],
       isActive: true,
     },
@@ -86,8 +89,9 @@ async function main() {
       rating: 4.9,
       reviews: 203,
       offerType: OfferType.ACCESS,
-      accessPrice: 39,
+      accessPrice: 3900, // $39 in cents
       hourlyRate: null,
+      skills: ["UI/UX Design", "Figma", "Design Systems", "User Research", "Prototyping", "Accessibility"],
       badges: ["Figma expert", "Design systems"],
       isActive: true,
     },
@@ -108,8 +112,9 @@ async function main() {
       rating: 4.8,
       reviews: 312,
       offerType: OfferType.BOTH,
-      accessPrice: 19,
-      hourlyRate: 80,
+      accessPrice: 1900, // $19 in cents
+      hourlyRate: 8000, // $80/hr in cents
+      skills: ["Weight Loss", "Muscle Building", "Nutrition", "Meal Prep", "Strength Training", "Cardio"],
       badges: ["NASM certified", "Nutrition specialist"],
       isActive: true,
     },
@@ -130,7 +135,8 @@ async function main() {
       reviews: 156,
       offerType: OfferType.TIME,
       accessPrice: null,
-      hourlyRate: 30,
+      hourlyRate: 3000, // $30/hr in cents
+      skills: ["Spanish", "Conversation", "Grammar", "DELE Exam", "Business Spanish", "Pronunciation"],
       badges: ["Conversational practice", "DELE prep"],
       isActive: true,
     },
@@ -151,8 +157,9 @@ async function main() {
       rating: 4.9,
       reviews: 243,
       offerType: OfferType.BOTH,
-      accessPrice: 25,
-      hourlyRate: 150,
+      accessPrice: 2500, // $25 in cents
+      skills: ["Resume Review", "Interview Prep", "Salary Negotiation", "Career Transition", "FAANG Interview", "LinkedIn Optimization"],
+      hourlyRate: 15000, // $150/hr in cents
       badges: ["Resume teardown", "Mock interviews"],
       isActive: true,
     },

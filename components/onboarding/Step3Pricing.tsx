@@ -196,6 +196,7 @@ export default function Step3Pricing({
             )}
           </div>
         )}
+
       </div>
 
       {error && <FormFieldError error={error} />}

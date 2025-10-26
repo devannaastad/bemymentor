@@ -82,7 +82,7 @@ export default async function AdminBookingsPage() {
           <Card>
             <CardContent>
               <p className="text-sm text-white/60">Revenue</p>
-              <p className="text-2xl font-bold">{formatCurrency(totalRevenue / 100)}</p>
+              <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
             </CardContent>
           </Card>
         </div>
@@ -136,7 +136,7 @@ export default async function AdminBookingsPage() {
                         <div className="flex gap-4">
                           <span className="text-white/60">Amount:</span>
                           <span className="font-medium">
-                            {formatCurrency(booking.totalPrice / 100)}
+                            {formatCurrency(booking.totalPrice)}
                           </span>
                         </div>
                         {booking.scheduledAt && (

@@ -8,7 +8,7 @@ const availabilitySchema = z.object({
   dayOfWeek: z.number().min(0).max(6), // 0 = Sunday, 6 = Saturday
   startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
   endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
-  timezone: z.string().default("America/New_York"),
+  timezone: z.string().optional(), // Now uses mentor's timezone from profile
   isActive: z.boolean().default(true),
 });
 
@@ -94,13 +94,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Use mentor's timezone from profile if not provided
+    const finalTimezone = timezone || user.mentorProfile.timezone;
+
     const availability = await db.availability.create({
       data: {
         mentorId: user.mentorProfile.id,
         dayOfWeek,
         startTime,
         endTime,
-        timezone,
+        timezone: finalTimezone,
         isActive,
       },
     });

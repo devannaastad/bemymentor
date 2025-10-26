@@ -1,11 +1,14 @@
 // lib/utils/format.ts
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amountInCents: number): string {
+  // Convert cents to dollars
+  const amountInDollars = amountInCents / 100;
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(amountInDollars);
 }
 
 export function ratingLabel(rating: number, reviews: number): string {

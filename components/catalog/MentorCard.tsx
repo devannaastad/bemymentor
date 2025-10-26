@@ -15,6 +15,9 @@ export default function MentorCard({ m }: { m: Mentor }) {
 
   const saved = isSaved(m.id);
   const badges = Array.isArray(m.badges) ? (m.badges as string[]) : [];
+  const skills = Array.isArray(m.skills) ? (m.skills as string[]) : [];
+  const displayedSkills = skills.slice(0, 3); // Show first 3 skills
+  const remainingSkills = skills.length - displayedSkills.length;
 
   const handleSaveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -61,6 +64,25 @@ export default function MentorCard({ m }: { m: Mentor }) {
 
           <p className="muted text-sm">{m.tagline}</p>
           <div className="text-sm text-white/80">{ratingLabel(m.rating, m.reviews)}</div>
+
+          {/* Skills */}
+          {displayedSkills.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {displayedSkills.map((skill) => (
+                <span
+                  key={skill}
+                  className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/80"
+                >
+                  {skill}
+                </span>
+              ))}
+              {remainingSkills > 0 && (
+                <span className="px-2 py-0.5 text-xs text-white/60">
+                  +{remainingSkills} more
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-2 text-sm">
             {m.offerType !== "TIME" && m.accessPrice != null && (

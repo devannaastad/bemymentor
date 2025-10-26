@@ -9,10 +9,15 @@ export default function Select({
   return (
     <select
       className={cn(
-        "h-10 w-full rounded-lg bg-white/10 px-3 text-white outline-none ring-inset ring-0 focus:ring-2 focus:ring-white/40",
-        "appearance-none bg-no-repeat pr-8",
-        "[background-image:linear-gradient(45deg,transparent_50%,currentColor_50%),linear-gradient(135deg,currentColor_50%,transparent_50%)]",
-        "[background-position:calc(100%-18px)_50%,calc(100%-12px)_50%] [background-size:6px_6px,6px_6px]",
+        "h-12 w-full rounded-lg border-2 border-white/20 bg-white/5 px-4 text-base text-white outline-none",
+        "transition-all duration-200",
+        "hover:border-white/30 hover:bg-white/10",
+        "focus:border-primary-500 focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20",
+        "appearance-none bg-no-repeat pr-10 cursor-pointer",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        // Custom dropdown arrow
+        "[background-image:url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27rgb(255,255,255)%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')]",
+        "[background-position:right_0.75rem_center] [background-size:1.25rem]",
         className
       )}
       {...props}

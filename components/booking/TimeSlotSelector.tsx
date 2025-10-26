@@ -8,7 +8,12 @@ interface TimeSlotSelectorProps {
   selectedDate: Date;
   duration: number; // in minutes
   selectedTime: string | null;
-  onSelectTime: (time: string) => void;
+  onSelectTime: (time: string, isFreeSession: boolean) => void;
+}
+
+interface TimeSlot {
+  time: string;
+  isFreeSession: boolean;
 }
 
 interface AvailableSlotsResponse {
@@ -16,7 +21,7 @@ interface AvailableSlotsResponse {
   data?: {
     date: string;
     duration: number;
-    slots: string[];
+    slots: TimeSlot[];
     timezone: string;
   };
   error?: string;
@@ -29,7 +34,7 @@ export default function TimeSlotSelector({
   selectedTime,
   onSelectTime,
 }: TimeSlotSelectorProps) {
-  const [slots, setSlots] = useState<string[]>([]);
+  const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [timezone, setTimezone] = useState<string>("America/New_York");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,23 +121,32 @@ export default function TimeSlotSelector({
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-        {slots.map((time) => {
-          const isSelected = selectedTime === time;
+        {slots.map((slot) => {
+          const isSelected = selectedTime === slot.time;
 
           return (
             <button
-              key={time}
-              onClick={() => onSelectTime(time)}
+              key={slot.time}
+              onClick={() => onSelectTime(slot.time, slot.isFreeSession)}
               className={`
-                rounded-lg border px-4 py-3 text-sm font-medium transition-all
+                rounded-lg border px-4 py-3 text-sm font-medium transition-all relative
                 ${
                   isSelected
-                    ? "border-purple-500 bg-purple-600 text-white ring-2 ring-purple-400"
+                    ? slot.isFreeSession
+                      ? "border-emerald-500 bg-emerald-600 text-white ring-2 ring-emerald-400"
+                      : "border-purple-500 bg-purple-600 text-white ring-2 ring-purple-400"
+                    : slot.isFreeSession
+                    ? "border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-500/50 hover:bg-emerald-500/20"
                     : "border-white/20 bg-white/5 hover:border-purple-500/50 hover:bg-white/10"
                 }
               `}
             >
-              {formatTimeDisplay(time)}
+              <div>{formatTimeDisplay(slot.time)}</div>
+              {slot.isFreeSession && (
+                <div className="text-xs mt-1 font-semibold text-emerald-300">
+                  FREE
+                </div>
+              )}
             </button>
           );
         })}

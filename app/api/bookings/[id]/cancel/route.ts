@@ -2,7 +2,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { stripe } from "@/lib/stripe";
+import { sendBookingCancellation } from "@/lib/email";
 import { z } from "zod";
+import { format } from "date-fns";
 
 const CancelSchema = z.object({
   reason: z.string().min(10, "Cancellation reason must be at least 10 characters"),
@@ -55,7 +58,14 @@ export async function POST(
       where: { id },
       include: {
         user: { select: { email: true, name: true } },
-        mentor: { select: { id: true, name: true, userId: true } },
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            userId: true,
+            user: { select: { email: true } }
+          }
+        },
       },
     });
 
@@ -85,23 +95,94 @@ export async function POST(
       );
     }
 
+    // Process refund if payment was made
+    let refundProcessed = false;
+    let refundAmount = 0;
+
+    if (booking.stripePaymentIntentId && booking.totalPrice > 0) {
+      try {
+        // Create a refund in Stripe
+        const refund = await stripe.refunds.create({
+          payment_intent: booking.stripePaymentIntentId,
+          reason: "requested_by_customer",
+        });
+
+        refundProcessed = refund.status === "succeeded" || refund.status === "pending";
+        refundAmount = refund.amount;
+
+        console.log("[cancel-booking] Refund processed:", {
+          bookingId: id,
+          refundId: refund.id,
+          amount: refund.amount,
+          status: refund.status,
+        });
+      } catch (refundError) {
+        console.error("[cancel-booking] Refund failed:", refundError);
+        // Continue with cancellation even if refund fails
+        // Admin will need to manually process refund
+      }
+    }
+
     // Update the booking
     const updatedBooking = await db.booking.update({
       where: { id },
       data: {
-        status: "CANCELLED",
+        status: refundProcessed || booking.totalPrice === 0 ? "REFUNDED" : "CANCELLED",
         cancellationReason: reason,
+        payoutStatus: refundProcessed || booking.totalPrice === 0 ? "REFUNDED" : "HELD",
       },
     });
 
-    // TODO: Process refund if payment was made
-    // TODO: Send notification to both parties about the cancellation
+    // Format session date and time if available
+    let sessionDate: string | undefined;
+    let sessionTime: string | undefined;
+
+    if (booking.scheduledAt) {
+      sessionDate = format(new Date(booking.scheduledAt), "MMMM dd, yyyy");
+      sessionTime = format(new Date(booking.scheduledAt), "h:mm a");
+    }
+
+    // Send cancellation notification to student
+    const studentEmailResult = await sendBookingCancellation({
+      to: booking.user.email || "",
+      recipientName: booking.user.name || "Student",
+      bookingId: id,
+      mentorName: booking.mentor.name,
+      sessionDate,
+      sessionTime,
+      cancellationReason: reason,
+      refundAmount: refundAmount > 0 ? refundAmount / 100 : undefined, // Convert cents to dollars
+      isMentor: false,
+    });
+
+    if (!studentEmailResult.ok) {
+      console.error("[cancel-booking] Failed to send student email:", studentEmailResult.error);
+    }
+
+    // Send cancellation notification to mentor
+    const mentorEmailResult = await sendBookingCancellation({
+      to: booking.mentor.user.email || "",
+      recipientName: booking.mentor.name,
+      bookingId: id,
+      mentorName: booking.mentor.name,
+      sessionDate,
+      sessionTime,
+      cancellationReason: reason,
+      refundAmount: undefined, // Mentors don't need to see refund amount
+      isMentor: true,
+    });
+
+    if (!mentorEmailResult.ok) {
+      console.error("[cancel-booking] Failed to send mentor email:", mentorEmailResult.error);
+    }
 
     return NextResponse.json({
       ok: true,
       data: {
         booking: updatedBooking,
         message: "Booking cancelled successfully",
+        refundProcessed,
+        refundAmount: refundAmount / 100, // Convert to dollars for display
       },
     });
   } catch (error) {

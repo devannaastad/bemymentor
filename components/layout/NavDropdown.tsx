@@ -85,15 +85,23 @@ export default function NavDropdown({
           ref={menuRef}
           role="menu"
           aria-label="Account menu"
-          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-neutral-900/95 shadow-xl backdrop-blur"
+          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-purple-500/30 bg-black/95 shadow-xl backdrop-blur-xl"
+          style={{
+            boxShadow: `
+              0 0 20px rgba(168, 85, 247, 0.15),
+              0 0 40px rgba(245, 158, 11, 0.1),
+              0 8px 32px rgba(0, 0, 0, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1)
+            `
+          }}
         >
           {signedInAs && (
             <>
               <div className="px-3 py-2">
-                <p className="truncate text-xs text-neutral-400">Signed in as</p>
-                <p className="truncate text-sm font-medium text-neutral-100">{signedInAs}</p>
+                <p className="truncate text-xs text-purple-300/60">Signed in as</p>
+                <p className="truncate text-sm font-medium text-white">{signedInAs}</p>
               </div>
-              <div className="my-1 h-px bg-white/10" />
+              <div className="my-1 h-px bg-gradient-to-r from-purple-500/20 via-amber-500/20 to-purple-500/20" />
             </>
           )}
 

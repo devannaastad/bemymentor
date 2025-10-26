@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { startOfMonth, endOfMonth, eachDayOfInterval, format } from "date-fns";
+import { startOfMonth, endOfMonth, format } from "date-fns";
 
 export async function GET(req: NextRequest) {
   try {
@@ -131,6 +131,7 @@ export async function GET(req: NextRequest) {
         bookings,
         blockedSlots,
         availableDates,
+        availableSlots, // Include full slot data with isFreeSession flag
       },
     });
   } catch (error) {

@@ -1,7 +1,7 @@
 // app/api/mentors/[id]/availability-calendar/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { startOfMonth, endOfMonth, eachDayOfInterval, format } from "date-fns";
+import { startOfMonth, endOfMonth, format } from "date-fns";
 
 type Params = { id: string };
 

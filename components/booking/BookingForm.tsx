@@ -18,21 +18,28 @@ export default function BookingForm({ mentor }: BookingFormProps) {
   );
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
+  const [isFreeSession, setIsFreeSession] = useState<boolean>(false);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const handleSchedule = (datetime: Date, duration: number) => {
+  const handleSchedule = (datetime: Date, duration: number, isFree: boolean) => {
     setScheduledAt(datetime);
     setDurationMinutes(duration);
+    setIsFreeSession(isFree);
   };
 
   const calculatePrice = () => {
-    if (bookingType === "ACCESS") {
-      return mentor.accessPrice || 0;
+    if (isFreeSession) {
+      return 0; // Free sessions are $0
     }
-    return Math.round(((mentor.hourlyRate || 0) / 60) * durationMinutes);
+    if (bookingType === "ACCESS") {
+      // Convert cents to dollars
+      return Math.round((mentor.accessPrice || 0) / 100);
+    }
+    // For hourly sessions: (hourlyRate in cents / 60 minutes) * duration / 100 to convert to dollars
+    return Math.round(((mentor.hourlyRate || 0) / 60) * durationMinutes / 100);
   };
 
   const handleContinueClick = () => {
@@ -62,6 +69,7 @@ export default function BookingForm({ mentor }: BookingFormProps) {
       if (bookingType === "SESSION") {
         payload.scheduledAt = scheduledAt!.toISOString();
         payload.durationMinutes = durationMinutes;
+        payload.isFreeSession = isFreeSession; // Pass free session flag
       }
 
       const res = await fetch("/api/bookings", {
@@ -74,6 +82,12 @@ export default function BookingForm({ mentor }: BookingFormProps) {
 
       if (!res.ok) {
         throw new Error(body.error || "Failed to create booking");
+      }
+
+      // Skip Stripe for free sessions - go directly to confirmation
+      if (isFreeSession) {
+        window.location.href = `/bookings/${body.data.id}/confirm`;
+        return;
       }
 
       // Create Stripe checkout session and redirect directly
@@ -125,7 +139,7 @@ export default function BookingForm({ mentor }: BookingFormProps) {
                 }`}
               >
                 <h3 className="mb-1 font-semibold">ACCESS Pass</h3>
-                <p className="mb-2 text-2xl font-bold">${mentor.accessPrice}</p>
+                <p className="mb-2 text-2xl font-bold">${(mentor.accessPrice || 0) / 100}</p>
                 <p className="text-sm text-white/60">One-time payment for full access</p>
               </button>
 
@@ -139,7 +153,7 @@ export default function BookingForm({ mentor }: BookingFormProps) {
                 }`}
               >
                 <h3 className="mb-1 font-semibold">1-on-1 Session</h3>
-                <p className="mb-2 text-2xl font-bold">${mentor.hourlyRate}/hr</p>
+                <p className="mb-2 text-2xl font-bold">${(mentor.hourlyRate || 0) / 100}/hr</p>
                 <p className="text-sm text-white/60">Live coaching session</p>
               </button>
             </div>
@@ -162,7 +176,7 @@ export default function BookingForm({ mentor }: BookingFormProps) {
             <p className="mb-3 text-sm text-emerald-100/70">
               Get instant access to all digital resources, community, and exclusive content.
             </p>
-            <p className="text-2xl font-bold text-emerald-200">${mentor.accessPrice}</p>
+            <p className="text-2xl font-bold text-emerald-200">${(mentor.accessPrice || 0) / 100}</p>
           </div>
         )}
 
