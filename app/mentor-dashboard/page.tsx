@@ -109,11 +109,16 @@ export default async function MentorDashboardPage() {
     <section className="section">
       <div className="container">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="h1 mb-2">Mentor Dashboard</h1>
-          <p className="text-white/60">
-            Welcome back, {mentorName}! Manage your bookings and track your progress.
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="h1 mb-2">Mentor Dashboard</h1>
+            <p className="text-white/60">
+              Welcome back, {mentorName}! Manage your bookings and track your progress.
+            </p>
+          </div>
+          <Button href="/mentor-dashboard/profile" variant="primary">
+            Edit Profile
+          </Button>
         </div>
 
         {/* Stats Grid */}

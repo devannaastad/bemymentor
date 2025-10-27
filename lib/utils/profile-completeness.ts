@@ -26,6 +26,7 @@ export function calculateProfileCompleteness(
       label: "Name",
       description: "Your display name",
       completed: !!(mentor.name && mentor.name.trim().length > 0),
+      link: "/mentor-dashboard/profile",
       weight: 10,
     },
     {
@@ -33,6 +34,7 @@ export function calculateProfileCompleteness(
       label: "Tagline",
       description: "Short headline describing your expertise",
       completed: !!(mentor.tagline && mentor.tagline.trim().length > 0),
+      link: "/mentor-dashboard/profile",
       weight: 10,
     },
     {
@@ -40,6 +42,7 @@ export function calculateProfileCompleteness(
       label: "Bio",
       description: "Detailed bio (at least 100 characters recommended)",
       completed: !!(mentor.bio && mentor.bio.trim().length >= 100),
+      link: "/mentor-dashboard/profile",
       weight: 15,
     },
     {
@@ -47,6 +50,7 @@ export function calculateProfileCompleteness(
       label: "Profile Photo",
       description: "Professional profile picture",
       completed: !!mentor.profileImage,
+      link: "/mentor-dashboard/profile",
       weight: 10,
     },
     {
@@ -54,6 +58,7 @@ export function calculateProfileCompleteness(
       label: "Category",
       description: "Your mentoring category",
       completed: !!mentor.category,
+      link: "/mentor-dashboard/profile",
       weight: 10,
     },
     {
@@ -65,6 +70,7 @@ export function calculateProfileCompleteness(
         typeof mentor.socialLinks === "object" &&
         Object.keys(mentor.socialLinks).length > 0
       ),
+      link: "/mentor-dashboard/profile",
       weight: 5,
     },
     {
@@ -80,7 +86,7 @@ export function calculateProfileCompleteness(
       label: "Timezone",
       description: "Set your timezone for scheduling",
       completed: !!mentor.timezone,
-      link: "/mentor-settings",
+      link: "/mentor-dashboard/profile",
       weight: 5,
     },
   ];
@@ -92,7 +98,7 @@ export function calculateProfileCompleteness(
       label: "Access Price",
       description: "Set your ACCESS pass price",
       completed: !!(mentor.accessPrice && mentor.accessPrice > 0),
-      link: "/mentor-settings",
+      link: "/mentor-dashboard/profile",
       weight: 7.5,
     });
   }
@@ -103,7 +109,7 @@ export function calculateProfileCompleteness(
       label: "Hourly Rate",
       description: "Set your hourly coaching rate",
       completed: !!(mentor.hourlyRate && mentor.hourlyRate > 0),
-      link: "/mentor-settings",
+      link: "/mentor-dashboard/profile",
       weight: 7.5,
     });
   }

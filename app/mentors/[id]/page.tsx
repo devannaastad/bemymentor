@@ -2,12 +2,15 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { db } from "@/lib/db";
+import { auth } from "@/auth";
 import type { Metadata } from "next";
 import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import SaveButton from "@/components/mentors/SaveButton";
 import ReviewList from "@/components/reviews/ReviewList";
+import PortfolioSection, { type PortfolioItem } from "@/components/mentor/PortfolioSection";
+import VideoIntroSection from "@/components/mentor/VideoIntroSection";
 import { formatCurrency } from "@/lib/utils/format";
 
 type Params = { id: string };
@@ -35,12 +38,29 @@ export default async function MentorPage({
   params: Promise<Params>;
 }) {
   const { id } = await params;
+  const session = await auth();
 
   const mentor = await db.mentor.findUnique({
     where: { id, isActive: true },
   });
 
   if (!mentor) notFound();
+
+  // Check if user already has an access pass for this mentor
+  let hasAccessPass = false;
+  if (session?.user?.id) {
+    const existingAccessPass = await db.booking.findFirst({
+      where: {
+        userId: session.user.id,
+        mentorId: id,
+        type: "ACCESS",
+        status: {
+          in: ["CONFIRMED", "COMPLETED"],
+        },
+      },
+    });
+    hasAccessPass = !!existingAccessPass;
+  }
 
   // Fetch reviews for this mentor
   const reviews = await db.review.findMany({
@@ -64,6 +84,10 @@ export default async function MentorPage({
   });
 
   const badges = Array.isArray(mentor.badges) ? (mentor.badges as string[]) : [];
+  const skills = Array.isArray(mentor.skills) ? (mentor.skills as string[]) : [];
+  const portfolio = (mentor.portfolio && Array.isArray(mentor.portfolio)
+    ? mentor.portfolio
+    : []) as unknown as PortfolioItem[];
 
   return (
     <section className="section">
@@ -112,6 +136,23 @@ export default async function MentorPage({
             ))}
             <Badge variant="outline">{mentor.category}</Badge>
           </div>
+
+          {/* Skills */}
+          {skills.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold text-white/80 mb-2">Expertise</h3>
+              <div className="flex flex-wrap gap-2">
+                {skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="px-3 py-1.5 rounded-full bg-white/10 text-sm text-white/90 hover:bg-white/15 transition-colors"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pricing Cards */}
@@ -149,9 +190,15 @@ export default async function MentorPage({
                     <span>Exclusive templates & guides</span>
                   </li>
                 </ul>
-                <Button href={`/book/${mentor.id}`} className="w-full" variant="primary">
-                  Get ACCESS Pass
-                </Button>
+                {hasAccessPass ? (
+                  <Button href={`/access-pass/${mentor.id}`} className="w-full" variant="primary">
+                    Access Your Content
+                  </Button>
+                ) : (
+                  <Button href={`/book/${mentor.id}`} className="w-full" variant="primary">
+                    Get ACCESS Pass
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
@@ -237,6 +284,12 @@ export default async function MentorPage({
             )}
             </CardContent>
             </Card>
+
+            {/* Video Introduction Section */}
+            {mentor.videoIntro && <VideoIntroSection videoUrl={mentor.videoIntro} />}
+
+            {/* Portfolio Section */}
+            <PortfolioSection portfolio={portfolio} />
 
             {/* Reviews Section */}
             <Card>

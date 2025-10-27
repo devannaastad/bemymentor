@@ -139,6 +139,13 @@ model Mentor {
   hourlyRate   Int?
   badges       Json?
   skills       String[]       @default([]) // Searchable skills/tags (e.g., ["Bitcoin", "Technical Analysis"])
+  portfolio    Json?                       // Array of portfolio items: [{ title, description, imageUrl, link, type }]
+  videoIntro   String?                     // YouTube, Vimeo, or Loom video URL for introduction
+
+  // Access Pass exclusive content
+  accessPassWelcome String?      @db.Text  // Welcome message for access pass holders
+  accessPassLinks   Json?                  // Array of exclusive links: [{ type, title, url, description }]
+
   isActive     Boolean        @default(true) // Can be toggled off by admin or mentor
 
   // Free session support

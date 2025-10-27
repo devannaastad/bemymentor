@@ -27,6 +27,29 @@ async function main() {
       hourlyRate: 20000, // $200/hr in cents
       skills: ["Cryptocurrency", "Bitcoin", "Technical Analysis", "Risk Management", "Day Trading", "Swing Trading"],
       badges: ["Top performer", "Verified results"],
+      videoIntro: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", // Sample video - replace with actual intro video
+      portfolio: [
+        {
+          title: "$500K Bitcoin Trade - Q4 2024",
+          description: "Documented trade where I took BTC from $38K to $55K using technical analysis and risk management strategies I teach in my course.",
+          imageUrl: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800",
+          link: "https://example.com/case-study-1",
+          type: "result"
+        },
+        {
+          title: "Technical Analysis Masterclass",
+          description: "Comprehensive guide to reading charts, identifying patterns, and making data-driven trading decisions.",
+          imageUrl: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800",
+          type: "case-study"
+        },
+        {
+          title: "Risk Management Framework",
+          description: "My proprietary risk management system that has kept my portfolio profitable through multiple market cycles.",
+          imageUrl: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?w=800",
+          link: "https://example.com/risk-framework",
+          type: "article"
+        }
+      ],
       isActive: true,
     },
     {
@@ -219,6 +242,9 @@ async function main() {
         accessPrice: mentorData.accessPrice,
         hourlyRate: mentorData.hourlyRate,
         badges: mentorData.badges,
+        skills: mentorData.skills,
+        videoIntro: mentorData.videoIntro,
+        portfolio: mentorData.portfolio,
         isActive: mentorData.isActive,
       },
       create: {
@@ -236,6 +262,9 @@ async function main() {
         accessPrice: mentorData.accessPrice,
         hourlyRate: mentorData.hourlyRate,
         badges: mentorData.badges,
+        skills: mentorData.skills,
+        videoIntro: mentorData.videoIntro,
+        portfolio: mentorData.portfolio,
         isActive: mentorData.isActive,
       },
     });

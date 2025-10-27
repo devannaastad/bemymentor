@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "utfs.io", pathname: "/**" },
       // Pravatar (for seed data profile images)
       { protocol: "https", hostname: "i.pravatar.cc", pathname: "/**" },
+      // Unsplash (for portfolio images)
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
     ],
   },
 };

@@ -97,6 +97,11 @@ export default async function BookingConfirmPage({
     }
   }
 
+  // After payment verification, redirect ACCESS pass purchases to their exclusive content page
+  if (stripeSessionId && booking.status === "CONFIRMED" && booking.type === "ACCESS" && booking.stripePaidAt) {
+    redirect(`/access-pass/${booking.mentor.id}`);
+  }
+
   const formattedPrice = (booking.totalPrice / 100).toFixed(2);
   const scheduledDate = booking.scheduledAt
     ? new Date(booking.scheduledAt).toLocaleString("en-US", {
@@ -339,7 +344,12 @@ export default async function BookingConfirmPage({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap justify-center gap-3">
-          <Button href="/dashboard" variant="primary">
+          {isPaid && booking.type === "ACCESS" && (
+            <Button href={`/access-pass/${booking.mentor.id}`} variant="primary">
+              Access Your Content
+            </Button>
+          )}
+          <Button href="/dashboard" variant={isPaid && booking.type === "ACCESS" ? "ghost" : "primary"}>
             Go to Dashboard
           </Button>
           <Button href={`/mentors/${booking.mentor.id}`} variant="ghost">

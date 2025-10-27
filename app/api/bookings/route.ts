@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      totalPrice = mentor.accessPrice * 100; // Convert to cents
+      totalPrice = mentor.accessPrice; // Already in cents
     } else if (type === "SESSION") {
       if (mentor.offerType === "ACCESS") {
         return NextResponse.json(

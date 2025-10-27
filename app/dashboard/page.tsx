@@ -219,7 +219,12 @@ export default async function DashboardPage() {
                       >
                         {booking.status}
                       </Badge>
-                      {booking.status === "COMPLETED" && !booking.review && (
+                      {booking.type === "ACCESS" && (booking.status === "CONFIRMED" || booking.status === "COMPLETED") && (
+                        <Button href={`/access-pass/${booking.mentor.id}`} variant="primary" size="sm">
+                          Access Content
+                        </Button>
+                      )}
+                      {booking.type === "SESSION" && booking.status === "COMPLETED" && !booking.review && (
                         <Button href={`/bookings/${booking.id}/review`} variant="primary" size="sm">
                           Write Review
                         </Button>
