@@ -15,11 +15,11 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Browse Mentors",
   description:
-    "Explore our catalog of expert mentors in trading, gaming, design, fitness, languages, and career coaching. Filter by category, price, and availability.",
+    "Mentorship for the next generation of creators, gamers, and traders. Find expert mentors in Gaming, Trading, Streaming, and YouTube Production.",
   openGraph: {
     title: "Browse Mentors | BeMyMentor",
     description:
-      "Find the perfect mentor for your goals. Browse expert coaches and mentors across multiple categories.",
+      "Find the perfect mentor for your goals. Expert mentors in Gaming & Esports, Trading & Investing, Streaming, and YouTube Production.",
   },
 };
 
@@ -173,11 +173,18 @@ function ActiveFilters({ sp }: { sp: SP }) {
 
   const selectedSkills = sp.skills ? sp.skills.split(",").filter(Boolean) : [];
 
+  const categoryLabels: Record<string, string> = {
+    GAMING_ESPORTS: "Gaming & Esports",
+    TRADING_INVESTING: "Trading & Investing",
+    STREAMING_CONTENT: "Streaming & Content",
+    YOUTUBE_PRODUCTION: "YouTube Production",
+  };
+
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
       <span className="text-sm text-white/60">Active filters:</span>
       {sp.q && <Badge variant="outline">Search: {sp.q}</Badge>}
-      {sp.category && <Badge variant="outline">Category: {sp.category}</Badge>}
+      {sp.category && <Badge variant="outline">Category: {categoryLabels[sp.category] || sp.category}</Badge>}
       {sp.priceMin && <Badge variant="outline">Min: ${sp.priceMin}</Badge>}
       {sp.priceMax && <Badge variant="outline">Max: ${sp.priceMax}</Badge>}
       {sp.type && <Badge variant="outline">Type: {sp.type}</Badge>}
@@ -248,13 +255,11 @@ export default async function CatalogPage({ searchParams }: PageProps) {
                       Category
                     </label>
                     <Select id="category" name="category" defaultValue={sp.category ?? ""}>
-                      <option value="">All</option>
-                      <option value="trading">Trading</option>
-                      <option value="gaming">Gaming</option>
-                      <option value="design">Design</option>
-                      <option value="fitness">Fitness</option>
-                      <option value="languages">Languages</option>
-                      <option value="career">Career</option>
+                      <option value="">All Categories</option>
+                      <option value="GAMING_ESPORTS">🎮 Gaming & Esports</option>
+                      <option value="TRADING_INVESTING">💸 Trading & Investing</option>
+                      <option value="STREAMING_CONTENT">📹 Streaming & Content</option>
+                      <option value="YOUTUBE_PRODUCTION">🎬 YouTube Production</option>
                     </Select>
                   </div>
 
@@ -348,13 +353,11 @@ export default async function CatalogPage({ searchParams }: PageProps) {
                       Category
                     </label>
                     <Select id="category-desktop" name="category" defaultValue={sp.category ?? ""}>
-                      <option value="">All</option>
-                      <option value="trading">Trading</option>
-                      <option value="gaming">Gaming</option>
-                      <option value="design">Design</option>
-                      <option value="fitness">Fitness</option>
-                      <option value="languages">Languages</option>
-                      <option value="career">Career</option>
+                      <option value="">All Categories</option>
+                      <option value="GAMING_ESPORTS">🎮 Gaming & Esports</option>
+                      <option value="TRADING_INVESTING">💸 Trading & Investing</option>
+                      <option value="STREAMING_CONTENT">📹 Streaming & Content</option>
+                      <option value="YOUTUBE_PRODUCTION">🎬 YouTube Production</option>
                     </Select>
                   </div>
 

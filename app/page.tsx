@@ -4,17 +4,18 @@ import Categories from "@/components/landing/Categories";
 import Trust from "@/components/landing/Trust";
 import CTA from "@/components/landing/CTA";
 import FAQ from "@/components/landing/FAQ";
+import Footer from "@/components/landing/Footer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "BeMyMentor - Find Expert Mentors in Trading, Gaming, Design & More",
-  description: "Connect with expert mentors in trading, gaming, design, fitness, languages, and career coaching. Book 1-on-1 sessions or get lifetime access to exclusive content and communities.",
+  title: "BeMyMentor - Level Up Your Skills with Expert Creators, Gamers & Traders",
+  description: "Mentorship for the next generation. Learn from top Gaming & Esports pros, Trading experts, Streamers, and YouTube creators. Get 1-on-1 coaching or exclusive content access.",
   openGraph: {
-    title: "BeMyMentor - Expert Mentorship Platform",
-    description: "Transform your skills with personalized mentorship from industry experts. Choose from ACCESS passes or 1-on-1 sessions.",
+    title: "BeMyMentor - Expert Mentorship for Creators, Gamers & Traders",
+    description: "Level up your game. Learn from Radiant Valorant coaches, successful crypto traders, Twitch Partners, and YouTube pros.",
     type: "website",
   },
-  keywords: ["mentorship", "coaching", "trading mentor", "gaming coach", "design mentor", "fitness coach", "career coaching", "online learning"],
+  keywords: ["gaming coach", "esports mentor", "trading mentor", "crypto trading", "twitch streaming", "youtube creator", "content creation", "valorant coach", "rocket league coach"],
 };
 
 export default function HomePage() {
@@ -27,6 +28,7 @@ export default function HomePage() {
       <Trust />
       <CTA />
       <FAQ />
+      <Footer />
     </>
   );
 }

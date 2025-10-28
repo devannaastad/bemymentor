@@ -56,11 +56,11 @@ export default function Navbar() {
             <TopLink href="/apply" active={pathname === "/apply"}>
               Apply
             </TopLink>
-            <TopLink href="/saved" active={pathname === "/saved"}>
-              Saved
-            </TopLink>
             {status === "authenticated" && (
               <>
+                <TopLink href="/saved" active={pathname === "/saved"}>
+                  Saved
+                </TopLink>
                 <TopLink href="/dashboard" active={pathname === "/dashboard"}>
                   Dashboard
                 </TopLink>

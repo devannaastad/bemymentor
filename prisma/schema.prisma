@@ -13,12 +13,10 @@ datasource db {
  * ---------- App enums ----------
  */
 enum MentorCategory {
-  trading
-  gaming
-  design
-  fitness
-  languages
-  career
+  GAMING_ESPORTS           // Gaming & Esports - Skill coaching, strategy, competitive prep
+  TRADING_INVESTING        // Trading & Investing - Market education, risk management
+  STREAMING_CONTENT        // Streaming & Content Creation - Twitch/YouTube growth, audience retention
+  YOUTUBE_PRODUCTION       // YouTube Production & Editing - Filmmaking, editing, branding
 }
 
 enum OfferType {
@@ -271,6 +269,11 @@ model Booking {
   isFraudReported Boolean       @default(false) // Customer reported fraud
   fraudReportedAt DateTime?     // When fraud was reported
   fraudNotes      String?       @db.Text // Admin notes on fraud report
+
+  // Two-sided confirmation system
+  mentorCompletedAt DateTime?   // When mentor marked as completed
+  studentConfirmedAt DateTime?  // When student confirmed completion
+  autoConfirmAt   DateTime?     // When to auto-confirm if student doesn't respond (72 hours after mentor completion)
 
   // Payout tracking
   payoutStatus    String        @default("HELD") // HELD, RELEASED, PAID_OUT, REFUNDED

@@ -8,7 +8,7 @@ import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import Image from "next/image";
 import PaymentButton from "@/components/booking/PaymentButton";
-import BookingVerification from "@/components/booking/BookingVerification";
+import StudentConfirmation from "@/components/booking/StudentConfirmation";
 import AddToCalendarButton from "@/components/booking/AddToCalendarButton";
 
 type Params = { id: string };
@@ -330,13 +330,15 @@ export default async function BookingConfirmPage({
           </Card>
         )}
 
-        {/* Verification Section - Only show for COMPLETED bookings that are paid */}
-        {booking.status === "COMPLETED" && isPaid && (
+        {/* Student Confirmation - Only show for COMPLETED SESSION bookings that are paid */}
+        {booking.status === "COMPLETED" && booking.type === "SESSION" && isPaid && (
           <div className="mb-8">
-            <BookingVerification
+            <StudentConfirmation
               bookingId={booking.id}
               mentorName={booking.mentor.name}
-              isVerified={booking.isVerified}
+              mentorCompletedAt={booking.mentorCompletedAt}
+              studentConfirmedAt={booking.studentConfirmedAt}
+              autoConfirmAt={booking.autoConfirmAt}
               isFraudReported={booking.isFraudReported}
             />
           </div>

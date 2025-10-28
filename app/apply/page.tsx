@@ -6,10 +6,10 @@ import { CheckCircle, DollarSign, Users, Zap } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Become a Mentor - BeMyMentor",
-  description: "Share your expertise and earn money by becoming a mentor on BeMyMentor. Help others learn trading, gaming, design, fitness, languages, or career skills.",
+  description: "Share your expertise and earn money. Mentor the next generation in Gaming & Esports, Trading & Investing, Streaming, or YouTube Production. Keep 85% of your earnings.",
   openGraph: {
     title: "Become a Mentor | BeMyMentor",
-    description: "Turn your expertise into income. Join our platform as a mentor and start coaching students today.",
+    description: "Turn your expertise into income. Join our platform as a mentor and start coaching creators, gamers, and traders today.",
   },
 };
 

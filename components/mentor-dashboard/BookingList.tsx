@@ -157,14 +157,19 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
         body: JSON.stringify({ status: newStatus }),
       });
 
-      if (!res.ok) throw new Error("Failed to update booking");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update booking");
+      }
 
       setCurrentStatus(newStatus);
       setShowCancelModal(false);
       window.location.reload();
     } catch (err) {
       console.error("Failed to update booking:", err);
-      alert("Failed to update booking. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "Failed to update booking. Please try again.";
+      alert(errorMessage);
     } finally {
       setIsUpdating(false);
     }
@@ -254,7 +259,7 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
           </>
         )}
 
-        {currentStatus === "CONFIRMED" && (
+        {currentStatus === "CONFIRMED" && booking.status === "CONFIRMED" && (
           <>
             <div className="flex flex-col gap-1">
               <Button

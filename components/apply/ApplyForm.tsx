@@ -124,12 +124,12 @@ export default function ApplyForm() {
         <Input
           id="topic"
           {...register("topic")}
-          placeholder="e.g., Crypto trading, Valorant coaching, UX design"
+          placeholder="e.g., Valorant aim coaching, Day trading strategies, YouTube editing"
           className="h-12 text-base"
         />
         {errors.topic?.message && <FormFieldError error={errors.topic.message} />}
         <p className="mt-2 text-sm text-white/50">
-          Keep it clear and concise (max 120 characters)
+          Focus areas: Gaming & Esports, Trading & Investing, Streaming, YouTube Production
         </p>
       </div>
 

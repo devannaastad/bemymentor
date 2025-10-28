@@ -125,9 +125,10 @@ function inferCategory(topic: string): MentorCategory {
     lower.includes("trading") ||
     lower.includes("stocks") ||
     lower.includes("crypto") ||
-    lower.includes("forex")
+    lower.includes("forex") ||
+    lower.includes("invest")
   ) {
-    return "trading";
+    return "TRADING_INVESTING";
   }
   if (
     lower.includes("game") ||
@@ -135,44 +136,28 @@ function inferCategory(topic: string): MentorCategory {
     lower.includes("valorant") ||
     lower.includes("league") ||
     lower.includes("cs") ||
-    lower.includes("esport")
+    lower.includes("esport") ||
+    lower.includes("rocket")
   ) {
-    return "gaming";
+    return "GAMING_ESPORTS";
   }
   if (
-    lower.includes("design") ||
-    lower.includes("ux") ||
-    lower.includes("ui") ||
-    lower.includes("figma") ||
-    lower.includes("graphic")
+    lower.includes("stream") ||
+    lower.includes("twitch") ||
+    lower.includes("content") ||
+    lower.includes("youtube live")
   ) {
-    return "design";
+    return "STREAMING_CONTENT";
   }
   if (
-    lower.includes("fitness") ||
-    lower.includes("workout") ||
-    lower.includes("gym") ||
-    lower.includes("training")
+    lower.includes("edit") ||
+    lower.includes("video") ||
+    lower.includes("youtube") ||
+    lower.includes("thumbnail") ||
+    lower.includes("production")
   ) {
-    return "fitness";
-  }
-  if (
-    lower.includes("language") ||
-    lower.includes("spanish") ||
-    lower.includes("french") ||
-    lower.includes("japanese") ||
-    lower.includes("english")
-  ) {
-    return "languages";
-  }
-  if (
-    lower.includes("career") ||
-    lower.includes("resume") ||
-    lower.includes("interview") ||
-    lower.includes("job")
-  ) {
-    return "career";
+    return "YOUTUBE_PRODUCTION";
   }
 
-  return "career"; // default fallback
+  return "STREAMING_CONTENT"; // default fallback
 }

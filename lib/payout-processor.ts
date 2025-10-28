@@ -42,6 +42,51 @@ export async function processBookingPayout(bookingId: string) {
     return null;
   }
 
+  // NEW: Check if student has confirmed OR if fraud was reported
+  const now = new Date();
+  const isStudentConfirmed = booking.studentConfirmedAt !== null;
+  const isAutoConfirmReady = booking.autoConfirmAt && now >= booking.autoConfirmAt;
+  const isFraudReported = booking.isFraudReported;
+
+  if (isFraudReported) {
+    console.log(`[payout] Booking ${bookingId} has fraud report, holding payout indefinitely`);
+    await db.booking.update({
+      where: { id: bookingId },
+      data: {
+        payoutStatus: "HELD",
+        payoutReleasedAt: null, // No release date - requires manual admin review
+      },
+    });
+    return {
+      status: "HELD",
+      reason: "Fraud reported - requires admin review",
+    };
+  }
+
+  // Only process payout if student confirmed OR auto-confirm time has passed
+  if (!isStudentConfirmed && !isAutoConfirmReady) {
+    const waitUntil = booking.autoConfirmAt || "unknown";
+    console.log(`[payout] Booking ${bookingId} waiting for student confirmation (auto-confirm at ${waitUntil})`);
+    return {
+      status: "AWAITING_CONFIRMATION",
+      reason: "Waiting for student confirmation or auto-confirm timeout",
+      autoConfirmAt: booking.autoConfirmAt,
+    };
+  }
+
+  // If auto-confirmed (not manually confirmed), mark it
+  if (!isStudentConfirmed && isAutoConfirmReady) {
+    console.log(`[payout] Booking ${bookingId} auto-confirming (student didn't respond within 72 hours)`);
+    await db.booking.update({
+      where: { id: bookingId },
+      data: {
+        studentConfirmedAt: now,
+        isVerified: true,
+        verifiedAt: now,
+      },
+    });
+  }
+
   // Calculate payout amounts (15% platform fee, 85% mentor)
   const { platformFee, mentorPayout } = calculatePayoutAmounts(booking.totalPrice);
 
@@ -60,11 +105,11 @@ export async function processBookingPayout(bookingId: string) {
   const isTrusted = booking.mentor.verifiedBookingsCount >= TRUST_THRESHOLD;
 
   if (isTrusted) {
-    // Trusted mentor: Immediate payout
+    // Trusted mentor: Immediate payout (after student confirmation)
     console.log(`[payout] Trusted mentor ${booking.mentorId}, processing immediate payout`);
     return await executePayout(booking.id, booking.mentor.stripeConnectId, mentorPayout);
   } else {
-    // New mentor: Hold for 7 days
+    // New mentor: Hold for 7 days (after student confirmation)
     const releaseDate = new Date();
     releaseDate.setDate(releaseDate.getDate() + HOLD_PERIOD_DAYS);
 

@@ -92,17 +92,31 @@ export async function PATCH(
       );
     }
 
+    // Prepare update data
+    const updateData: Record<string, unknown> = {
+      status,
+      cancellationReason:
+        status === "CANCELLED" ? cancellationReason || "Cancelled by mentor" : undefined,
+      meetingLink: meetingLink || undefined,
+    };
+
+    // If marking as COMPLETED, set mentor completion timestamp and auto-confirm time
+    if (status === "COMPLETED" && !booking.mentorCompletedAt) {
+      const now = new Date();
+      const autoConfirmDate = new Date(now);
+      autoConfirmDate.setHours(autoConfirmDate.getHours() + 72); // 72 hours = 3 days
+
+      updateData.mentorCompletedAt = now;
+      updateData.autoConfirmAt = autoConfirmDate;
+    }
+
     // Update booking
     const updated = await db.booking.update({
       where: { id },
-      data: {
-        status,
-        cancellationReason:
-          status === "CANCELLED" ? cancellationReason || "Cancelled by mentor" : undefined,
-        meetingLink: meetingLink || undefined,
-      },
+      data: updateData,
       include: {
         mentor: true,
+        user: true,
       },
     });
 
