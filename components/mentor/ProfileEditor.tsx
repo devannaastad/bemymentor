@@ -36,6 +36,8 @@ function ProfileEditorContent({ mentor }: ProfileEditorProps) {
       offerType: mentor.offerType,
       accessPrice: mentor.accessPrice ? mentor.accessPrice / 100 : 0,
       hourlyRate: mentor.hourlyRate ? mentor.hourlyRate / 100 : 0,
+      socialLinks: (mentor.socialLinks as unknown as Record<string, string>) || {},
+      portfolio: (mentor.portfolio as unknown as { title: string; description: string; imageUrl?: string; link?: string; type: string }[]) || [],
       accessPassWelcome: mentor.accessPassWelcome || "",
       accessPassLinks: (mentor.accessPassLinks as unknown as { type: string; title: string; url: string; description?: string }[]) || [],
       videoIntro: mentor.videoIntro || "",
@@ -107,7 +109,7 @@ function ProfileEditorContent({ mentor }: ProfileEditorProps) {
       {/* Tab Content */}
       <div className="min-h-[500px]">
         {activeTab === "basic" && <BasicInfoEditor mentor={mentor} />}
-        {activeTab === "portfolio" && <PortfolioEditor mentor={mentor} />}
+        {activeTab === "portfolio" && <PortfolioEditor />}
         {activeTab === "video" && <VideoEditor mentor={mentor} />}
         {activeTab === "access" && <AccessPassEditor mentor={mentor} />}
       </div>

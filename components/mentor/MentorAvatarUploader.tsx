@@ -1,22 +1,21 @@
-// components/settings/AvatarUploader.tsx
+// components/mentor/MentorAvatarUploader.tsx
 "use client";
 
 import { useState, useRef } from "react";
-import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Button from "@/components/common/Button";
 import { toast } from "@/components/common/Toast";
 import { Camera, Upload } from "lucide-react";
 import { useUploadThing } from "@/lib/uploadthing";
+import { useProfileEditor } from "./ProfileEditorContext";
 
-interface AvatarUploaderProps {
+interface MentorAvatarUploaderProps {
   initialUrl: string | null;
 }
 
-export default function AvatarUploader({ initialUrl }: AvatarUploaderProps) {
-  const { update } = useSession();
+export default function MentorAvatarUploader({ initialUrl }: MentorAvatarUploaderProps) {
+  const { updateField } = useProfileEditor();
   const [avatarUrl, setAvatarUrl] = useState(initialUrl);
-  const [removing, setRemoving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +26,11 @@ export default function AvatarUploader({ initialUrl }: AvatarUploaderProps) {
   const { startUpload } = useUploadThing("avatarUploader", {
     onClientUploadComplete: (res) => {
       if (res?.[0]?.url) {
-        saveAvatarUrl(res[0].url);
+        const url = res[0].url;
+        setAvatarUrl(url);
+        updateField("profileImage", url);
+        toast("Profile photo uploaded! Remember to save your changes.", "success");
+        setUploading(false);
       }
     },
     onUploadError: (error: Error) => {
@@ -36,71 +39,12 @@ export default function AvatarUploader({ initialUrl }: AvatarUploaderProps) {
     },
   });
 
-  const saveAvatarUrl = async (url: string) => {
-    try {
-      const res = await fetch("/api/user/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: url }),
-      });
-
-      if (!res.ok) throw new Error("Failed to save");
-
-      setAvatarUrl(url);
-      toast("Profile photo updated!", "success");
-      setUploading(false);
-
-      // Trigger session update to refresh JWT token with new image
-      await update();
-
-      // Reload to ensure all components reflect the new image
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } catch (err) {
-      console.error("[AvatarUploader] Save failed:", err);
-      toast("Failed to save photo", "error");
-      setUploading(false);
-    }
-  };
-
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     await startUpload([file]);
-  };
-
-  const handleRemove = async () => {
-    if (!confirm("Remove your profile photo?")) return;
-
-    setRemoving(true);
-
-    try {
-      const res = await fetch("/api/user/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: "" }),
-      });
-
-      if (!res.ok) throw new Error("Failed to remove");
-
-      setAvatarUrl(null);
-      toast("Profile photo removed", "success");
-
-      // Trigger session update to refresh JWT token
-      await update();
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } catch (err) {
-      console.error("[AvatarUploader] Remove failed:", err);
-      toast("Failed to remove photo", "error");
-    } finally {
-      setRemoving(false);
-    }
   };
 
   const startCamera = async () => {
@@ -114,7 +58,7 @@ export default function AvatarUploader({ initialUrl }: AvatarUploaderProps) {
       }
       setShowCamera(true);
     } catch (err) {
-      console.error("[AvatarUploader] Camera failed:", err);
+      console.error("[MentorAvatarUploader] Camera failed:", err);
       toast("Failed to access camera", "error");
     }
   };
@@ -154,21 +98,21 @@ export default function AvatarUploader({ initialUrl }: AvatarUploaderProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-start gap-6">
         <div className="relative">
-          <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-white/10 bg-white/5">
+          <div className="h-32 w-32 overflow-hidden rounded-full border-2 border-white/10 bg-white/5">
             {avatarUrl ? (
               <Image
                 src={avatarUrl}
                 alt="Profile photo"
-                width={96}
-                height={96}
+                width={128}
+                height={128}
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-white/40">
-                ?
+              <div className="flex h-full w-full items-center justify-center">
+                <Camera className="h-8 w-8 text-white/40" />
               </div>
             )}
           </div>
@@ -205,21 +149,10 @@ export default function AvatarUploader({ initialUrl }: AvatarUploaderProps) {
               <Camera className="h-4 w-4" />
               Take Photo
             </Button>
-
-            {avatarUrl && (
-              <Button
-                onClick={handleRemove}
-                variant="ghost"
-                size="sm"
-                disabled={removing}
-              >
-                {removing ? "Removing..." : "Remove"}
-              </Button>
-            )}
           </div>
 
           <p className="text-xs text-white/50">
-            JPG, PNG or GIF. Max size 4MB.
+            JPG, PNG or GIF. Max size 4MB. Changes are saved when you click &quot;Save Changes&quot; at the bottom.
           </p>
         </div>
       </div>

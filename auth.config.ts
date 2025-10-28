@@ -50,14 +50,30 @@ const authConfig = {
     signIn: "/signin",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       // Initial sign in
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
+        return token;
       }
+
+      // Always refresh user data from database to keep profile in sync
+      if (token.email) {
+        const dbUser = await db.user.findUnique({
+          where: { email: token.email as string },
+          select: { id: true, email: true, name: true, image: true },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.email = dbUser.email;
+          token.name = dbUser.name;
+          token.picture = dbUser.image;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

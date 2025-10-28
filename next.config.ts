@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
       // Unsplash (for portfolio images)
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
     ],
+    // Enable image optimization for faster loading
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60,
+  },
+  // Enable compression for faster page loads
+  compress: true,
+  // Enable experimental features for better performance
+  experimental: {
+    optimizePackageImports: ["lucide-react", "@prisma/client"],
   },
 };
 

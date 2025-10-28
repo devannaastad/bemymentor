@@ -1,31 +1,26 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent } from "@/components/common/Card";
-import Image from "next/image";
-import { Camera } from "lucide-react";
-
 import { Mentor } from "@prisma/client";
+import { useProfileEditor } from "../ProfileEditorContext";
+import MentorAvatarUploader from "../MentorAvatarUploader";
+import { Twitter, Linkedin, Globe, Youtube, Github } from "lucide-react";
 
 interface BasicInfoEditorProps {
   mentor: Mentor;
 }
 
 export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
-  const [formData, setFormData] = useState({
-    name: mentor.name || "",
-    tagline: mentor.tagline || "",
-    bio: mentor.bio || "",
-    category: mentor.category || "",
-    offerType: mentor.offerType || "BOTH",
-    accessPrice: mentor.accessPrice ? mentor.accessPrice / 100 : 0,
-    hourlyRate: mentor.hourlyRate ? mentor.hourlyRate / 100 : 0,
-    skills: (mentor.skills || []).join(", "),
-    profileImage: mentor.profileImage || "",
-  });
+  const { profileData, updateField } = useProfileEditor();
 
-  const handleChange = (field: string, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  // Parse socialLinks from JSON
+  const socialLinks = (profileData.socialLinks || mentor.socialLinks || {}) as Record<string, string>;
+
+  const updateSocialLink = (platform: string, value: string) => {
+    const updated = { ...socialLinks, [platform]: value };
+    // Remove empty values
+    if (!value) delete updated[platform];
+    updateField("socialLinks", updated);
   };
 
   return (
@@ -34,37 +29,7 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
       <Card>
         <CardContent>
           <h3 className="mb-4 text-lg font-semibold">Profile Photo</h3>
-          <div className="flex items-center gap-6">
-            <div className="relative h-32 w-32 overflow-hidden rounded-full bg-white/10">
-              {formData.profileImage ? (
-                <Image
-                  src={formData.profileImage}
-                  alt={formData.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-white/50">
-                  <Camera className="h-8 w-8" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <label className="mb-2 block text-sm font-medium text-white/80">
-                Profile Image URL
-              </label>
-              <input
-                type="url"
-                value={formData.profileImage}
-                onChange={(e) => handleChange("profileImage", e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-              />
-              <p className="mt-2 text-xs text-white/50">
-                Enter a URL to your profile image or upload through UploadThing
-              </p>
-            </div>
-          </div>
+          <MentorAvatarUploader initialUrl={profileData.profileImage || mentor.profileImage} />
         </CardContent>
       </Card>
 
@@ -80,8 +45,8 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
               </label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
+                value={profileData.name || ""}
+                onChange={(e) => updateField("name", e.target.value)}
                 placeholder="Your full name"
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               />
@@ -94,14 +59,14 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
               </label>
               <input
                 type="text"
-                value={formData.tagline}
-                onChange={(e) => handleChange("tagline", e.target.value)}
+                value={profileData.tagline || ""}
+                onChange={(e) => updateField("tagline", e.target.value)}
                 placeholder="e.g., Ex-Google Engineer • 10 years experience"
                 maxLength={100}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               />
               <p className="mt-1 text-xs text-white/50">
-                {formData.tagline.length}/100 characters
+                {(profileData.tagline || "").length}/100 characters
               </p>
             </div>
 
@@ -111,8 +76,8 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
                 Bio
               </label>
               <textarea
-                value={formData.bio}
-                onChange={(e) => handleChange("bio", e.target.value)}
+                value={profileData.bio || ""}
+                onChange={(e) => updateField("bio", e.target.value)}
                 placeholder="Tell students about your background, experience, and what you can teach them..."
                 rows={6}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
@@ -126,14 +91,100 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
               </label>
               <input
                 type="text"
-                value={formData.skills}
-                onChange={(e) => handleChange("skills", e.target.value)}
+                value={profileData.skills || ""}
+                onChange={(e) => updateField("skills", e.target.value)}
                 placeholder="Bitcoin, Technical Analysis, Risk Management"
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               />
               <p className="mt-1 text-xs text-white/50">
                 Separate skills with commas
               </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Social Links */}
+      <Card>
+        <CardContent>
+          <h3 className="mb-4 text-lg font-semibold">Social Links</h3>
+          <p className="mb-4 text-sm text-white/60">
+            Add at least one social link to complete your profile
+          </p>
+          <div className="space-y-3">
+            {/* Twitter */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-white/80">
+                <Twitter className="h-4 w-4" />
+                Twitter / X
+              </label>
+              <input
+                type="url"
+                value={socialLinks.twitter || ""}
+                onChange={(e) => updateSocialLink("twitter", e.target.value)}
+                placeholder="https://twitter.com/yourhandle"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
+            </div>
+
+            {/* LinkedIn */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-white/80">
+                <Linkedin className="h-4 w-4" />
+                LinkedIn
+              </label>
+              <input
+                type="url"
+                value={socialLinks.linkedin || ""}
+                onChange={(e) => updateSocialLink("linkedin", e.target.value)}
+                placeholder="https://linkedin.com/in/yourprofile"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
+            </div>
+
+            {/* YouTube */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-white/80">
+                <Youtube className="h-4 w-4" />
+                YouTube
+              </label>
+              <input
+                type="url"
+                value={socialLinks.youtube || ""}
+                onChange={(e) => updateSocialLink("youtube", e.target.value)}
+                placeholder="https://youtube.com/@yourchannel"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
+            </div>
+
+            {/* GitHub */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-white/80">
+                <Github className="h-4 w-4" />
+                GitHub
+              </label>
+              <input
+                type="url"
+                value={socialLinks.github || ""}
+                onChange={(e) => updateSocialLink("github", e.target.value)}
+                placeholder="https://github.com/yourusername"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
+            </div>
+
+            {/* Website */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-white/80">
+                <Globe className="h-4 w-4" />
+                Website
+              </label>
+              <input
+                type="url"
+                value={socialLinks.website || ""}
+                onChange={(e) => updateSocialLink("website", e.target.value)}
+                placeholder="https://yourwebsite.com"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
             </div>
           </div>
         </CardContent>
@@ -150,8 +201,8 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
                 Offer Type
               </label>
               <select
-                value={formData.offerType}
-                onChange={(e) => handleChange("offerType", e.target.value)}
+                value={profileData.offerType || "BOTH"}
+                onChange={(e) => updateField("offerType", e.target.value)}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               >
                 <option value="ACCESS">Access Pass Only</option>
@@ -161,38 +212,48 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
             </div>
 
             {/* Access Price */}
-            {(formData.offerType === "ACCESS" || formData.offerType === "BOTH") && (
+            {(profileData.offerType === "ACCESS" || profileData.offerType === "BOTH") && (
               <div>
                 <label className="mb-2 block text-sm font-medium text-white/80">
                   Access Pass Price ($)
                 </label>
                 <input
-                  type="number"
-                  value={formData.accessPrice}
-                  onChange={(e) => handleChange("accessPrice", parseFloat(e.target.value) || 0)}
-                  min="0"
-                  step="1"
-                  placeholder="49"
+                  type="text"
+                  inputMode="numeric"
+                  value={profileData.accessPrice && profileData.accessPrice > 0 ? profileData.accessPrice : ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9.]/g, "");
+                    updateField("accessPrice", value === "" ? 0 : parseFloat(value) || 0);
+                  }}
+                  placeholder="$$$"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                 />
+                <p className="mt-1 text-xs text-white/50">
+                  Monthly subscription price for access pass holders
+                </p>
               </div>
             )}
 
             {/* Hourly Rate */}
-            {(formData.offerType === "TIME" || formData.offerType === "BOTH") && (
+            {(profileData.offerType === "TIME" || profileData.offerType === "BOTH") && (
               <div>
                 <label className="mb-2 block text-sm font-medium text-white/80">
                   Hourly Rate ($)
                 </label>
                 <input
-                  type="number"
-                  value={formData.hourlyRate}
-                  onChange={(e) => handleChange("hourlyRate", parseFloat(e.target.value) || 0)}
-                  min="0"
-                  step="1"
-                  placeholder="200"
+                  type="text"
+                  inputMode="numeric"
+                  value={profileData.hourlyRate && profileData.hourlyRate > 0 ? profileData.hourlyRate : ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9.]/g, "");
+                    updateField("hourlyRate", value === "" ? 0 : parseFloat(value) || 0);
+                  }}
+                  placeholder="$$$"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                 />
+                <p className="mt-1 text-xs text-white/50">
+                  Price per hour for 1-on-1 coaching sessions
+                </p>
               </div>
             )}
           </div>
