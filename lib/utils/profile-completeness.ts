@@ -78,7 +78,7 @@ export function calculateProfileCompleteness(
       label: "Payment Setup",
       description: "Connect Stripe to receive payments",
       completed: !!mentor.stripeOnboarded,
-      link: "/api/stripe/connect",
+      link: "/mentor-dashboard/profile",
       weight: 20,
     },
     {

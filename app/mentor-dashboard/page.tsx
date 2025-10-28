@@ -81,6 +81,38 @@ export default async function MentorDashboardPage() {
   const data = await getMentorDashboardData(email);
 
   if (!data) {
+    // Check if user has an approved application
+    const approvedApplication = await db.application.findFirst({
+      where: {
+        email,
+        status: "APPROVED",
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (approvedApplication) {
+      // User was approved but hasn't completed mentor setup
+      return (
+        <section className="section">
+          <div className="container max-w-2xl">
+            <Card className="border-green-500/20 bg-green-500/5">
+              <CardContent className="text-center">
+                <div className="mb-4 text-6xl">🎉</div>
+                <h1 className="h2 mb-2">Congratulations! You&apos;re Accepted</h1>
+                <p className="mb-6 text-white/70">
+                  Your mentor application has been approved! Complete your profile setup to start mentoring.
+                </p>
+                <Button href="/mentor-setup" variant="primary">
+                  Continue Profile Setup
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      );
+    }
+
+    // Not a mentor and no approved application
     return (
       <section className="section">
         <div className="container max-w-2xl">
