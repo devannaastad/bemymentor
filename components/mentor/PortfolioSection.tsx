@@ -40,7 +40,7 @@ export default function PortfolioSection({ portfolio }: PortfolioSectionProps) {
         <h2 className="mb-4 text-xl font-semibold">Portfolio & Results</h2>
         <div className="grid gap-4 md:grid-cols-2">
           {portfolio.map((item, index) => {
-            const Icon = TYPE_ICONS[item.type];
+            const Icon = TYPE_ICONS[item.type] || FileText; // Fallback to FileText if type not found
 
             return (
               <Card key={index} className="border-white/10 bg-white/5">
@@ -62,7 +62,7 @@ export default function PortfolioSection({ portfolio }: PortfolioSectionProps) {
                   <div className="mb-2 flex items-center gap-2">
                     <Icon className="h-4 w-4 text-purple-400" />
                     <span className="text-xs font-medium text-purple-300">
-                      {TYPE_LABELS[item.type]}
+                      {TYPE_LABELS[item.type] || item.type}
                     </span>
                   </div>
 

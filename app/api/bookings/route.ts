@@ -142,7 +142,8 @@ export async function POST(req: NextRequest) {
         );
       }
       // Calculate session price: (hourlyRate / 60) * durationMinutes
-      totalPrice = Math.round((mentor.hourlyRate / 60) * durationMinutes * 100); // Convert to cents
+      // hourlyRate is already in cents, so no need to multiply by 100
+      totalPrice = Math.round((mentor.hourlyRate / 60) * durationMinutes);
     }
 
     // Create the booking

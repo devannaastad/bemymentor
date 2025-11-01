@@ -19,13 +19,20 @@ function parseVideoUrl(url: string): { provider: string; videoId: string } | nul
     // https://www.youtube.com/watch?v=VIDEO_ID
     // https://youtu.be/VIDEO_ID
     // https://www.youtube.com/embed/VIDEO_ID
+    // https://www.youtube.com/live/VIDEO_ID
     if (urlObj.hostname.includes("youtube.com") || urlObj.hostname.includes("youtu.be")) {
       let videoId = "";
       if (urlObj.hostname.includes("youtu.be")) {
-        videoId = urlObj.pathname.slice(1);
+        // youtu.be/VIDEO_ID
+        videoId = urlObj.pathname.slice(1).split("?")[0];
       } else if (urlObj.pathname.includes("/embed/")) {
-        videoId = urlObj.pathname.split("/embed/")[1];
+        // youtube.com/embed/VIDEO_ID
+        videoId = urlObj.pathname.split("/embed/")[1].split("?")[0];
+      } else if (urlObj.pathname.includes("/live/")) {
+        // youtube.com/live/VIDEO_ID
+        videoId = urlObj.pathname.split("/live/")[1].split("?")[0];
       } else {
+        // youtube.com/watch?v=VIDEO_ID
         videoId = urlObj.searchParams.get("v") || "";
       }
       if (videoId) return { provider: "youtube", videoId };
@@ -74,8 +81,8 @@ export default function VideoIntroSection({ videoUrl }: VideoIntroSectionProps) 
 
   const videoData = parseVideoUrl(videoUrl);
 
+  // Silently skip non-video URLs (like tracker.gg, social media links, etc.)
   if (!videoData) {
-    console.error("Unsupported video URL format:", videoUrl);
     return null;
   }
 

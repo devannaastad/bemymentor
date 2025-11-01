@@ -15,7 +15,7 @@ import {
   isBefore,
   startOfDay,
 } from "date-fns";
-import { Calendar, Clock, User, X, Plus } from "lucide-react";
+import { Calendar, Clock, User, X, Plus, Edit, Trash2 } from "lucide-react";
 import Button from "@/components/common/Button";
 
 interface Booking {
@@ -61,6 +61,8 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSlot, setEditingSlot] = useState<AvailableSlot | null>(null);
   const [blockReason, setBlockReason] = useState("");
   const [availabilityTime, setAvailabilityTime] = useState({
     startTime: "09:00",
@@ -226,6 +228,9 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
       // Format the date as YYYY-MM-DD
       const dateStr = format(selectedDate, "yyyy-MM-dd");
 
+      // Get user's timezone
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const res = await fetch("/api/mentor/available-slots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -234,6 +239,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
           startTime: availabilityTime.startTime,
           endTime: availabilityTime.endTime,
           isFreeSession,
+          timezone,
         }),
       });
 
@@ -251,6 +257,113 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
     } catch (err) {
       console.error("Failed to set availability:", err);
       alert("Failed to set availability. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditSlot = (slot: AvailableSlot) => {
+    setEditingSlot(slot);
+    setAvailabilityTime({
+      startTime: format(slot.startTime, "HH:mm"),
+      endTime: format(slot.endTime, "HH:mm"),
+    });
+    setIsFreeSession(slot.isFreeSession);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateAvailability = async () => {
+    if (!editingSlot) return;
+
+    setLoading(true);
+    try {
+      // Format the date as YYYY-MM-DD from the slot's startTime
+      const dateStr = format(editingSlot.startTime, "yyyy-MM-dd");
+
+      // Get user's timezone
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      const res = await fetch("/api/mentor/available-slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: dateStr,
+          startTime: availabilityTime.startTime,
+          endTime: availabilityTime.endTime,
+          isFreeSession,
+          timezone,
+        }),
+      });
+
+      if (res.ok) {
+        setShowEditModal(false);
+        setEditingSlot(null);
+        setAvailabilityTime({ startTime: "09:00", endTime: "17:00" });
+        setIsFreeSession(false);
+        // Trigger calendar data refresh
+        setRefreshKey(prev => prev + 1);
+      } else {
+        const errorData = await res.json();
+        console.error("Failed to update availability:", errorData);
+        alert(errorData.error || "Failed to update availability");
+      }
+    } catch (err) {
+      console.error("Failed to update availability:", err);
+      alert("Failed to update availability. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAvailability = async (slotId: string) => {
+    if (!confirm("Are you sure you want to delete this availability slot?")) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/mentor/available-slots?id=${slotId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        // Trigger calendar data refresh
+        setRefreshKey(prev => prev + 1);
+      } else {
+        const errorData = await res.json();
+        console.error("Failed to delete availability:", errorData);
+        alert(errorData.error || "Failed to delete availability");
+      }
+    } catch (err) {
+      console.error("Failed to delete availability:", err);
+      alert("Failed to delete availability. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnblockDate = async (slotId: string) => {
+    if (!confirm("Are you sure you want to unblock this date?")) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/mentor/blocked-slots?id=${slotId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        // Trigger calendar data refresh
+        setRefreshKey(prev => prev + 1);
+      } else {
+        const errorData = await res.json();
+        console.error("Failed to unblock date:", errorData);
+        alert(errorData.error || "Failed to unblock date");
+      }
+    } catch (err) {
+      console.error("Failed to unblock date:", err);
+      alert("Failed to unblock date. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -527,12 +640,31 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                                     : "bg-green-500/10 border border-green-500/30"
                                 }`}
                               >
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  <span>
-                                    {format(slot.startTime, "h:mm a")} -{" "}
-                                    {format(slot.endTime, "h:mm a")}
-                                  </span>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-white/80">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>
+                                      {format(slot.startTime, "h:mm a")} -{" "}
+                                      {format(slot.endTime, "h:mm a")}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <button
+                                      onClick={() => handleEditSlot(slot)}
+                                      className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                                      title="Edit availability"
+                                    >
+                                      <Edit className="w-3.5 h-3.5 text-white/60 hover:text-white" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteAvailability(slot.id)}
+                                      className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
+                                      title="Delete availability"
+                                      disabled={loading}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5 text-red-400/60 hover:text-red-400" />
+                                    </button>
+                                  </div>
                                 </div>
                                 {slot.isFreeSession && (
                                   <div className="mt-2 flex items-center gap-2 text-xs text-emerald-400 font-medium">
@@ -548,19 +680,31 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                       {/* Blocked Slots */}
                       {dayInfo.blockedSlots.length > 0 && (
                         <div>
-                          <h4 className="text-xs font-medium text-white/60 mb-2">
-                            BLOCKED
+                          <h4 className="text-xs font-medium text-white/60 mb-3 uppercase">
+                            Blocked
                           </h4>
-                          {dayInfo.blockedSlots.map((slot) => (
-                            <div
-                              key={slot.id}
-                              className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm"
-                            >
-                              <p className="text-white/80">
-                                {slot.reason || "Unavailable"}
-                              </p>
-                            </div>
-                          ))}
+                          <div className="space-y-2">
+                            {dayInfo.blockedSlots.map((slot) => (
+                              <div
+                                key={slot.id}
+                                className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm"
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className="text-white/80 flex-1">
+                                    {slot.reason || "Unavailable"}
+                                  </p>
+                                  <button
+                                    onClick={() => handleUnblockDate(slot.id)}
+                                    className="p-1.5 hover:bg-white/10 rounded transition-colors shrink-0"
+                                    title="Unblock this date"
+                                    disabled={loading}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 text-red-400/60 hover:text-red-400" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
 
@@ -748,6 +892,107 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                 className="flex-1"
               >
                 Block Date
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Availability Modal */}
+      {showEditModal && editingSlot && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-white/20 rounded-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Edit Availability</h2>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingSlot(null);
+                  setAvailabilityTime({ startTime: "09:00", endTime: "17:00" });
+                  setIsFreeSession(false);
+                }}
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-white/80 mb-2">
+                {format(editingSlot.startTime, "EEEE, MMMM d, yyyy")}
+              </p>
+              <p className="text-sm text-white/60 mb-4">
+                Update your availability for this date.
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Start Time
+                </label>
+                <input
+                  type="time"
+                  value={availabilityTime.startTime}
+                  onChange={(e) =>
+                    setAvailabilityTime({ ...availabilityTime, startTime: e.target.value })
+                  }
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  End Time
+                </label>
+                <input
+                  type="time"
+                  value={availabilityTime.endTime}
+                  onChange={(e) =>
+                    setAvailabilityTime({ ...availabilityTime, endTime: e.target.value })
+                  }
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
+                />
+              </div>
+
+              <div className="p-4 bg-emerald-500/5 rounded-lg border border-emerald-500/20">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isFreeSession}
+                    onChange={(e) => setIsFreeSession(e.target.checked)}
+                    className="w-5 h-5 rounded border-white/20 bg-white/10 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <span className="text-white font-medium block">Mark as Free Session</span>
+                    <span className="text-xs text-white/60">Offer this time slot as a free intro session</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingSlot(null);
+                  setAvailabilityTime({ startTime: "09:00", endTime: "17:00" });
+                  setIsFreeSession(false);
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={handleUpdateAvailability}
+                loading={loading}
+                className="flex-1"
+              >
+                Update
               </Button>
             </div>
           </div>

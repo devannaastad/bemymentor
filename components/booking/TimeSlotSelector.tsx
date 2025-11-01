@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { getTimezoneAbbreviation } from "@/lib/utils/timezone";
 
 interface TimeSlotSelectorProps {
   mentorId: string;
@@ -35,7 +36,7 @@ export default function TimeSlotSelector({
   onSelectTime,
 }: TimeSlotSelectorProps) {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
-  const [timezone, setTimezone] = useState<string>("America/New_York");
+  const [mentorTimezone, setMentorTimezone] = useState<string>("America/New_York");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +61,9 @@ export default function TimeSlotSelector({
 
         if (data.data) {
           setSlots(data.data.slots);
-          setTimezone(data.data.timezone);
+          if (data.data.timezone) {
+            setMentorTimezone(data.data.timezone);
+          }
         }
       } catch (err) {
         console.error("Error fetching slots:", err);
@@ -117,7 +120,7 @@ export default function TimeSlotSelector({
         <h3 className="font-semibold">
           Available Times ({format(selectedDate, "MMM d, yyyy")})
         </h3>
-        <span className="text-xs text-white/60">{timezone}</span>
+        <span className="text-xs text-white/60">{getTimezoneAbbreviation(mentorTimezone)}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">

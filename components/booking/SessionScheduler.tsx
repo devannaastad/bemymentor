@@ -46,8 +46,9 @@ export default function SessionScheduler({
   };
 
   // Calculate price based on hourly rate and duration
+  // hourlyRate is in cents, so divide by 100 to get dollars
   const calculatePrice = () => {
-    return Math.round((hourlyRate / 60) * duration);
+    return ((hourlyRate / 100) / 60 * duration).toFixed(2);
   };
 
   const minDate = addDays(new Date(), 1); // Tomorrow
@@ -62,7 +63,8 @@ export default function SessionScheduler({
         </label>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[30, 60, 90, 120].map((dur) => {
-            const price = Math.round((hourlyRate / 60) * dur);
+            // hourlyRate is in cents, convert to dollars
+            const price = ((hourlyRate / 100) / 60 * dur).toFixed(2);
             return (
               <button
                 key={dur}
