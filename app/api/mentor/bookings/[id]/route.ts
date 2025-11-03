@@ -120,6 +120,20 @@ export async function PATCH(
       },
     });
 
+    // Create in-app notification when mentor marks as COMPLETED
+    if (status === "COMPLETED" && !booking.mentorCompletedAt) {
+      await db.notification.create({
+        data: {
+          userId: updated.userId,
+          bookingId: updated.id,
+          type: "SESSION_COMPLETED",
+          title: "Session completed - Please confirm",
+          message: `${updated.mentor.name} marked your session as completed. Please confirm it went well or report any issues.`,
+          link: `/bookings/${updated.id}/confirm`,
+        },
+      });
+    }
+
     // Process payout if marking as COMPLETED (for SESSION bookings)
     if (status === "COMPLETED") {
       try {

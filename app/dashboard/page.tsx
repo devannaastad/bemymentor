@@ -7,6 +7,7 @@ import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import MentorCard from "@/components/catalog/MentorCard";
 import Image from "next/image";
+import StudentConfirmation from "@/components/booking/StudentConfirmation";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -60,8 +61,8 @@ async function getDashboardData(email: string) {
         },
         review: true,
       },
-      orderBy: { createdAt: "desc" },
-      take: 5,
+      orderBy: { scheduledAt: "desc" },
+      take: 10,
     }),
   ]);
 
@@ -89,6 +90,11 @@ export default async function DashboardPage() {
   // Check if they have an approved application but no mentor profile yet
   const needsSetup = application?.status === "APPROVED" && !user.mentorProfile;
 
+  // Find bookings that need student confirmation
+  const bookingsNeedingConfirmation = bookings.filter(
+    (b) => b.mentorCompletedAt && !b.studentConfirmedAt && !b.fraudReportedAt
+  );
+
   return (
     <section className="section">
       <div className="container">
@@ -97,6 +103,26 @@ export default async function DashboardPage() {
           <h1 className="h1 mb-2">Welcome back, {userName}!</h1>
           <p className="text-white/60">Here&apos;s what&apos;s happening with your mentorship journey.</p>
         </div>
+
+        {/* Sessions Needing Confirmation */}
+        {bookingsNeedingConfirmation.length > 0 && (
+          <div className="mb-8">
+            <h2 className="mb-4 text-xl font-semibold">Sessions Awaiting Your Confirmation</h2>
+            <div className="space-y-4">
+              {bookingsNeedingConfirmation.map((booking) => (
+                <StudentConfirmation
+                  key={booking.id}
+                  bookingId={booking.id}
+                  mentorName={booking.mentor.name}
+                  mentorCompletedAt={booking.mentorCompletedAt}
+                  studentConfirmedAt={booking.studentConfirmedAt}
+                  autoConfirmAt={booking.autoConfirmAt}
+                  isFraudReported={!!booking.fraudReportedAt}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Setup Prompt - Show if approved but no profile */}
         {needsSetup && (

@@ -52,6 +52,7 @@ export async function POST(
       where: { id },
       include: {
         mentor: true,
+        user: true,
       },
     });
 
@@ -107,6 +108,18 @@ export async function POST(
 
       // Increment mentor's verified bookings count
       await verifyBooking(id);
+
+      // Create in-app notification for mentor
+      await db.notification.create({
+        data: {
+          userId: booking.mentor.userId,
+          bookingId: booking.id,
+          type: "SESSION_CONFIRMED",
+          title: "Student confirmed session",
+          message: `${booking.user.name || "A student"} confirmed your completed session. Payment processing will begin.`,
+          link: `/mentor-dashboard`,
+        },
+      });
 
       // Try to process payout now that student confirmed
       try {

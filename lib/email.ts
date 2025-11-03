@@ -7,6 +7,7 @@ import { BookingConfirmationEmail } from "./emails/booking-confirmation";
 import { MentorBookingNotificationEmail } from "./emails/mentor-booking-notification";
 import BookingCancellationEmail from "./emails/booking-cancellation";
 import BookingRescheduleEmail from "./emails/booking-reschedule";
+import SessionReminderEmail from "./emails/session-reminder";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -336,6 +337,69 @@ export async function sendBookingReschedule({
     return { ok: true, data };
   } catch (error) {
     console.error("[email:booking-reschedule] Exception:", error);
+    return { ok: false, error };
+  }
+}
+export async function sendSessionReminder({
+  to,
+  recipientName,
+  mentorName,
+  studentName,
+  sessionDate,
+  sessionTime,
+  durationMinutes,
+  meetingLink,
+  bookingId,
+  isMentor,
+}: {
+  to: string;
+  recipientName: string;
+  mentorName: string;
+  studentName: string;
+  sessionDate: string;
+  sessionTime: string;
+  durationMinutes: number;
+  meetingLink?: string;
+  bookingId: string;
+  isMentor: boolean;
+}) {
+  try {
+    const dashboardUrl = isMentor
+      ? `${APP_URL}/mentor-dashboard`
+      : `${APP_URL}/dashboard`;
+
+    const emailHtml = await render(
+      SessionReminderEmail({
+        recipientName,
+        mentorName,
+        studentName,
+        sessionDate,
+        sessionTime,
+        durationMinutes,
+        meetingLink,
+        bookingId,
+        isMentor,
+        dashboardUrl,
+      })
+    );
+
+    const otherPerson = isMentor ? studentName : mentorName;
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `Reminder: Session with ${otherPerson} starts in 1 hour`,
+      html: emailHtml,
+    });
+
+    if (error) {
+      console.error("[email:session-reminder] Failed:", error);
+      return { ok: false, error };
+    }
+
+    console.log("[email:session-reminder] Sent to:", to, "ID:", data?.id);
+    return { ok: true, data };
+  } catch (error) {
+    console.error("[email:session-reminder] Exception:", error);
     return { ok: false, error };
   }
 }

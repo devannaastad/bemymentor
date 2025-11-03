@@ -258,6 +258,7 @@ model Booking {
   scheduledAt     DateTime?     // When the session is scheduled
   durationMinutes Int?          // Session duration (e.g., 60)
   meetingLink     String?       // Zoom/Google Meet link
+  reminderSentAt  DateTime?     // When reminder was sent (to prevent duplicates)
 
   // Metadata
   notes           String?       @db.Text // User notes for the mentor
@@ -290,8 +291,9 @@ model Booking {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   mentor Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
 
-  // back-relation: review for this booking (if any)
-  review Review?
+  // back-relations
+  review        Review?
+  notifications Notification[]
 
   @@index([userId])
   @@index([mentorId])
@@ -405,8 +407,9 @@ model BlockedSlot {
 model Notification {
   id        String   @id @default(cuid())
   userId    String
+  bookingId String?  // Optional reference to related booking
 
-  type      String   // BOOKING_CONFIRMED, BOOKING_CANCELLED, REVIEW_RECEIVED, etc.
+  type      String   // BOOKING_CONFIRMED, BOOKING_CANCELLED, REVIEW_RECEIVED, SESSION_REMINDER, etc.
   title     String
   message   String   @db.Text
   link      String?  // Optional link to related resource
@@ -416,9 +419,11 @@ model Notification {
 
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([bookingId])
   @@index([isRead])
   @@index([createdAt])
 }
