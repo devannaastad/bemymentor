@@ -146,6 +146,12 @@ export async function GET(
       }
     }
 
+    // Get mentor's timezone
+    const mentor = await db.mentor.findUnique({
+      where: { id: mentorId },
+      select: { timezone: true },
+    });
+
     // Sort by time
     slots.sort((a, b) => a.time.localeCompare(b.time));
 
@@ -155,7 +161,7 @@ export async function GET(
         date: dateParam,
         duration,
         slots,
-        timezone: "America/New_York", // TODO: Make timezone configurable per mentor
+        timezone: mentor?.timezone || "America/New_York",
       },
     });
   } catch (err) {

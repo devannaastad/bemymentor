@@ -59,8 +59,8 @@ export async function POST(request: Request) {
         topic: parsed.topic,
         proofLinks: parsed.proofLinks,
         offerType: parsed.offerType,
-        accessPrice: parsed.price ?? null,
-        hourlyRate: parsed.hourlyRate ?? null,
+        accessPrice: parsed.price ? Math.round(parsed.price * 100) : null,
+        hourlyRate: parsed.hourlyRate ? Math.round(parsed.hourlyRate * 100) : null,
       },
     });
 

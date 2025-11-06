@@ -42,9 +42,13 @@ export default function Navbar() {
         <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Left: Brand */}
           <Link href="/" className="flex items-center gap-2 text-white hover:opacity-90">
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 text-xs font-bold">
-              BM
-            </span>
+            <Image
+              src="/logo.png"
+              alt="BeMyMentor"
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain"
+            />
             <span className="hidden text-sm font-semibold sm:inline">BeMyMentor</span>
           </Link>
 

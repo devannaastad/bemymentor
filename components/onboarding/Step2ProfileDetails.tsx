@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import Button from "@/components/common/Button";
 import Textarea from "@/components/common/Textarea";
 import Input from "@/components/common/Input";
 import FormFieldError from "@/components/common/FormFieldError";
-import { Upload } from "lucide-react";
+import { useUploadThing } from "@/lib/uploadthing";
+import { Upload, Camera } from "lucide-react";
 
 interface Step2ProfileDetailsProps {
   initialData?: {
@@ -44,6 +45,83 @@ export default function Step2ProfileDetails({
   const [website, setWebsite] = useState(initialData?.socialLinks?.website || "");
   const [youtube, setYoutube] = useState(initialData?.socialLinks?.youtube || "");
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const { startUpload } = useUploadThing("avatarUploader", {
+    onClientUploadComplete: (res) => {
+      if (res?.[0]?.url) {
+        setProfileImage(res[0].url);
+        setUploading(false);
+      }
+    },
+    onUploadError: (error: Error) => {
+      setError(`Upload failed: ${error.message}`);
+      setUploading(false);
+    },
+  });
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    await startUpload([file]);
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setShowCamera(true);
+    } catch (err) {
+      console.error("[Step2ProfileDetails] Camera failed:", err);
+      setError("Failed to access camera");
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const takePhoto = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Flip horizontally (mirror image) so it looks natural
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      const file = new File([blob], "camera-photo.jpg", { type: "image/jpeg" });
+      setUploading(true);
+      stopCamera();
+      await startUpload([file]);
+    }, "image/jpeg", 0.95);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,15 +138,7 @@ export default function Step2ProfileDetails({
     }
 
     if (!profileImage.trim()) {
-      setError("Profile image URL is required");
-      return;
-    }
-
-    // Basic URL validation for profile image
-    try {
-      new URL(profileImage);
-    } catch {
-      setError("Please provide a valid profile image URL");
+      setError("Profile image is required");
       return;
     }
 
@@ -114,42 +184,94 @@ export default function Step2ProfileDetails({
 
         {/* Profile Image */}
         <div>
-          <label htmlFor="profileImage" className="block text-sm font-medium text-white/80 mb-2">
-            Profile Image URL *
+          <label className="block text-sm font-medium text-white/80 mb-2">
+            Profile Image *
           </label>
-          <div className="flex gap-2">
-            <Input
-              id="profileImage"
-              type="url"
-              value={profileImage}
-              onChange={(e) => setProfileImage(e.target.value)}
-              placeholder="https://example.com/your-photo.jpg"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="md"
-              className="shrink-0"
-              title="Upload to an image host like Imgur, then paste the URL here"
-            >
-              <Upload className="w-4 h-4" />
-            </Button>
+
+          <div className="flex items-start gap-6">
+            {/* Preview */}
+            <div className="relative">
+              <div className="h-32 w-32 overflow-hidden rounded-full border-2 border-white/10 bg-white/5">
+                {profileImage ? (
+                  <Image
+                    src={profileImage}
+                    alt="Profile photo"
+                    width={128}
+                    height={128}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Camera className="h-8 w-8 text-white/40" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Upload Controls */}
+            <div className="flex-1 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                <Button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="primary"
+                  size="sm"
+                  disabled={uploading}
+                  className="flex items-center gap-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  {uploading ? "Uploading..." : "Choose Photo"}
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={startCamera}
+                  variant="ghost"
+                  size="sm"
+                  disabled={uploading || showCamera}
+                  className="flex items-center gap-2"
+                >
+                  <Camera className="h-4 w-4" />
+                  Take Photo
+                </Button>
+              </div>
+
+              <p className="text-xs text-white/40">
+                JPG, PNG or GIF. Max size 4MB.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-white/40 mt-1">
-            Upload your photo to an image host (e.g., Imgur) and paste the URL here
-          </p>
-          {profileImage && (
-            <div className="mt-2">
-              <Image
-                src={profileImage}
-                alt="Profile preview"
-                width={96}
-                height={96}
-                className="w-24 h-24 rounded-full object-cover border-2 border-white/20"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
+
+          {/* Camera Modal */}
+          {showCamera && (
+            <div className="mt-4 rounded-lg border border-white/10 bg-white/5 p-4">
+              <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="h-full w-full object-cover"
+                  style={{ transform: "scaleX(-1)" }}
+                />
+              </div>
+              <canvas ref={canvasRef} className="hidden" />
+              <div className="mt-4 flex justify-center gap-2">
+                <Button type="button" onClick={takePhoto} variant="primary" size="sm">
+                  Take Photo
+                </Button>
+                <Button type="button" onClick={stopCamera} variant="ghost" size="sm">
+                  Cancel
+                </Button>
+              </div>
             </div>
           )}
         </div>

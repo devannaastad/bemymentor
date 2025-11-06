@@ -14,6 +14,9 @@ const settingsSchema = z.object({
   freeSessionDuration: z.number().int().positive().nullable().optional(),
   freeSessionsRemaining: z.number().int().min(0).nullable().optional(),
   timezone: z.string().optional(),
+  meetingPlatform: z.enum(["generic", "google", "zoom", "custom"]).optional(),
+  customMeetingLink: z.string().url().nullable().optional().or(z.literal("")),
+  autoGenerateMeetingLinks: z.boolean().optional(),
 });
 
 /**
@@ -58,6 +61,9 @@ export async function PATCH(req: NextRequest) {
       freeSessionDuration,
       freeSessionsRemaining,
       timezone,
+      meetingPlatform,
+      customMeetingLink,
+      autoGenerateMeetingLinks,
     } = validation.data;
 
     // Build update object
@@ -69,6 +75,9 @@ export async function PATCH(req: NextRequest) {
     if (freeSessionDuration !== undefined) updateData.freeSessionDuration = freeSessionDuration;
     if (freeSessionsRemaining !== undefined) updateData.freeSessionsRemaining = freeSessionsRemaining;
     if (timezone !== undefined) updateData.timezone = timezone;
+    if (meetingPlatform !== undefined) updateData.meetingPlatform = meetingPlatform;
+    if (customMeetingLink !== undefined) updateData.customMeetingLink = customMeetingLink || null;
+    if (autoGenerateMeetingLinks !== undefined) updateData.autoGenerateMeetingLinks = autoGenerateMeetingLinks;
 
     console.log("[mentor/settings] Received update data:", validation.data);
     console.log("[mentor/settings] Update payload:", updateData);
@@ -86,10 +95,12 @@ export async function PATCH(req: NextRequest) {
       newAccessPrice: updatedMentor.accessPrice,
     });
 
-    // Revalidate catalog and mentor pages to show updated pricing
+    // Revalidate catalog and mentor pages to show updated pricing and settings
     revalidatePath("/catalog");
     revalidatePath(`/mentors/${updatedMentor.id}`);
     revalidatePath(`/book/${updatedMentor.id}`);
+    revalidatePath("/mentor/settings");
+    revalidatePath("/mentor-dashboard");
 
     return NextResponse.json(
       { ok: true, data: updatedMentor },

@@ -226,8 +226,23 @@ export default async function DashboardPage() {
                         <h3 className="font-semibold">{booking.mentor.name}</h3>
                         <p className="text-sm text-white/60">
                           {booking.type === "ACCESS" ? "ACCESS Pass" : "1-on-1 Session"}
-                          {booking.scheduledAt &&
-                            ` • ${new Date(booking.scheduledAt).toLocaleDateString()}`}
+                          {booking.scheduledAt && (
+                            <>
+                              {" • "}
+                              {new Date(booking.scheduledAt).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                              {" at "}
+                              {new Date(booking.scheduledAt).toLocaleTimeString("en-US", {
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                              {booking.durationMinutes && ` (${booking.durationMinutes} min)`}
+                            </>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -245,6 +260,11 @@ export default async function DashboardPage() {
                       >
                         {booking.status}
                       </Badge>
+                      {booking.type === "SESSION" && booking.status === "CONFIRMED" && booking.meetingLink && (
+                        <Button href={booking.meetingLink} variant="primary" size="sm" target="_blank">
+                          Join Meeting 🎥
+                        </Button>
+                      )}
                       {booking.type === "ACCESS" && (booking.status === "CONFIRMED" || booking.status === "COMPLETED") && (
                         <Button href={`/access-pass/${booking.mentor.id}`} variant="primary" size="sm">
                           Access Content

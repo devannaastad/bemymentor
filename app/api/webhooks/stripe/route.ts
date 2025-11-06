@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { sendBookingConfirmation, sendMentorBookingNotification } from "@/lib/email";
 import { calculatePayoutAmounts } from "@/lib/stripe-connect";
 import { processBookingPayout } from "@/lib/payout-processor";
+import { autoGenerateMeetingLink } from "@/lib/meeting-links";
 import Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -125,6 +126,27 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   // Calculate platform fee and mentor payout
   const { platformFee, mentorPayout } = calculatePayoutAmounts(booking.totalPrice);
 
+  // Get mentor's full profile to check meeting preferences
+  const mentorProfile = await db.mentor.findUnique({
+    where: { id: booking.mentor.id },
+    select: {
+      autoGenerateMeetingLinks: true,
+      meetingPlatform: true,
+      customMeetingLink: true,
+    },
+  });
+
+  // Auto-generate meeting link if enabled
+  let meetingLink = booking.meetingLink; // Keep existing if already set
+  if (!meetingLink && mentorProfile?.autoGenerateMeetingLinks && booking.type === "SESSION") {
+    if (mentorProfile.meetingPlatform === "custom" && mentorProfile.customMeetingLink) {
+      meetingLink = mentorProfile.customMeetingLink;
+    } else {
+      const platform = mentorProfile.meetingPlatform as "google" | "zoom" | "generic";
+      meetingLink = autoGenerateMeetingLink(bookingId, platform);
+    }
+  }
+
   // Update booking with payment info
   const updatedBooking = await db.booking.update({
     where: { id: bookingId },
@@ -134,6 +156,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       status: "CONFIRMED", // Move to CONFIRMED after successful payment
       platformFee,
       mentorPayout,
+      meetingLink: meetingLink || undefined,
     },
   });
 

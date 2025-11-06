@@ -167,6 +167,11 @@ model Mentor {
   // Timezone
   timezone String @default("America/New_York") // IANA timezone identifier
 
+  // Meeting preferences
+  meetingPlatform String @default("generic") // "google", "zoom", "generic", or "custom"
+  customMeetingLink String? // Custom meeting link if meetingPlatform is "custom"
+  autoGenerateMeetingLinks Boolean @default(true) // Auto-generate links when booking confirmed
+
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
@@ -255,10 +260,11 @@ model Booking {
   mentorPayout    Int?          // Amount mentor receives in cents
 
   // For SESSION bookings only
-  scheduledAt     DateTime?     // When the session is scheduled
-  durationMinutes Int?          // Session duration (e.g., 60)
-  meetingLink     String?       // Zoom/Google Meet link
-  reminderSentAt  DateTime?     // When reminder was sent (to prevent duplicates)
+  scheduledAt          DateTime? // When the session is scheduled
+  durationMinutes      Int?      // Session duration (e.g., 60)
+  meetingLink          String?   // Zoom/Google Meet link
+  reminderSentAt       DateTime? // When session reminder was sent (to prevent duplicates)
+  reviewReminderSentAt DateTime? // When review reminder was sent (to prevent duplicates)
 
   // Metadata
   notes           String?       @db.Text // User notes for the mentor

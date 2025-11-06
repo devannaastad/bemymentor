@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import Select from "@/components/common/Select";
-import { DollarSign, Gift, AlertCircle, CheckCircle, Globe } from "lucide-react";
+import { Gift, AlertCircle, CheckCircle, Globe, Video } from "lucide-react";
 import type { Mentor } from "@prisma/client";
-import { getUserFriendlyError, ERROR_MESSAGES } from "@/lib/utils/error-messages";
+import { getUserFriendlyError } from "@/lib/utils/error-messages";
 import { toast } from "@/components/common/Toast";
 
 interface MentorSettingsFormProps {
@@ -21,16 +21,15 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Pricing state
-  const [accessPrice, setAccessPrice] = useState(
-    mentor.accessPrice ? (mentor.accessPrice / 100).toString() : ""
-  );
-  const [hourlyRate, setHourlyRate] = useState(
-    mentor.hourlyRate ? (mentor.hourlyRate / 100).toString() : ""
-  );
-
   // Timezone state
   const [timezone, setTimezone] = useState(mentor.timezone || "America/New_York");
+
+  // Meeting platform state
+  const [meetingPlatform, setMeetingPlatform] = useState(mentor.meetingPlatform || "generic");
+  const [customMeetingLink, setCustomMeetingLink] = useState(mentor.customMeetingLink || "");
+  const [autoGenerateMeetingLinks, setAutoGenerateMeetingLinks] = useState(
+    mentor.autoGenerateMeetingLinks ?? true
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,26 +37,12 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
     setError("");
     setSuccess("");
 
-    // Client-side validation
-    if (accessPrice && parseFloat(accessPrice) <= 0) {
-      setError(ERROR_MESSAGES.INVALID_PRICE);
-      setLoading(false);
-      toast.error(ERROR_MESSAGES.INVALID_PRICE);
-      return;
-    }
-
-    if (hourlyRate && parseFloat(hourlyRate) <= 0) {
-      setError(ERROR_MESSAGES.INVALID_PRICE);
-      setLoading(false);
-      toast.error(ERROR_MESSAGES.INVALID_PRICE);
-      return;
-    }
-
     try {
       const payload = {
-        accessPrice: accessPrice ? Math.round(parseFloat(accessPrice) * 100) : null,
-        hourlyRate: hourlyRate ? Math.round(parseFloat(hourlyRate) * 100) : null,
         timezone,
+        meetingPlatform,
+        customMeetingLink: meetingPlatform === "custom" ? customMeetingLink : null,
+        autoGenerateMeetingLinks,
       };
 
       console.log("[MentorSettingsForm] Sending update:", payload);
@@ -78,11 +63,17 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
       }
 
       // Update local state with the new values from the response
-      if (data.data.hourlyRate !== null) {
-        setHourlyRate((data.data.hourlyRate / 100).toString());
+      if (data.data.timezone) {
+        setTimezone(data.data.timezone);
       }
-      if (data.data.accessPrice !== null) {
-        setAccessPrice((data.data.accessPrice / 100).toString());
+      if (data.data.meetingPlatform) {
+        setMeetingPlatform(data.data.meetingPlatform);
+      }
+      if (data.data.customMeetingLink !== undefined) {
+        setCustomMeetingLink(data.data.customMeetingLink || "");
+      }
+      if (data.data.autoGenerateMeetingLinks !== undefined) {
+        setAutoGenerateMeetingLinks(data.data.autoGenerateMeetingLinks);
       }
 
       const successMsg = "Settings updated successfully!";
@@ -104,68 +95,6 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Pricing Section */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <DollarSign className="h-6 w-6 text-amber-400" />
-          <h2 className="text-2xl font-bold">Pricing</h2>
-        </div>
-
-        <div className="space-y-6 p-6 bg-white/5 rounded-lg border border-white/10">
-          {(mentor.offerType === "ACCESS" || mentor.offerType === "BOTH") && (
-            <div>
-              <label htmlFor="accessPrice" className="block text-sm font-semibold text-white mb-2">
-                ACCESS Pass Price (USD)
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 text-lg font-medium">
-                  $
-                </span>
-                <Input
-                  id="accessPrice"
-                  type="number"
-                  step="0.01"
-                  min="1"
-                  value={accessPrice}
-                  onChange={(e) => setAccessPrice(e.target.value)}
-                  placeholder="49.99"
-                  className="h-12 text-base pl-8"
-                />
-              </div>
-              <p className="text-sm text-white/50 mt-2">
-                One-time payment for ongoing access to your content/community
-              </p>
-            </div>
-          )}
-
-          {(mentor.offerType === "TIME" || mentor.offerType === "BOTH") && (
-            <div>
-              <label htmlFor="hourlyRate" className="block text-sm font-semibold text-white mb-2">
-                Hourly Rate (USD)
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 text-lg font-medium">
-                  $
-                </span>
-                <Input
-                  id="hourlyRate"
-                  type="number"
-                  step="0.01"
-                  min="1"
-                  value={hourlyRate}
-                  onChange={(e) => setHourlyRate(e.target.value)}
-                  placeholder="99.99"
-                  className="h-12 text-base pl-8"
-                />
-              </div>
-              <p className="text-sm text-white/50 mt-2">
-                Price per hour for 1-on-1 coaching sessions
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Timezone Section */}
       <div>
         <div className="flex items-center gap-3 mb-4">
@@ -235,6 +164,89 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Meeting Platform Section */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <Video className="h-6 w-6 text-blue-400" />
+          <h2 className="text-2xl font-bold">Meeting Platform</h2>
+        </div>
+
+          <div className="space-y-6 p-6 bg-white/5 rounded-lg border border-white/10">
+            {/* Auto-generate toggle */}
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+              <div>
+                <label htmlFor="autoGenerate" className="block text-sm font-semibold text-white mb-1">
+                  Auto-generate meeting links
+                </label>
+                <p className="text-sm text-white/50">
+                  Automatically create meeting links when you confirm a booking
+                </p>
+              </div>
+              <input
+                id="autoGenerate"
+                type="checkbox"
+                checked={autoGenerateMeetingLinks}
+                onChange={(e) => setAutoGenerateMeetingLinks(e.target.checked)}
+                className="h-5 w-5 rounded border-white/20 bg-white/10 text-purple-500 focus:ring-purple-500 focus:ring-offset-0"
+              />
+            </div>
+
+            {/* Platform selection */}
+            {autoGenerateMeetingLinks && (
+              <div>
+                <label htmlFor="meetingPlatform" className="block text-sm font-semibold text-white mb-2">
+                  Preferred Meeting Platform
+                </label>
+                <Select
+                  id="meetingPlatform"
+                  value={meetingPlatform}
+                  onChange={(e) => setMeetingPlatform(e.target.value)}
+                  className="h-12 text-base"
+                >
+                  <option value="generic">Generic Link (Default)</option>
+                  <option value="google">Google Meet Style</option>
+                  <option value="zoom">Zoom Style</option>
+                  <option value="custom">Use Custom Link</option>
+                </Select>
+                <p className="text-sm text-white/50 mt-2">
+                  {meetingPlatform === "generic" && "Creates a unique meeting link for each booking"}
+                  {meetingPlatform === "google" && "Creates Google Meet-style meeting links"}
+                  {meetingPlatform === "zoom" && "Creates Zoom-style meeting links"}
+                  {meetingPlatform === "custom" && "Use the same meeting link for all bookings"}
+                </p>
+              </div>
+            )}
+
+            {/* Custom link input */}
+            {autoGenerateMeetingLinks && meetingPlatform === "custom" && (
+              <div>
+                <label htmlFor="customMeetingLink" className="block text-sm font-semibold text-white mb-2">
+                  Your Meeting Link
+                </label>
+                <Input
+                  id="customMeetingLink"
+                  type="url"
+                  value={customMeetingLink}
+                  onChange={(e) => setCustomMeetingLink(e.target.value)}
+                  placeholder="https://meet.google.com/your-room or https://zoom.us/j/your-id"
+                  className="h-12 text-base"
+                />
+                <p className="text-sm text-white/50 mt-2">
+                  This link will be shared with students when you confirm their booking
+                </p>
+              </div>
+            )}
+
+            {!autoGenerateMeetingLinks && (
+              <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                <p className="text-sm text-amber-200">
+                  You&apos;ll need to manually add a meeting link when confirming each booking
+                </p>
+              </div>
+            )}
+          </div>
       </div>
 
       {/* Free Sessions - Managed via Calendar */}

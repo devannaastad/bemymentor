@@ -403,3 +403,54 @@ export async function sendSessionReminder({
     return { ok: false, error };
   }
 }
+
+/**
+ * Send review reminder email
+ */
+interface ReviewReminderParams {
+  to: string;
+  studentName: string;
+  mentorName: string;
+  sessionDate: string;
+  sessionTime: string;
+  bookingId: string;
+}
+
+export async function sendReviewReminder({
+  to,
+  studentName,
+  mentorName,
+  sessionDate,
+  sessionTime,
+  bookingId,
+}: ReviewReminderParams) {
+  const reviewUrl = `${APP_URL}/bookings/${bookingId}/review`;
+
+  const { render } = await import("@react-email/render");
+  const ReviewReminderEmail = (await import("./emails/review-reminder")).default;
+
+  const emailHtml = await render(
+    ReviewReminderEmail({
+      studentName,
+      mentorName,
+      sessionDate,
+      sessionTime,
+      bookingId,
+      reviewUrl,
+    })
+  );
+
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `How was your session with ${mentorName}? ⭐`,
+    html: emailHtml,
+  });
+
+  if (error) {
+    console.error("[sendReviewReminder] Error:", error);
+    return { ok: false, error };
+  }
+
+  return { ok: true, data };
+}

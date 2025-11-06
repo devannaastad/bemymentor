@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { processBookingPayout } from "@/lib/payout-processor";
+import { autoGenerateMeetingLink } from "@/lib/meeting-links";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -92,6 +93,16 @@ export async function PATCH(
       );
     }
 
+    // Get mentor profile to check meeting preferences
+    const mentorProfile = await db.mentor.findUnique({
+      where: { id: user.mentorProfile.id },
+      select: {
+        autoGenerateMeetingLinks: true,
+        meetingPlatform: true,
+        customMeetingLink: true,
+      },
+    });
+
     // Prepare update data
     const updateData: Record<string, unknown> = {
       status,
@@ -99,6 +110,23 @@ export async function PATCH(
         status === "CANCELLED" ? cancellationReason || "Cancelled by mentor" : undefined,
       meetingLink: meetingLink || undefined,
     };
+
+    // Auto-generate meeting link when confirming a booking (if enabled and no manual link provided)
+    if (
+      status === "CONFIRMED" &&
+      !meetingLink &&
+      !booking.meetingLink &&
+      mentorProfile?.autoGenerateMeetingLinks
+    ) {
+      if (mentorProfile.meetingPlatform === "custom" && mentorProfile.customMeetingLink) {
+        // Use custom meeting link
+        updateData.meetingLink = mentorProfile.customMeetingLink;
+      } else {
+        // Auto-generate meeting link based on platform preference
+        const platform = mentorProfile.meetingPlatform as "google" | "zoom" | "generic";
+        updateData.meetingLink = autoGenerateMeetingLink(id, platform);
+      }
+    }
 
     // If marking as COMPLETED, set mentor completion timestamp and auto-confirm time
     if (status === "COMPLETED" && !booking.mentorCompletedAt) {

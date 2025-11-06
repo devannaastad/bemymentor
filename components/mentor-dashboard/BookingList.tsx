@@ -225,16 +225,27 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
             </div>
           </div>
           {booking.meetingLink && (
-            <div className="mt-2">
-              <p className="text-white/60">Meeting Link</p>
-              <a
+            <div className="mt-3 flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <p className="text-xs text-white/60 mb-1">Meeting Link</p>
+                <a
+                  href={booking.meetingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-blue-400 hover:underline break-all"
+                >
+                  {booking.meetingLink}
+                </a>
+              </div>
+              <Button
                 href={booking.meetingLink}
+                variant="primary"
+                size="sm"
                 target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-blue-400 hover:underline"
+                className="whitespace-nowrap"
               >
-                {booking.meetingLink}
-              </a>
+                Join Meeting 🎥
+              </Button>
             </div>
           )}
         </div>
@@ -261,11 +272,21 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
 
         {currentStatus === "CONFIRMED" && booking.status === "CONFIRMED" && (
           <>
+            {booking.meetingLink && booking.type === "SESSION" && (
+              <Button
+                href={booking.meetingLink}
+                variant="primary"
+                size="sm"
+                target="_blank"
+              >
+                Join Meeting 🎥
+              </Button>
+            )}
             <div className="flex flex-col gap-1">
               <Button
                 onClick={() => handleUpdateStatus("COMPLETED")}
                 disabled={isUpdating || !isSessionComplete}
-                variant="primary"
+                variant={booking.meetingLink ? "ghost" : "primary"}
                 size="sm"
                 title={!isSessionComplete ? "Session must be completed before marking as done" : ""}
               >

@@ -7,6 +7,7 @@ import Button from "@/components/common/Button";
 import BookingList from "@/components/mentor-dashboard/BookingList";
 import MentorCalendar from "@/components/mentor/MentorCalendar";
 import EarningsDashboard from "@/components/mentor-dashboard/EarningsDashboard";
+import AnalyticsDashboard from "@/components/mentor-dashboard/AnalyticsDashboard";
 import ProfileCompletenessCard from "@/components/mentor/ProfileCompletenessCard";
 
 export const dynamic = "force-dynamic";
@@ -148,9 +149,14 @@ export default async function MentorDashboardPage() {
               Welcome back, {mentorName}! Manage your bookings and track your progress.
             </p>
           </div>
-          <Button href="/mentor-dashboard/profile" variant="primary">
-            Edit Profile
-          </Button>
+          <div className="flex gap-3">
+            <Button href="/mentor/settings" variant="ghost">
+              Settings
+            </Button>
+            <Button href="/mentor-dashboard/profile" variant="primary">
+              Edit Profile
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -229,11 +235,13 @@ export default async function MentorDashboardPage() {
           </Card>
         )}
 
-        {/* Earnings Dashboard */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Earnings & Payouts</h2>
-          <EarningsDashboard />
-        </div>
+        {/* Bookings List */}
+        <Card className="mb-8">
+          <CardContent>
+            <h2 className="mb-6 text-lg font-semibold">Your Bookings</h2>
+            <BookingList bookings={bookings} />
+          </CardContent>
+        </Card>
 
         {/* Calendar */}
         <div className="mb-8">
@@ -241,13 +249,17 @@ export default async function MentorDashboardPage() {
           <MentorCalendar mentorId={mentor.id} />
         </div>
 
-        {/* Bookings List */}
-        <Card>
-          <CardContent>
-            <h2 className="mb-6 text-lg font-semibold">Your Bookings</h2>
-            <BookingList bookings={bookings} />
-          </CardContent>
-        </Card>
+        {/* Analytics Dashboard */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">📊 Analytics & Insights</h2>
+          <AnalyticsDashboard />
+        </div>
+
+        {/* Earnings Dashboard */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Earnings & Payouts</h2>
+          <EarningsDashboard />
+        </div>
       </div>
     </section>
   );
