@@ -1,10 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/common/Card";
 import { Mentor } from "@prisma/client";
 import { useProfileEditor } from "../ProfileEditorContext";
 import MentorAvatarUploader from "../MentorAvatarUploader";
-import { Twitter, Linkedin, Globe, Youtube, Github, Instagram, Facebook } from "lucide-react";
+import Button from "@/components/common/Button";
+import { Twitter, Linkedin, Globe, Youtube, Github, Instagram, Facebook, CheckCircle, AlertCircle, ExternalLink, DollarSign } from "lucide-react";
 
 interface BasicInfoEditorProps {
   mentor: Mentor;
@@ -12,6 +14,10 @@ interface BasicInfoEditorProps {
 
 export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
   const { profileData, updateField } = useProfileEditor();
+  const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [isOnboarded, setIsOnboarded] = useState(mentor.stripeOnboarded || false);
+  const [hasAccount, setHasAccount] = useState(!!mentor.stripeConnectId);
 
   // Parse socialLinks from JSON
   const socialLinks = (profileData.socialLinks || mentor.socialLinks || {}) as Record<string, string>;
@@ -22,6 +28,51 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
     if (!value) delete updated[platform];
     updateField("socialLinks", updated);
   };
+
+  // Check Stripe onboarding status
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, []);
+
+  async function checkOnboardingStatus() {
+    setChecking(true);
+    try {
+      const res = await fetch("/api/mentor/stripe-connect");
+      const data = await res.json();
+
+      if (data.ok) {
+        setHasAccount(data.data.hasAccount);
+        setIsOnboarded(data.data.isOnboarded);
+      }
+    } catch (err) {
+      console.error("Failed to check onboarding status:", err);
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  async function handleConnectStripe() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/mentor/stripe-connect", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data.ok && data.data.url) {
+        // Redirect to Stripe onboarding
+        window.location.href = data.data.url;
+      } else {
+        alert("Failed to create Stripe account. Please try again.");
+      }
+    } catch (err) {
+      console.error("Failed to connect Stripe:", err);
+      alert("Failed to connect Stripe. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -234,6 +285,74 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Stripe Connect / Payment Setup */}
+      <Card>
+        <CardContent>
+          <h3 className="mb-4 text-lg font-semibold">Payment Setup</h3>
+          {checking ? (
+            <div className="text-center py-8">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-purple-500 border-r-transparent"></div>
+              <p className="mt-3 text-sm text-white/60">Checking payment setup status...</p>
+            </div>
+          ) : (
+            <div
+              className={`rounded-lg border p-6 ${
+                isOnboarded
+                  ? "border-emerald-500/20 bg-emerald-500/10"
+                  : "border-amber-500/20 bg-amber-500/10"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                {isOnboarded ? (
+                  <CheckCircle className="h-8 w-8 text-emerald-400 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="h-8 w-8 text-amber-400 flex-shrink-0" />
+                )}
+                <div className="flex-1">
+                  <h4 className="font-semibold text-lg mb-2">
+                    {isOnboarded
+                      ? "Payment Setup Complete!"
+                      : hasAccount
+                      ? "Complete Your Stripe Onboarding"
+                      : "Connect Your Stripe Account"}
+                  </h4>
+                  <p className="text-sm text-white/70 mb-4">
+                    {isOnboarded
+                      ? "Your Stripe account is fully set up. You can now receive payments from your mentees."
+                      : hasAccount
+                      ? "You've started the Stripe onboarding process but haven't completed it yet. Click below to continue."
+                      : "Connect your Stripe account to receive payments. We charge a 15% platform fee, you keep 85%."}
+                  </p>
+
+                  {!isOnboarded && (
+                    <Button
+                      onClick={handleConnectStripe}
+                      disabled={loading}
+                      variant="primary"
+                      className="gap-2"
+                    >
+                      {loading ? (
+                        "Loading..."
+                      ) : hasAccount ? (
+                        <>
+                          <ExternalLink className="h-4 w-4" />
+                          Continue Stripe Setup
+                        </>
+                      ) : (
+                        <>
+                          <DollarSign className="h-4 w-4" />
+                          Connect Stripe Account
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
