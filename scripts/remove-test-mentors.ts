@@ -22,7 +22,7 @@ async function removeTestMentors() {
 
     mentors.forEach((mentor, index) => {
       console.log(`${index + 1}. ${mentor.user.name} (${mentor.user.email})`);
-      console.log(`   Title: ${mentor.title}`);
+      console.log(`   Category: ${mentor.category}`);
       console.log(`   ID: ${mentor.id}`);
       console.log("");
     });
