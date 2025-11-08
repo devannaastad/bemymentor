@@ -14,23 +14,28 @@ import Input from "@/components/common/Input";
 import Textarea from "@/components/common/Textarea";
 import Select from "@/components/common/Select";
 import FormFieldError from "@/components/common/FormFieldError";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
+import { UploadButton } from "@/lib/uploadthing";
+import Image from "next/image";
 
 export default function ApplyForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState("");
+  const [proofImages, setProofImages] = useState<string[]>([]);
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ApplicationFormValues>({
     resolver: zodResolver(applicationFormSchema),
     defaultValues: {
       offerType: "ACCESS",
+      socialProof: {},
     },
   });
 
@@ -116,6 +121,24 @@ export default function ApplyForm() {
         </p>
       </div>
 
+      {/* Phone (Optional) */}
+      <div>
+        <label htmlFor="phone" className="mb-2 block text-base font-semibold text-white">
+          Phone Number <span className="text-white/40 text-sm font-normal">(Optional)</span>
+        </label>
+        <Input
+          id="phone"
+          type="tel"
+          {...register("phone")}
+          placeholder="+1 (555) 123-4567"
+          className="h-12 text-base"
+        />
+        {errors.phone?.message && <FormFieldError error={errors.phone.message} />}
+        <p className="mt-2 text-sm text-white/50">
+          Optional - helps us reach you faster if needed
+        </p>
+      </div>
+
       {/* Topic */}
       <div>
         <label htmlFor="topic" className="mb-2 block text-base font-semibold text-white">
@@ -133,28 +156,167 @@ export default function ApplyForm() {
         </p>
       </div>
 
-      {/* Proof Links */}
-      <div>
-        <label htmlFor="proofLinks" className="mb-2 block text-base font-semibold text-white">
-          Proof of Expertise <span className="text-rose-400">*</span>
-        </label>
-        <Textarea
-          id="proofLinks"
-          {...register("proofLinks")}
-          rows={5}
-          placeholder="Provide links to prove your expertise:&#10;&#10;• Portfolio/website&#10;• Rank screenshots (for gaming)&#10;• Client testimonials&#10;• Social media accounts&#10;• Certifications&#10;• Case studies or results"
-          className="text-base"
-        />
-        {errors.proofLinks?.message && <FormFieldError error={errors.proofLinks.message} />}
-        <div className="mt-3 rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
+      {/* Proof of Expertise Section */}
+      <div className="space-y-6 rounded-lg border border-primary-500/20 bg-primary-500/5 p-6">
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-2">Proof of Expertise</h3>
+          <p className="text-sm text-white/60">Help us verify your credentials by providing links and uploading proof</p>
+        </div>
+
+        {/* Social Proof Links */}
+        <div className="space-y-4">
+          <h4 className="text-base font-semibold text-white">Social Links</h4>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-white/80">
+                Portfolio/Website
+              </label>
+              <Input
+                {...register("socialProof.portfolio")}
+                placeholder="https://yourportfolio.com"
+                className="h-10 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-white/80">
+                YouTube
+              </label>
+              <Input
+                {...register("socialProof.youtube")}
+                placeholder="https://youtube.com/@channel"
+                className="h-10 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-white/80">
+                Twitch
+              </label>
+              <Input
+                {...register("socialProof.twitch")}
+                placeholder="https://twitch.tv/username"
+                className="h-10 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-white/80">
+                Twitter / X
+              </label>
+              <Input
+                {...register("socialProof.twitter")}
+                placeholder="https://twitter.com/handle"
+                className="h-10 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-white/80">
+                Instagram
+              </label>
+              <Input
+                {...register("socialProof.instagram")}
+                placeholder="https://instagram.com/username"
+                className="h-10 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-white/80">
+                TikTok
+              </label>
+              <Input
+                {...register("socialProof.tiktok")}
+                placeholder="https://tiktok.com/@username"
+                className="h-10 text-sm"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-white/80">
+              Other (LinkedIn, Discord, etc.)
+            </label>
+            <Input
+              {...register("socialProof.other")}
+              placeholder="Other relevant links"
+              className="h-10 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Screenshot Upload */}
+        <div className="space-y-3">
+          <h4 className="text-base font-semibold text-white">Upload Screenshots</h4>
+          <p className="text-sm text-white/60">
+            Upload images showing your expertise (ranks, results, certifications, testimonials, etc.)
+          </p>
+
+          {proofImages.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {proofImages.map((url, index) => (
+                <div key={index} className="relative group">
+                  <Image
+                    src={url}
+                    alt={`Proof ${index + 1}`}
+                    width={200}
+                    height={96}
+                    className="w-full h-24 object-cover rounded-lg border border-white/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = proofImages.filter((_, i) => i !== index);
+                      setProofImages(updated);
+                      setValue("proofImages", updated);
+                    }}
+                    className="absolute top-1 right-1 p-1 bg-rose-500 hover:bg-rose-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3 text-white" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <UploadButton
+            endpoint="proofUploader"
+            onClientUploadComplete={(res) => {
+              if (res) {
+                const urls = res.map((r) => r.url);
+                const updated = [...proofImages, ...urls];
+                setProofImages(updated);
+                setValue("proofImages", updated);
+              }
+            }}
+            onUploadError={(error: Error) => {
+              alert(`Upload failed: ${error.message}`);
+            }}
+          />
+          <p className="text-xs text-white/40">
+            Max 5 images, 8MB each
+          </p>
+        </div>
+
+        {/* Additional Notes */}
+        <div>
+          <label htmlFor="proofLinks" className="mb-2 block text-base font-semibold text-white">
+            Additional Proof/Notes <span className="text-rose-400">*</span>
+          </label>
+          <Textarea
+            id="proofLinks"
+            {...register("proofLinks")}
+            rows={4}
+            placeholder="Add any additional context, testimonials, achievements, or links that demonstrate your expertise..."
+            className="text-base"
+          />
+          {errors.proofLinks?.message && <FormFieldError error={errors.proofLinks.message} />}
+        </div>
+
+        <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-200">
               <p className="font-medium mb-1">Strong applications include:</p>
               <ul className="space-y-1 text-blue-200/80">
-                <li>• Screenshots showing your rank/results</li>
-                <li>• Links to your portfolio or past work</li>
-                <li>• Social proof (testimonials, followers, etc.)</li>
+                <li>• Screenshots showing ranks, stats, or results</li>
+                <li>• Social media profiles with following/engagement</li>
+                <li>• Client testimonials or reviews</li>
                 <li>• Relevant certifications or credentials</li>
               </ul>
             </div>

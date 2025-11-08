@@ -56,8 +56,11 @@ export async function POST(request: Request) {
       data: {
         fullName: parsed.fullName,
         email: parsed.email,
+        phone: parsed.phone,
         topic: parsed.topic,
         proofLinks: parsed.proofLinks,
+        proofImages: parsed.proofImages || [],
+        socialProof: parsed.socialProof || {},
         offerType: parsed.offerType,
         accessPrice: parsed.price ? Math.round(parsed.price * 100) : null,
         hourlyRate: parsed.hourlyRate ? Math.round(parsed.hourlyRate * 100) : null,
@@ -83,11 +86,14 @@ export async function POST(request: Request) {
       sendAdminNotification({
         applicantName: application.fullName,
         applicantEmail: application.email,
+        phone: application.phone ?? undefined,
         topic: application.topic,
         offerType: application.offerType,
         accessPrice: application.accessPrice ?? undefined,
         hourlyRate: application.hourlyRate ?? undefined,
         proofLinks: application.proofLinks,
+        proofImages: (application.proofImages as string[]) ?? undefined,
+        socialProof: (application.socialProof as Record<string, string | undefined>) ?? undefined,
         applicationId: application.id,
       }),
     ]).catch((err) => {

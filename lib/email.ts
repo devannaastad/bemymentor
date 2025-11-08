@@ -52,20 +52,26 @@ export async function sendApplicationConfirmation({
 export async function sendAdminNotification({
   applicantName,
   applicantEmail,
+  phone,
   topic,
   offerType,
   accessPrice,
   hourlyRate,
   proofLinks,
+  proofImages,
+  socialProof,
   applicationId,
 }: {
   applicantName: string;
   applicantEmail: string;
+  phone?: string;
   topic: string;
   offerType: string;
   accessPrice?: number;
   hourlyRate?: number;
   proofLinks: string;
+  proofImages?: string[];
+  socialProof?: Record<string, string | undefined>;
   applicationId: string;
 }) {
   try {
@@ -73,11 +79,14 @@ export async function sendAdminNotification({
       AdminNotificationEmail({
         applicantName,
         applicantEmail,
+        phone,
         topic,
         offerType,
         accessPrice,
         hourlyRate,
         proofLinks,
+        proofImages,
+        socialProof,
         applicationId,
         appUrl: APP_URL,
       })

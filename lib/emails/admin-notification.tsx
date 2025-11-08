@@ -4,11 +4,22 @@ import * as React from "react";
 interface AdminNotificationEmailProps {
   applicantName: string;
   applicantEmail: string;
+  phone?: string;
   topic: string;
   offerType: string;
   accessPrice?: number;
   hourlyRate?: number;
   proofLinks: string;
+  proofImages?: string[];
+  socialProof?: {
+    portfolio?: string;
+    youtube?: string;
+    twitch?: string;
+    twitter?: string;
+    instagram?: string;
+    tiktok?: string;
+    other?: string;
+  };
   applicationId: string;
   appUrl?: string;
 }
@@ -16,11 +27,14 @@ interface AdminNotificationEmailProps {
 export function AdminNotificationEmail({
   applicantName,
   applicantEmail,
+  phone,
   topic,
   offerType,
   accessPrice,
   hourlyRate,
   proofLinks,
+  proofImages,
+  socialProof,
   applicationId,
   appUrl = "http://localhost:3000",
 }: AdminNotificationEmailProps) {
@@ -42,6 +56,12 @@ export function AdminNotificationEmail({
             <td style={{ padding: "8px 0", fontWeight: "bold" }}>Email:</td>
             <td style={{ padding: "8px 0" }}>{applicantEmail}</td>
           </tr>
+          {phone && (
+            <tr>
+              <td style={{ padding: "8px 0", fontWeight: "bold" }}>Phone:</td>
+              <td style={{ padding: "8px 0" }}>{phone}</td>
+            </tr>
+          )}
           <tr>
             <td style={{ padding: "8px 0", fontWeight: "bold" }}>Topic:</td>
             <td style={{ padding: "8px 0" }}>{topic}</td>
@@ -53,21 +73,106 @@ export function AdminNotificationEmail({
           {accessPrice && (
             <tr>
               <td style={{ padding: "8px 0", fontWeight: "bold" }}>ACCESS Price:</td>
-              <td style={{ padding: "8px 0" }}>${accessPrice}</td>
+              <td style={{ padding: "8px 0" }}>${(accessPrice / 100).toFixed(2)}</td>
             </tr>
           )}
           {hourlyRate && (
             <tr>
               <td style={{ padding: "8px 0", fontWeight: "bold" }}>Hourly Rate:</td>
-              <td style={{ padding: "8px 0" }}>${hourlyRate}/hr</td>
+              <td style={{ padding: "8px 0" }}>${(hourlyRate / 100).toFixed(2)}/hr</td>
             </tr>
           )}
         </table>
-        
-        <h3 style={{ marginTop: "32px" }}>Proof Links:</h3>
-        <div style={{ 
-          backgroundColor: "#f5f5f5", 
-          padding: "16px", 
+
+        {socialProof && Object.values(socialProof).some(v => v && v !== "") && (
+          <>
+            <h3 style={{ marginTop: "32px" }}>Social Proof Links:</h3>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px" }}>
+              {socialProof.portfolio && (
+                <tr>
+                  <td style={{ padding: "4px 0", fontWeight: "bold", width: "120px" }}>Portfolio:</td>
+                  <td style={{ padding: "4px 0" }}>
+                    <a href={socialProof.portfolio} style={{ color: "#0066cc" }}>{socialProof.portfolio}</a>
+                  </td>
+                </tr>
+              )}
+              {socialProof.youtube && (
+                <tr>
+                  <td style={{ padding: "4px 0", fontWeight: "bold" }}>YouTube:</td>
+                  <td style={{ padding: "4px 0" }}>
+                    <a href={socialProof.youtube} style={{ color: "#0066cc" }}>{socialProof.youtube}</a>
+                  </td>
+                </tr>
+              )}
+              {socialProof.twitch && (
+                <tr>
+                  <td style={{ padding: "4px 0", fontWeight: "bold" }}>Twitch:</td>
+                  <td style={{ padding: "4px 0" }}>
+                    <a href={socialProof.twitch} style={{ color: "#0066cc" }}>{socialProof.twitch}</a>
+                  </td>
+                </tr>
+              )}
+              {socialProof.twitter && (
+                <tr>
+                  <td style={{ padding: "4px 0", fontWeight: "bold" }}>Twitter/X:</td>
+                  <td style={{ padding: "4px 0" }}>
+                    <a href={socialProof.twitter} style={{ color: "#0066cc" }}>{socialProof.twitter}</a>
+                  </td>
+                </tr>
+              )}
+              {socialProof.instagram && (
+                <tr>
+                  <td style={{ padding: "4px 0", fontWeight: "bold" }}>Instagram:</td>
+                  <td style={{ padding: "4px 0" }}>
+                    <a href={socialProof.instagram} style={{ color: "#0066cc" }}>{socialProof.instagram}</a>
+                  </td>
+                </tr>
+              )}
+              {socialProof.tiktok && (
+                <tr>
+                  <td style={{ padding: "4px 0", fontWeight: "bold" }}>TikTok:</td>
+                  <td style={{ padding: "4px 0" }}>
+                    <a href={socialProof.tiktok} style={{ color: "#0066cc" }}>{socialProof.tiktok}</a>
+                  </td>
+                </tr>
+              )}
+              {socialProof.other && (
+                <tr>
+                  <td style={{ padding: "4px 0", fontWeight: "bold" }}>Other:</td>
+                  <td style={{ padding: "4px 0" }}>{socialProof.other}</td>
+                </tr>
+              )}
+            </table>
+          </>
+        )}
+
+        {proofImages && proofImages.length > 0 && (
+          <>
+            <h3 style={{ marginTop: "24px" }}>Proof Screenshots:</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px", marginBottom: "16px" }}>
+              {proofImages.map((url, index) => (
+                <a key={index} href={url} target="_blank" rel="noopener noreferrer" style={{ display: "block" }}>
+                  <img
+                    src={url}
+                    alt={`Proof ${index + 1}`}
+                    style={{
+                      width: "100%",
+                      height: "120px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      border: "2px solid #e0e0e0"
+                    }}
+                  />
+                </a>
+              ))}
+            </div>
+          </>
+        )}
+
+        <h3 style={{ marginTop: "24px" }}>Additional Notes:</h3>
+        <div style={{
+          backgroundColor: "#f5f5f5",
+          padding: "16px",
           borderRadius: "8px",
           whiteSpace: "pre-wrap",
           fontSize: "14px"

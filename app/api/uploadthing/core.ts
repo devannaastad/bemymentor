@@ -10,7 +10,7 @@ export const ourFileRouter = {
   avatarUploader: f({ image: { maxFileSize: "4MB" } })
     .middleware(async () => {
       const session = await auth();
-      
+
       if (!session?.user?.email) {
         throw new UploadThingError("Unauthorized");
       }
@@ -27,6 +27,16 @@ export const ourFileRouter = {
       });
 
       return { uploadedBy: metadata.email, url: file.url };
+    }),
+
+  proofUploader: f({ image: { maxFileSize: "8MB", maxFileCount: 5 } })
+    .middleware(async () => {
+      // Allow unauthenticated uploads for mentor applications
+      return { uploadType: "proof" };
+    })
+    .onUploadComplete(async ({ file }) => {
+      console.log("Proof image uploaded:", file.url);
+      return { url: file.url };
     }),
 } satisfies FileRouter;
 

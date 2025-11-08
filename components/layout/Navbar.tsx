@@ -11,6 +11,7 @@ import NavDropdown, { NavItem } from "./NavDropdown";
 import Modal from "@/components/common/Modal";
 import PrefetchLink from "./PrefetchLink";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import { isAdmin } from "@/lib/admin";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -22,11 +23,14 @@ export default function Navbar() {
     session?.user?.email?.split("@")[0] ||
     "Account";
 
+  const userIsAdmin = isAdmin(session?.user?.email);
+
   const items: NavItem[] = [
     { label: "Home", href: "/" },
     { label: "Dashboard", href: "/dashboard" },
     { label: "Mentor Dashboard", href: "/mentor-dashboard" },
     { label: "Mentor Settings", href: "/mentor/settings" },
+    ...(userIsAdmin ? [{ label: "Admin", href: "/admin/applications" }] : []),
     { label: "Catalog", href: "/catalog" },
     { label: "Apply as Mentor", href: "/apply" },
     { label: "Saved", href: "/saved" },
@@ -71,6 +75,11 @@ export default function Navbar() {
                 <TopLink href="/mentor-dashboard" active={pathname === "/mentor-dashboard"}>
                   Mentor
                 </TopLink>
+                {userIsAdmin && (
+                  <TopLink href="/admin/applications" active={pathname.startsWith("/admin")}>
+                    Admin
+                  </TopLink>
+                )}
               </>
             )}
           </div>

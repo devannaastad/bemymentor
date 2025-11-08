@@ -226,8 +226,11 @@ model Application {
   userId      String?           // Link to User who submitted (if authenticated)
   fullName    String
   email       String
+  phone       String?           // Optional phone number
   topic       String
   proofLinks  String            @db.Text
+  proofImages Json?             // Array of proof image URLs
+  socialProof Json?             // Structured social proof links (portfolio, socials, etc.)
   offerType   OfferType
   accessPrice Int?
   hourlyRate  Int?
