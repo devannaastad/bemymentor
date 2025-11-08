@@ -145,6 +145,8 @@ model Mentor {
   accessPassLinks   Json?                  // Array of exclusive links: [{ type, title, url, description }]
 
   isActive     Boolean        @default(true) // Can be toggled off by admin or mentor
+  flagged      Boolean        @default(false) // Admin flag for suspicious/scamming mentors
+  flagReason   String?        @db.Text // Reason for flagging
 
   // Free session support
   offersFreeSession Boolean      @default(false) // Whether mentor offers a free intro session

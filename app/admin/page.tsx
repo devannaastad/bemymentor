@@ -55,13 +55,8 @@ export default async function AdminDashboardPage() {
   return (
     <section className="section">
       <div className="container">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="h1">Admin Dashboard</h1>
-            <p className="mt-1 text-sm text-white/60">
-              Signed in as: {session?.user?.email}
-            </p>
-          </div>
+        <div className="mb-6">
+          <h1 className="h1">Admin Dashboard</h1>
         </div>
 
         {/* Stats Overview */}
@@ -233,27 +228,6 @@ export default async function AdminDashboardPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Quick Links */}
-        <Card className="mt-6">
-          <CardContent>
-            <h2 className="mb-4 text-lg font-semibold">Quick Actions</h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Button href="/admin/applications" variant="ghost" className="justify-start">
-                📝 Applications
-              </Button>
-              <Button href="/admin/users" variant="ghost" className="justify-start">
-                👥 Manage Users
-              </Button>
-              <Button href="/admin/mentors" variant="ghost" className="justify-start">
-                👨‍🏫 Manage Mentors
-              </Button>
-              <Button href="/admin/bookings" variant="ghost" className="justify-start">
-                📅 View Bookings
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </section>
   );

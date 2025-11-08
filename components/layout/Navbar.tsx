@@ -30,7 +30,7 @@ export default function Navbar() {
     { label: "Dashboard", href: "/dashboard" },
     { label: "Mentor Dashboard", href: "/mentor-dashboard" },
     { label: "Mentor Settings", href: "/mentor/settings" },
-    ...(userIsAdmin ? [{ label: "Admin", href: "/admin/applications" }] : []),
+    ...(userIsAdmin ? [{ label: "Admin", href: "/admin" }] : []),
     { label: "Catalog", href: "/catalog" },
     { label: "Apply as Mentor", href: "/apply" },
     { label: "Saved", href: "/saved" },
@@ -76,7 +76,7 @@ export default function Navbar() {
                   Mentor
                 </TopLink>
                 {userIsAdmin && (
-                  <TopLink href="/admin/applications" active={pathname.startsWith("/admin")}>
+                  <TopLink href="/admin" active={pathname.startsWith("/admin")}>
                     Admin
                   </TopLink>
                 )}
