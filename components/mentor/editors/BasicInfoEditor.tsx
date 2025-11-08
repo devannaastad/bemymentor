@@ -64,7 +64,17 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
         // Redirect to Stripe onboarding
         window.location.href = data.data.url;
       } else {
-        alert("Failed to create Stripe account. Please try again.");
+        // Show specific error message if available
+        if (data.configError) {
+          alert(
+            "⚠️ Stripe Configuration Required\n\n" +
+            "The platform owner needs to complete Stripe setup first. " +
+            "Please contact support or try again later.\n\n" +
+            "Admin: Visit https://dashboard.stripe.com/settings/connect/platform-profile to complete setup."
+          );
+        } else {
+          alert(data.error || "Failed to create Stripe account. Please try again.");
+        }
       }
     } catch (err) {
       console.error("Failed to connect Stripe:", err);

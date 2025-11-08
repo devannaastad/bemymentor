@@ -95,13 +95,13 @@ function OnboardingContent() {
       step: 4,
       title: "Availability",
       description: "Set your schedule",
-      isComplete: currentStep > 4,
+      isComplete: currentStep >= 5,
     },
     {
       step: 5,
       title: "Payment",
       description: "Connect Stripe",
-      isComplete: currentStep > 5,
+      isComplete: stripeOnboarded,
     },
   ];
 

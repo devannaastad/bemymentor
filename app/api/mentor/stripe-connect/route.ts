@@ -117,6 +117,21 @@ export async function POST() {
     });
   } catch (error) {
     console.error("[stripe-connect] POST error:", error);
+
+    // Check if this is the platform profile configuration error
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes("responsibilities of managing losses") ||
+        errorMessage.includes("platform-profile")) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Stripe platform configuration incomplete. Please configure your platform settings at https://dashboard.stripe.com/settings/connect/platform-profile",
+          configError: true
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { ok: false, error: "Failed to create Stripe Connect account" },
       { status: 500 }
