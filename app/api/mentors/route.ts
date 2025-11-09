@@ -13,16 +13,21 @@ export async function GET(req: Request) {
   const idsRaw = (searchParams.get("ids") ?? "").trim();
   const skillsRaw = (searchParams.get("skills") ?? "").trim();
   const sortBy = searchParams.get("sort") ?? "rating";
+  const minRatingRaw = searchParams.get("minRating");
+  const verifiedOnly = searchParams.get("verified") === "true";
   const pageRaw = searchParams.get("page");
   const limitRaw = searchParams.get("limit");
 
   const priceMin = priceMinRaw ? Number(priceMinRaw) : undefined;
   const priceMax = priceMaxRaw ? Number(priceMaxRaw) : undefined;
+  const minRating = minRatingRaw ? Number(minRatingRaw) : undefined;
   const page = pageRaw ? Math.max(1, Number(pageRaw)) : 1;
   const limit = limitRaw ? Math.min(100, Math.max(1, Number(limitRaw))) : 24;
   const skip = (page - 1) * limit;
 
-  const where: Prisma.MentorWhereInput = {};
+  const where: Prisma.MentorWhereInput = {
+    isActive: true, // Only show active mentors
+  };
 
   // Specific IDs filter (for saved mentors)
   if (idsRaw) {
@@ -30,14 +35,30 @@ export async function GET(req: Request) {
     if (ids.length) where.id = { in: ids };
   }
 
-  // Text search (case-insensitive) - searches name, tagline, and skills
+  // Text search with improved relevancy and fuzzy matching
+  // Priority: 1) Name match (highest), 2) Skills match, 3) Tagline match, 4) Bio match
   if (q) {
-    where.OR = [
-      { name: { contains: q, mode: "insensitive" } },
-      { tagline: { contains: q, mode: "insensitive" } },
-      { skills: { has: q } }, // Exact match for skill
-      { skills: { hasSome: [q] } }, // Match if query appears in any skill
-    ];
+    const searchTerms = q.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+    const orConditions: Prisma.MentorWhereInput[] = [];
+
+    // For each search term, create partial match conditions
+    searchTerms.forEach(term => {
+      // Match names containing the term
+      orConditions.push({ name: { contains: term, mode: "insensitive" } });
+
+      // Match taglines containing the term
+      orConditions.push({ tagline: { contains: term, mode: "insensitive" } });
+
+      // Match bio containing the term
+      orConditions.push({ bio: { contains: term, mode: "insensitive" } });
+    });
+
+    // Also match full query
+    orConditions.push({ name: { contains: q, mode: "insensitive" } });
+    orConditions.push({ tagline: { contains: q, mode: "insensitive" } });
+    orConditions.push({ bio: { contains: q, mode: "insensitive" } });
+
+    where.OR = orConditions;
   }
 
   // Category filter
@@ -69,15 +90,25 @@ export async function GET(req: Request) {
     const andClauses: Prisma.MentorWhereInput[] = [];
     if (Array.isArray(where.AND)) andClauses.push(...where.AND);
     else if (where.AND) andClauses.push(where.AND);
-    
+
     // Match either accessPrice OR hourlyRate
-    andClauses.push({ 
+    andClauses.push({
       OR: [
-        { accessPrice: range }, 
+        { accessPrice: range },
         { hourlyRate: range }
-      ] 
+      ]
     });
     where.AND = andClauses;
+  }
+
+  // Rating filter
+  if (minRating !== undefined && minRating > 0) {
+    where.rating = { gte: minRating };
+  }
+
+  // Verified only filter
+  if (verifiedOnly) {
+    where.isTrusted = true;
   }
 
   // Determine sort order

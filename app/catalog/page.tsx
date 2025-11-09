@@ -1,14 +1,13 @@
 // app/catalog/page.tsx
 import { cache, Suspense } from "react";
 import { headers } from "next/headers";
-import { Card, CardContent } from "@/components/common/Card";
-import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
-import Select from "@/components/common/Select";
 import MentorCard from "@/components/catalog/MentorCard";
 import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
-import SkillsFilter from "@/components/catalog/SkillsFilter";
-import Badge from "@/components/common/Badge";
+import SearchHero from "@/components/catalog/SearchHero";
+import CategoryPills from "@/components/catalog/CategoryPills";
+import EnhancedFilters from "@/components/catalog/EnhancedFilters";
+import EmptyState from "@/components/catalog/EmptyState";
 import type { Mentor } from "@prisma/client";
 import type { Metadata } from "next";
 
@@ -72,14 +71,17 @@ const fetchMentors = cache(async (absoluteUrl: string) => {
 async function CatalogResults({ url, sp }: { url: string; sp: SP }) {
   const { data: mentors, meta } = await fetchMentors(url);
 
+  const hasFilters = !!(
+    sp.q ||
+    sp.category ||
+    sp.priceMin ||
+    sp.priceMax ||
+    sp.type ||
+    sp.skills
+  );
+
   if (mentors.length === 0) {
-    return (
-      <Card>
-        <CardContent>
-          <p className="muted">No mentors found. Try clearing filters.</p>
-        </CardContent>
-      </Card>
-    );
+    return <EmptyState hasFilters={hasFilters} />;
   }
 
   const currentPage = meta?.page ?? 1;
@@ -166,40 +168,6 @@ function CatalogFallback() {
   );
 }
 
-function ActiveFilters({ sp }: { sp: SP }) {
-  const hasFilters = sp.q || sp.category || sp.priceMin || sp.priceMax || sp.type || sp.skills;
-
-  if (!hasFilters) return null;
-
-  const selectedSkills = sp.skills ? sp.skills.split(",").filter(Boolean) : [];
-
-  const categoryLabels: Record<string, string> = {
-    GAMING_ESPORTS: "Gaming & Esports",
-    TRADING_INVESTING: "Trading & Investing",
-    STREAMING_CONTENT: "Streaming & Content",
-    YOUTUBE_PRODUCTION: "YouTube Production",
-  };
-
-  return (
-    <div className="mb-4 flex flex-wrap items-center gap-2">
-      <span className="text-sm text-white/60">Active filters:</span>
-      {sp.q && <Badge variant="outline">Search: {sp.q}</Badge>}
-      {sp.category && <Badge variant="outline">Category: {categoryLabels[sp.category] || sp.category}</Badge>}
-      {sp.priceMin && <Badge variant="outline">Min: ${sp.priceMin}</Badge>}
-      {sp.priceMax && <Badge variant="outline">Max: ${sp.priceMax}</Badge>}
-      {sp.type && <Badge variant="outline">Type: {sp.type}</Badge>}
-      {selectedSkills.map((skill) => (
-        <Badge key={skill} variant="success">
-          {skill}
-        </Badge>
-      ))}
-      <Button href="/catalog" variant="ghost" size="sm">
-        Clear all
-      </Button>
-    </div>
-  );
-}
-
 export default async function CatalogPage({ searchParams }: PageProps) {
   const sp = (await searchParams) ?? {};
   const query = buildQuery(sp);
@@ -214,227 +182,20 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   return (
     <section className="section">
       <div className="container">
-        <h1 className="h1 mb-6">Browse mentors</h1>
+        {/* Search Hero */}
+        <SearchHero />
 
-        <div className="grid gap-4 md:grid-cols-[280px,1fr]">
-          {/* Sidebar: Filters - Hidden on mobile by default, can be shown with details/summary */}
-          <aside className="h-fit">
-            {/* Mobile: Collapsible Filters */}
-            <details className="md:hidden mb-4">
-              <summary className="cursor-pointer list-none">
-                <Card>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white">Filters</span>
-                      <svg className="h-5 w-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </CardContent>
-                </Card>
-              </summary>
-              <Card className="mt-2">
-                <CardContent>
-                  <form method="GET" className="grid gap-3">
-                  <div className="grid gap-2">
-                    <label htmlFor="search" className="text-sm text-white/80">
-                      Search
-                    </label>
-                    <Input
-                      id="search"
-                      name="q"
-                      defaultValue={sp.q ?? ""}
-                      placeholder="Valorant, trading, design…"
-                    />
-                  </div>
+        {/* Category Pills */}
+        <CategoryPills />
 
-                  <SkillsFilter initialSkills={sp.skills} />
+        {/* Enhanced Filters */}
+        <EnhancedFilters />
 
-                  <div className="grid gap-2">
-                    <label htmlFor="category" className="text-sm text-white/80">
-                      Category
-                    </label>
-                    <Select id="category" name="category" defaultValue={sp.category ?? ""}>
-                      <option value="">All Categories</option>
-                      <option value="GAMING_ESPORTS">🎮 Gaming & Esports</option>
-                      <option value="TRADING_INVESTING">💸 Trading & Investing</option>
-                      <option value="STREAMING_CONTENT">📹 Streaming & Content</option>
-                      <option value="YOUTUBE_PRODUCTION">🎬 YouTube Production</option>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="grid gap-2">
-                      <label htmlFor="priceMin" className="text-sm text-white/80">
-                        Min $
-                      </label>
-                      <Input
-                        id="priceMin"
-                        name="priceMin"
-                        defaultValue={sp.priceMin ?? ""}
-                        placeholder="0"
-                        type="number"
-                        min="0"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <label htmlFor="priceMax" className="text-sm text-white/80">
-                        Max $
-                      </label>
-                      <Input
-                        id="priceMax"
-                        name="priceMax"
-                        defaultValue={sp.priceMax ?? ""}
-                        placeholder="1000"
-                        type="number"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="type" className="text-sm text-white/80">
-                      Offer type
-                    </label>
-                    <Select id="type" name="type" defaultValue={sp.type ?? ""}>
-                      <option value="">Any</option>
-                      <option value="ACCESS">ACCESS</option>
-                      <option value="TIME">TIME</option>
-                      <option value="BOTH">BOTH</option>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="sort" className="text-sm text-white/80">
-                      Sort by
-                    </label>
-                    <Select id="sort" name="sort" defaultValue={sp.sort ?? "rating"}>
-                      <option value="rating">Highest Rated</option>
-                      <option value="reviews">Most Reviews</option>
-                      <option value="newest">Newest</option>
-                      <option value="price-low">Price: Low to High</option>
-                      <option value="price-high">Price: High to Low</option>
-                    </Select>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button type="submit" className="flex-1">
-                      Apply
-                    </Button>
-                    <Button href="/catalog" variant="ghost">
-                      Reset
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-            </details>
-
-            {/* Desktop: Always Visible Filters */}
-            <Card className="hidden md:block">
-              <CardContent>
-                <form method="GET" className="grid gap-3">
-                  <div className="grid gap-2">
-                    <label htmlFor="search-desktop" className="text-sm text-white/80">
-                      Search
-                    </label>
-                    <Input
-                      id="search-desktop"
-                      name="q"
-                      defaultValue={sp.q ?? ""}
-                      placeholder="Valorant, trading, design…"
-                    />
-                  </div>
-
-                  <SkillsFilter initialSkills={sp.skills} />
-
-                  <div className="grid gap-2">
-                    <label htmlFor="category-desktop" className="text-sm text-white/80">
-                      Category
-                    </label>
-                    <Select id="category-desktop" name="category" defaultValue={sp.category ?? ""}>
-                      <option value="">All Categories</option>
-                      <option value="GAMING_ESPORTS">🎮 Gaming & Esports</option>
-                      <option value="TRADING_INVESTING">💸 Trading & Investing</option>
-                      <option value="STREAMING_CONTENT">📹 Streaming & Content</option>
-                      <option value="YOUTUBE_PRODUCTION">🎬 YouTube Production</option>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="grid gap-2">
-                      <label htmlFor="priceMin-desktop" className="text-sm text-white/80">
-                        Min $
-                      </label>
-                      <Input
-                        id="priceMin-desktop"
-                        name="priceMin"
-                        defaultValue={sp.priceMin ?? ""}
-                        placeholder="0"
-                        type="number"
-                        min="0"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <label htmlFor="priceMax-desktop" className="text-sm text-white/80">
-                        Max $
-                      </label>
-                      <Input
-                        id="priceMax-desktop"
-                        name="priceMax"
-                        defaultValue={sp.priceMax ?? ""}
-                        placeholder="1000"
-                        type="number"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="type-desktop" className="text-sm text-white/80">
-                      Offer type
-                    </label>
-                    <Select id="type-desktop" name="type" defaultValue={sp.type ?? ""}>
-                      <option value="">Any</option>
-                      <option value="ACCESS">ACCESS</option>
-                      <option value="TIME">TIME</option>
-                      <option value="BOTH">BOTH</option>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="sort-desktop" className="text-sm text-white/80">
-                      Sort by
-                    </label>
-                    <Select id="sort-desktop" name="sort" defaultValue={sp.sort ?? "rating"}>
-                      <option value="rating">Highest Rated</option>
-                      <option value="reviews">Most Reviews</option>
-                      <option value="newest">Newest</option>
-                      <option value="price-low">Price: Low to High</option>
-                      <option value="price-high">Price: High to Low</option>
-                    </Select>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button type="submit" className="flex-1">
-                      Apply
-                    </Button>
-                    <Button href="/catalog" variant="ghost">
-                      Reset
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </aside>
-
-          {/* Results */}
-          <main>
-            <ActiveFilters sp={sp} />
-            <Suspense key={apiUrl} fallback={<CatalogFallback />}>
-              <CatalogResults url={apiUrl} sp={sp} />
-            </Suspense>
-          </main>
+        {/* Results */}
+        <div>
+          <Suspense fallback={<CatalogFallback />}>
+            <CatalogResults url={apiUrl} sp={sp} />
+          </Suspense>
         </div>
       </div>
     </section>

@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "i.pravatar.cc", pathname: "/**" },
       // Unsplash (for portfolio images)
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+      // UI Avatars (for fake mentor profile images)
+      { protocol: "https", hostname: "ui-avatars.com", pathname: "/**" },
     ],
     // Enable image optimization for faster loading
     formats: ["image/avif", "image/webp"],

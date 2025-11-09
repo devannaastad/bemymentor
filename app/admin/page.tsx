@@ -9,7 +9,7 @@ import { formatCurrency } from "@/lib/utils/format";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const session = await requireAdmin();
+  await requireAdmin();
 
   // Fetch all stats in parallel
   const [
