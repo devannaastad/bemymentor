@@ -1,5 +1,6 @@
 // app/api/mentor/profile/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 
@@ -67,6 +68,10 @@ export async function PUT(req: NextRequest) {
       where: { id: mentor.id },
       data: updateData,
     });
+
+    // Revalidate catalog and mentor profile pages to show updated data immediately
+    revalidatePath("/catalog");
+    revalidatePath(`/mentors/${mentor.id}`);
 
     return NextResponse.json(
       {
