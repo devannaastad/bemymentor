@@ -247,7 +247,7 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-For issues or questions, please open a GitHub issue or contact support@bemymentor.com
+For issues or questions, please open a GitHub issue or contact support@bemymentor.dev
 
 ---
 

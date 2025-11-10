@@ -31,10 +31,10 @@ export default function ContactPage() {
                     For general questions, account issues, or platform help
                   </p>
                   <a
-                    href="mailto:support@bemymentor.com"
+                    href="mailto:support@bemymentor.dev"
                     className="text-purple-400 hover:text-purple-300 transition-colors"
                   >
-                    support@bemymentor.com
+                    support@bemymentor.dev
                   </a>
                 </div>
               </div>
@@ -53,10 +53,10 @@ export default function ContactPage() {
                     Problems with sessions, payments, or scheduling
                   </p>
                   <a
-                    href="mailto:bookings@bemymentor.com"
+                    href="mailto:billing@bemymentor.dev"
                     className="text-purple-400 hover:text-purple-300 transition-colors"
                   >
-                    bookings@bemymentor.com
+                    billing@bemymentor.dev
                   </a>
                 </div>
               </div>
@@ -75,10 +75,10 @@ export default function ContactPage() {
                     Report violations, scams, or suspicious activity
                   </p>
                   <a
-                    href="mailto:abuse@bemymentor.com"
+                    href="mailto:abuse@bemymentor.dev"
                     className="text-purple-400 hover:text-purple-300 transition-colors"
                   >
-                    abuse@bemymentor.com
+                    abuse@bemymentor.dev
                   </a>
                 </div>
               </div>
@@ -97,10 +97,10 @@ export default function ContactPage() {
                     Questions about applying or mentor requirements
                   </p>
                   <a
-                    href="mailto:mentors@bemymentor.com"
+                    href="mailto:admin@bemymentor.dev"
                     className="text-purple-400 hover:text-purple-300 transition-colors"
                   >
-                    mentors@bemymentor.com
+                    admin@bemymentor.dev
                   </a>
                 </div>
               </div>
@@ -144,7 +144,7 @@ export default function ContactPage() {
               <div>
                 <h3 className="font-semibold mb-2">How do I delete my account?</h3>
                 <p className="text-sm text-muted-foreground">
-                  Contact us at support@bemymentor.com with your account deletion request. We&apos;ll process it within
+                  Contact us at support@bemymentor.dev with your account deletion request. We&apos;ll process it within
                   48 hours. Note that active ACCESS passes will remain valid after deletion.
                 </p>
               </div>
@@ -155,8 +155,8 @@ export default function ContactPage() {
         <div className="mt-12 text-center">
           <p className="text-muted-foreground">
             For legal matters or privacy concerns, contact{" "}
-            <a href="mailto:legal@bemymentor.com" className="text-purple-400 hover:text-purple-300">
-              legal@bemymentor.com
+            <a href="mailto:security@bemymentor.dev" className="text-purple-400 hover:text-purple-300">
+              security@bemymentor.dev
             </a>
           </p>
         </div>

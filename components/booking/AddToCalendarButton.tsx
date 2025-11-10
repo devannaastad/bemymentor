@@ -40,7 +40,7 @@ export default function AddToCalendarButton({
       `SUMMARY:${title}`,
       `DESCRIPTION:${description}`,
       `LOCATION:${location}`,
-      `ORGANIZER;CN=${mentorName}:MAILTO:noreply@bemymentor.com`,
+      `ORGANIZER;CN=${mentorName}:MAILTO:noreply@bemymentor.dev`,
       "STATUS:CONFIRMED",
       "SEQUENCE:0",
       "BEGIN:VALARM",

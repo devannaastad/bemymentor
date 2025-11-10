@@ -130,8 +130,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-4">
               To exercise these rights, contact us at{" "}
-              <a href="mailto:privacy@bemymentor.com" className="text-purple-400 hover:text-purple-300">
-                privacy@bemymentor.com
+              <a href="mailto:privacy@bemymentor.dev" className="text-purple-400 hover:text-purple-300">
+                privacy@bemymentor.dev
               </a>
             </p>
           </section>
@@ -179,14 +179,14 @@ export default function PrivacyPage() {
             <ul className="list-none mt-2 space-y-1">
               <li>
                 Email:{" "}
-                <a href="mailto:privacy@bemymentor.com" className="text-purple-400 hover:text-purple-300">
-                  privacy@bemymentor.com
+                <a href="mailto:privacy@bemymentor.dev" className="text-purple-400 hover:text-purple-300">
+                  privacy@bemymentor.dev
                 </a>
               </li>
               <li>
                 Support:{" "}
-                <a href="mailto:support@bemymentor.com" className="text-purple-400 hover:text-purple-300">
-                  support@bemymentor.com
+                <a href="mailto:support@bemymentor.dev" className="text-purple-400 hover:text-purple-300">
+                  support@bemymentor.dev
                 </a>
               </li>
             </ul>
