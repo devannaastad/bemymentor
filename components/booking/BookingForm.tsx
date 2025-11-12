@@ -32,14 +32,14 @@ export default function BookingForm({ mentor }: BookingFormProps) {
 
   const calculatePrice = () => {
     if (isFreeSession) {
-      return 0; // Free sessions are $0
+      return "0.00"; // Free sessions are $0
     }
     if (bookingType === "ACCESS") {
-      // Convert cents to dollars
-      return Math.round((mentor.accessPrice || 0) / 100);
+      // Convert cents to dollars with 2 decimal places
+      return ((mentor.accessPrice || 0) / 100).toFixed(2);
     }
     // For hourly sessions: (hourlyRate in cents / 60 minutes) * duration / 100 to convert to dollars
-    return Math.round(((mentor.hourlyRate || 0) / 60) * durationMinutes / 100);
+    return (((mentor.hourlyRate || 0) / 60) * durationMinutes / 100).toFixed(2);
   };
 
   const handleContinueClick = () => {

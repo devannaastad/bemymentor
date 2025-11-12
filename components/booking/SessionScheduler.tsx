@@ -51,7 +51,7 @@ export default function SessionScheduler({
     return ((hourlyRate / 100) / 60 * duration).toFixed(2);
   };
 
-  const minDate = addDays(new Date(), 1); // Tomorrow
+  const minDate = new Date(); // Today (same-day bookings allowed)
   const maxDate = addDays(new Date(), 90); // 90 days from now
 
   return (

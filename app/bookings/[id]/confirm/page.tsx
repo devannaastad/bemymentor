@@ -10,6 +10,7 @@ import Image from "next/image";
 import PaymentButton from "@/components/booking/PaymentButton";
 import StudentConfirmation from "@/components/booking/StudentConfirmation";
 import AddToCalendarButton from "@/components/booking/AddToCalendarButton";
+import BookingChat from "@/components/booking/BookingChat";
 
 type Params = { id: string };
 type SearchParams = {
@@ -342,6 +343,19 @@ export default async function BookingConfirmPage({
               isFraudReported={booking.isFraudReported}
             />
           </div>
+        )}
+
+        {/* Messages - Show for all bookings after payment */}
+        {isPaid && (
+          <Card className="mb-8">
+            <CardContent>
+              <h3 className="text-xl font-semibold mb-4">Messages</h3>
+              <p className="text-sm text-white/60 mb-4">
+                Chat with {booking.type === "SESSION" ? "your mentor" : booking.mentor.name} about your booking
+              </p>
+              <BookingChat bookingId={booking.id} />
+            </CardContent>
+          </Card>
         )}
 
         {/* Action Buttons */}

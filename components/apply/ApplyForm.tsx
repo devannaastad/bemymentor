@@ -352,9 +352,10 @@ export default function ApplyForm() {
             </span>
             <Input
               id="price"
-              type="number"
+              type="text"
+              inputMode="decimal"
               {...register("price")}
-              placeholder="49"
+              placeholder="49.99"
               className="h-12 text-base pl-8"
             />
           </div>
@@ -376,9 +377,10 @@ export default function ApplyForm() {
             </span>
             <Input
               id="hourlyRate"
-              type="number"
+              type="text"
+              inputMode="decimal"
               {...register("hourlyRate")}
-              placeholder="100"
+              placeholder="100.00"
               className="h-12 text-base pl-8"
             />
           </div>

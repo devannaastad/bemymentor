@@ -103,13 +103,13 @@ export default async function MentorSetupPage() {
                 {approvedApp.accessPrice != null && (
                   <div className="flex justify-between">
                     <dt className="text-white/60">ACCESS Price:</dt>
-                    <dd className="font-medium">${approvedApp.accessPrice}</dd>
+                    <dd className="font-medium">${(approvedApp.accessPrice / 100).toFixed(2)}</dd>
                   </div>
                 )}
                 {approvedApp.hourlyRate != null && (
                   <div className="flex justify-between">
                     <dt className="text-white/60">Hourly Rate:</dt>
-                    <dd className="font-medium">${approvedApp.hourlyRate}/hr</dd>
+                    <dd className="font-medium">${(approvedApp.hourlyRate / 100).toFixed(2)}/hr</dd>
                   </div>
                 )}
               </dl>

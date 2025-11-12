@@ -282,22 +282,29 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
                 Join Meeting 🎥
               </Button>
             )}
-            <div className="flex flex-col gap-1">
-              <Button
-                onClick={() => handleUpdateStatus("COMPLETED")}
-                disabled={isUpdating || !isSessionComplete}
-                variant={booking.meetingLink ? "ghost" : "primary"}
-                size="sm"
-                title={!isSessionComplete ? "Session must be completed before marking as done" : ""}
-              >
-                ✅ Mark as Completed
-              </Button>
-              {!isSessionComplete && booking.type === "SESSION" && (
-                <p className="text-xs text-amber-400">
-                  Available after session ends
-                </p>
-              )}
-            </div>
+            {/* Only show Mark as Completed button for SESSIONS, not ACCESS passes */}
+            {booking.type === "SESSION" && (
+              <div className="flex flex-col gap-1">
+                <Button
+                  onClick={() => handleUpdateStatus("COMPLETED")}
+                  disabled={isUpdating || !isSessionComplete}
+                  variant={booking.meetingLink ? "ghost" : "primary"}
+                  size="sm"
+                  title={!isSessionComplete ? "Session must be completed before marking as done" : ""}
+                >
+                  ✅ Mark as Completed
+                </Button>
+                {!isSessionComplete && (
+                  <p className="text-xs text-amber-400">
+                    Available after session ends
+                  </p>
+                )}
+              </div>
+            )}
+            {/* For ACCESS passes, show active status */}
+            {booking.type === "ACCESS" && (
+              <Badge variant="success">ACCESS Active</Badge>
+            )}
             <Button onClick={() => setShowCancelModal(true)} disabled={isUpdating} variant="ghost" size="sm">
               ❌ Cancel
             </Button>

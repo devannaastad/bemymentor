@@ -251,12 +251,12 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
         setRefreshKey(prev => prev + 1);
       } else {
         const errorData = await res.json();
-        console.error("Failed to set availability:", errorData);
+        console.error("Failed to set availability (API error):", errorData);
         alert(errorData.error || "Failed to set availability");
       }
     } catch (err) {
-      console.error("Failed to set availability:", err);
-      alert("Failed to set availability. Please try again.");
+      console.error("Failed to set availability (request failed):", err);
+      alert(`Failed to set availability. ${err instanceof Error ? err.message : "Please try restarting the server."}`);
     } finally {
       setLoading(false);
     }

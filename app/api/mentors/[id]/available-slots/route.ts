@@ -34,6 +34,14 @@ export async function GET(
       );
     }
 
+    // Get mentor's timezone first
+    const mentor = await db.mentor.findUnique({
+      where: { id: mentorId },
+      select: { timezone: true },
+    });
+
+    const mentorTimezone = mentor?.timezone || "America/New_York";
+
     // Parse the requested date
     const requestedDate = parse(dateParam, "yyyy-MM-dd", new Date());
 
@@ -88,7 +96,7 @@ export async function GET(
     });
 
     // Generate available slots based on AvailableSlot records
-    const slots: Array<{ time: string; isFreeSession: boolean }> = [];
+    const slots: Array<{ time: string; isFreeSession: boolean; isPast?: boolean; isBooked?: boolean }> = [];
 
     for (const avail of availableSlots) {
       // Get the start and end times from the AvailableSlot DateTime fields
@@ -134,23 +142,37 @@ export async function GET(
           );
         });
 
-        // Only add if not blocked and not booked
-        if (!isBlocked && !isBooked) {
+        // Check if slot is in the past (for same-day bookings)
+        // Add 30-minute buffer to current time (in UTC)
+        const now = new Date();
+        const minimumStartTime = addMinutes(now, 30);
+        const isPastTime = isBefore(currentSlotStart, minimumStartTime);
+
+        // Debug logging
+        if (dateParam === format(new Date(), "yyyy-MM-dd")) {
+          console.log(`[available-slots DEBUG]`, {
+            slotTime: format(currentSlotStart, "HH:mm"),
+            slotTimeUTC: currentSlotStart.toISOString(),
+            nowUTC: now.toISOString(),
+            minimumStartTimeUTC: minimumStartTime.toISOString(),
+            isPastTime,
+            mentorTimezone,
+          });
+        }
+
+        // Add slot if not blocked - include past times and booked times but mark them
+        if (!isBlocked) {
           slots.push({
             time: format(currentSlotStart, "HH:mm"),
             isFreeSession: avail.isFreeSession,
+            isPast: isPastTime,
+            isBooked: isBooked,
           });
         }
 
         currentSlotStart = addMinutes(currentSlotStart, increment);
       }
     }
-
-    // Get mentor's timezone
-    const mentor = await db.mentor.findUnique({
-      where: { id: mentorId },
-      select: { timezone: true },
-    });
 
     // Sort by time
     slots.sort((a, b) => a.time.localeCompare(b.time));
@@ -161,7 +183,7 @@ export async function GET(
         date: dateParam,
         duration,
         slots,
-        timezone: mentor?.timezone || "America/New_York",
+        timezone: mentorTimezone,
       },
     });
   } catch (err) {

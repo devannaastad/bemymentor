@@ -1,4 +1,4 @@
-// app/api/cron/session-reminders/route.ts
+// app/api/cron/session-reminders-24h/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendSessionReminder } from "@/lib/email";
@@ -7,10 +7,10 @@ import { format, addHours } from "date-fns";
 export const runtime = "nodejs";
 
 /**
- * GET /api/cron/session-reminders
- * Sends email and in-app notifications for sessions starting in 1 hour
+ * GET /api/cron/session-reminders-24h
+ * Sends email and in-app notifications for sessions starting in 24 hours
  *
- * This endpoint should be called every 15 minutes by a cron job (Vercel Cron, etc.)
+ * This endpoint should be called every hour by a cron job
  * Authorization: Requires CRON_SECRET to match environment variable
  */
 export async function GET(req: NextRequest) {
@@ -26,10 +26,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Find sessions starting in 55-65 minutes (1 hour window with buffer)
+    // Find sessions starting in 23-25 hours (24 hour window with buffer)
     const now = new Date();
-    const reminderWindowStart = addHours(now, 0.9); // 54 minutes
-    const reminderWindowEnd = addHours(now, 1.1); // 66 minutes
+    const reminderWindowStart = addHours(now, 23); // 23 hours from now
+    const reminderWindowEnd = addHours(now, 25); // 25 hours from now
 
     const upcomingSessions = await db.booking.findMany({
       where: {
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
           lte: reminderWindowEnd,
         },
         // Don't send duplicate reminders
-        reminder1hSentAt: null,
+        reminder24hSentAt: null,
       },
       include: {
         mentor: {
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    console.log(`[cron:session-reminders] Found ${upcomingSessions.length} sessions needing reminders`);
+    console.log(`[cron:session-reminders-24h] Found ${upcomingSessions.length} sessions needing 24h reminders`);
 
     const results = {
       sent: 0,
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
       try {
         // Skip if user doesn't have an email
         if (!booking.user.email) {
-          console.log(`[cron:session-reminders] Skipping booking ${booking.id} - no student email`);
+          console.log(`[cron:session-reminders-24h] Skipping booking ${booking.id} - no student email`);
           continue;
         }
 
@@ -121,18 +121,18 @@ export async function GET(req: NextRequest) {
             // Student notification
             {
               userId: booking.userId,
-              type: "SESSION_REMINDER_1H",
-              title: "Session in 1 hour!",
-              message: `Your session with ${booking.mentor.name} starts in 1 hour at ${sessionTime}`,
+              type: "SESSION_REMINDER_24H",
+              title: "Session tomorrow!",
+              message: `Your session with ${booking.mentor.name} is tomorrow at ${sessionTime}`,
               link: `/bookings/${booking.id}/confirm`,
               bookingId: booking.id,
             },
             // Mentor notification
             {
               userId: booking.mentor.userId,
-              type: "SESSION_REMINDER_1H",
-              title: "Session in 1 hour!",
-              message: `Your session with ${booking.user.name || "a student"} starts in 1 hour at ${sessionTime}`,
+              type: "SESSION_REMINDER_24H",
+              title: "Session tomorrow!",
+              message: `Your session with ${booking.user.name || "a student"} is tomorrow at ${sessionTime}`,
               link: `/mentor-dashboard`,
               bookingId: booking.id,
             },
@@ -142,18 +142,18 @@ export async function GET(req: NextRequest) {
         // Mark reminder as sent
         await db.booking.update({
           where: { id: booking.id },
-          data: { reminder1hSentAt: now },
+          data: { reminder24hSentAt: now },
         });
 
         results.sent++;
         results.notifications += 2;
       } catch (error) {
-        console.error(`[cron:session-reminders] Failed for booking ${booking.id}:`, error);
+        console.error(`[cron:session-reminders-24h] Failed for booking ${booking.id}:`, error);
         results.failed++;
       }
     }
 
-    console.log(`[cron:session-reminders] Results:`, results);
+    console.log(`[cron:session-reminders-24h] Results:`, results);
 
     return NextResponse.json({
       ok: true,
@@ -163,9 +163,9 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[cron:session-reminders] Error:", error);
+    console.error("[cron:session-reminders-24h] Error:", error);
     return NextResponse.json(
-      { ok: false, error: "Failed to process session reminders" },
+      { ok: false, error: "Failed to process 24h session reminders" },
       { status: 500 }
     );
   }

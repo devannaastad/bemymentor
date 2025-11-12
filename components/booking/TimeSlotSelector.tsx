@@ -15,6 +15,8 @@ interface TimeSlotSelectorProps {
 interface TimeSlot {
   time: string;
   isFreeSession: boolean;
+  isPast?: boolean;
+  isBooked?: boolean;
 }
 
 interface AvailableSlotsResponse {
@@ -101,6 +103,9 @@ export default function TimeSlotSelector({
     );
   }
 
+  // Filter to check if there are any available (not past, not booked) slots
+  const availableSlots = slots.filter((slot) => !slot.isPast && !slot.isBooked);
+
   if (slots.length === 0) {
     return (
       <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-6 text-center">
@@ -126,15 +131,19 @@ export default function TimeSlotSelector({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
         {slots.map((slot) => {
           const isSelected = selectedTime === slot.time;
+          const isDisabled = slot.isPast || slot.isBooked;
 
           return (
             <button
               key={slot.time}
-              onClick={() => onSelectTime(slot.time, slot.isFreeSession)}
+              onClick={() => !isDisabled && onSelectTime(slot.time, slot.isFreeSession)}
+              disabled={isDisabled}
               className={`
                 rounded-lg border px-4 py-3 text-sm font-medium transition-all relative
                 ${
-                  isSelected
+                  isDisabled
+                    ? "border-white/10 bg-white/5 text-white/30 cursor-not-allowed"
+                    : isSelected
                     ? slot.isFreeSession
                       ? "border-emerald-500 bg-emerald-600 text-white ring-2 ring-emerald-400"
                       : "border-purple-500 bg-purple-600 text-white ring-2 ring-purple-400"
@@ -144,10 +153,22 @@ export default function TimeSlotSelector({
                 }
               `}
             >
-              <div>{formatTimeDisplay(slot.time)}</div>
-              {slot.isFreeSession && (
+              <div className={isDisabled ? "line-through" : ""}>
+                {formatTimeDisplay(slot.time)}
+              </div>
+              {slot.isFreeSession && !isDisabled && (
                 <div className="text-xs mt-1 font-semibold text-emerald-300">
                   FREE
+                </div>
+              )}
+              {slot.isPast && (
+                <div className="text-xs mt-1 text-white/40">
+                  Past
+                </div>
+              )}
+              {slot.isBooked && (
+                <div className="text-xs mt-1 text-white/40">
+                  Booked
                 </div>
               )}
             </button>
@@ -158,6 +179,12 @@ export default function TimeSlotSelector({
       <div className="mt-4 rounded-lg border border-blue-500/20 bg-blue-500/10 p-3 text-xs text-blue-200">
         <strong>Session Duration:</strong> {duration} minutes
       </div>
+
+      {availableSlots.length === 0 && (
+        <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-center text-sm text-amber-200">
+          All time slots for this date are either past or already booked. Please select a different date.
+        </div>
+      )}
     </div>
   );
 }

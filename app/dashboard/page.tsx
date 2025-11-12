@@ -95,6 +95,11 @@ export default async function DashboardPage() {
     (b) => b.mentorCompletedAt && !b.studentConfirmedAt && !b.fraudReportedAt
   );
 
+  // Get ACCESS passes (completed or confirmed ACCESS bookings)
+  const accessPasses = bookings.filter(
+    (b) => b.type === "ACCESS" && (b.status === "CONFIRMED" || b.status === "COMPLETED")
+  );
+
   return (
     <section className="section">
       <div className="container">
@@ -145,61 +150,6 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* Stats Cards */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-4">
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/60">Saved Mentors</p>
-                  <p className="text-3xl font-bold">{savedMentors.length}</p>
-                </div>
-                <div className="text-4xl">🔖</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/60">Bookings</p>
-                  <p className="text-3xl font-bold">{bookings.length}</p>
-                </div>
-                <div className="text-4xl">📅</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/60">Active Sessions</p>
-                  <p className="text-3xl font-bold">
-                    {bookings.filter((b) => b.status === "CONFIRMED").length}
-                  </p>
-                </div>
-                <div className="text-4xl">⏱️</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/60">Completed</p>
-                  <p className="text-3xl font-bold">
-                    {bookings.filter((b) => b.status === "COMPLETED").length}
-                  </p>
-                </div>
-                <div className="text-4xl">✅</div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Recent Bookings */}
         {bookings.length > 0 && (
@@ -268,6 +218,11 @@ export default async function DashboardPage() {
                       {booking.type === "ACCESS" && (booking.status === "CONFIRMED" || booking.status === "COMPLETED") && (
                         <Button href={`/access-pass/${booking.mentor.id}`} variant="primary" size="sm">
                           Access Content
+                        </Button>
+                      )}
+                      {booking.status === "CONFIRMED" && (
+                        <Button href={`/bookings/${booking.id}/complete`} variant="primary" size="sm">
+                          Complete Session ✓
                         </Button>
                       )}
                       {booking.type === "SESSION" && booking.status === "COMPLETED" && !booking.review && (
@@ -355,6 +310,42 @@ export default async function DashboardPage() {
           </Card>
         )}
 
+        {/* Access Content Section */}
+        {accessPasses.length > 0 && (
+          <div className="mb-8">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Your Access Content</h2>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {accessPasses.map((pass) => (
+                <Card key={pass.id}>
+                  <CardContent>
+                    <div className="flex items-start gap-4">
+                      {pass.mentor.profileImage && (
+                        <Image
+                          src={pass.mentor.profileImage}
+                          alt={pass.mentor.name}
+                          width={64}
+                          height={64}
+                          className="h-16 w-16 rounded-lg object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-1">{pass.mentor.name}</h3>
+                        <p className="text-sm text-white/60 mb-3">ACCESS Pass</p>
+                        <Button href={`/access-pass/${pass.mentor.id}`} variant="primary" size="sm">
+                          View Content →
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Saved Mentors Section */}
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between">
@@ -385,29 +376,6 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardContent>
-            <h2 className="mb-4 text-lg font-semibold">Quick Actions</h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Button href="/catalog" variant="ghost" className="justify-start">
-                🔍 Browse Mentors
-              </Button>
-              <Button href="/saved" variant="ghost" className="justify-start">
-                🔖 View Saved
-              </Button>
-              {!application && (
-                <Button href="/apply" variant="ghost" className="justify-start">
-                  ✨ Become a Mentor
-                </Button>
-              )}
-              <Button href="/settings" variant="ghost" className="justify-start">
-                ⚙️ Settings
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </section>
   );

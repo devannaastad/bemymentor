@@ -29,6 +29,16 @@ export async function createConnectAccount(email: string, mentorName: string) {
       first_name: firstName,
       last_name: lastName,
     },
+    settings: {
+      payouts: {
+        schedule: {
+          // New mentors start with weekly payouts and 7-day hold
+          interval: "weekly",
+          delay_days: 7,
+          weekly_anchor: "monday",
+        },
+      },
+    },
     metadata: {
       mentorName,
       platform: "BeMyMentor",
@@ -113,4 +123,40 @@ export function calculatePayoutAmounts(totalPriceInCents: number) {
     platformFee,
     mentorPayout,
   };
+}
+
+/**
+ * Configure payout schedule based on mentor trust status
+ * New mentors (< 5 verified bookings): 7-day hold
+ * Trusted mentors (5+ verified bookings): Daily payouts
+ */
+export async function updatePayoutSchedule(accountId: string, isTrusted: boolean) {
+  const payoutSchedule = isTrusted
+    ? {
+        // Trusted mentors: Daily automatic payouts with standard 2-day delay
+        interval: "daily" as const,
+        delay_days: 2, // Standard Stripe delay
+      }
+    : {
+        // New mentors: Weekly payouts with 7-day hold period
+        interval: "weekly" as const,
+        delay_days: 7, // 7-day fraud protection hold
+        weekly_anchor: "monday" as const,
+      };
+
+  await stripe.accounts.update(accountId, {
+    settings: {
+      payouts: {
+        schedule: payoutSchedule,
+      },
+    },
+  });
+}
+
+/**
+ * Check if mentor should be upgraded to trusted status
+ * Requirements: 5+ verified bookings with no fraud reports
+ */
+export function shouldUpgradeToTrusted(verifiedBookingsCount: number, isTrusted: boolean): boolean {
+  return verifiedBookingsCount >= 5 && !isTrusted;
 }

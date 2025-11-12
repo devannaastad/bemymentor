@@ -8,7 +8,12 @@ export type NotificationType =
   | "BOOKING_COMPLETED"
   | "REVIEW_RECEIVED"
   | "MENTOR_APPROVED"
-  | "PAYMENT_RECEIVED";
+  | "PAYMENT_RECEIVED"
+  | "SESSION_REMINDER_24H"
+  | "SESSION_REMINDER_1H"
+  | "SESSION_REMINDER_15MIN"
+  | "SESSION_COMPLETION_REMINDER"
+  | "REVIEW_REMINDER";
 
 interface CreateNotificationParams {
   userId: string;

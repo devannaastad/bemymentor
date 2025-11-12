@@ -120,6 +120,21 @@ export async function POST() {
 
     // Check if this is the platform profile configuration error
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Check if Stripe Connect is not enabled
+    if (errorMessage.includes("signed up for Connect") ||
+        errorMessage.includes("learn how to do at https://stripe.com/docs/connect")) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Stripe Connect is not enabled for this account. Please enable it at https://dashboard.stripe.com/connect/accounts/overview",
+          connectNotEnabled: true,
+          setupUrl: "https://dashboard.stripe.com/connect/accounts/overview"
+        },
+        { status: 400 }
+      );
+    }
+
     if (errorMessage.includes("responsibilities of managing losses") ||
         errorMessage.includes("platform-profile")) {
       return NextResponse.json(

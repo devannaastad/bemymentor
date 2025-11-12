@@ -7,6 +7,7 @@ import AvatarUploader from "@/components/settings/AvatarUploader";
 import ProfileForm from "@/components/settings/ProfileForm";
 import NotificationPreferences from "@/components/settings/NotificationPreferences";
 import TwoFactorSettings from "@/components/settings/TwoFactorSettings";
+import TimezoneSettings from "@/components/settings/TimezoneSettings";
 import DangerZone from "@/components/settings/DangerZone";
 
 export const metadata = {
@@ -30,6 +31,7 @@ export default async function SettingsPage() {
       image: true,
       emailVerified: true,
       twoFactorEnabled: true,
+      timezone: true,
     },
   });
 
@@ -59,6 +61,14 @@ export default async function SettingsPage() {
             <CardContent>
               <h2 className="mb-4 text-lg font-semibold">Profile Information</h2>
               <ProfileForm user={user} />
+            </CardContent>
+          </Card>
+
+          {/* Timezone */}
+          <Card>
+            <CardContent>
+              <h2 className="mb-4 text-lg font-semibold">Timezone</h2>
+              <TimezoneSettings initialTimezone={user.timezone} />
             </CardContent>
           </Card>
 

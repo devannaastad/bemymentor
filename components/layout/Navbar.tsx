@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/common";
 import NavDropdown, { NavItem } from "./NavDropdown";
@@ -17,6 +17,7 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [isMentor, setIsMentor] = useState(false);
 
   const username =
     (session?.user?.name && session.user.name.trim()) ||
@@ -25,15 +26,29 @@ export default function Navbar() {
 
   const userIsAdmin = isAdmin(session?.user?.email);
 
+  // Check if user is a mentor
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetch("/api/user/is-mentor")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.ok) {
+            setIsMentor(data.data.isMentor);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [status]);
+
   const items: NavItem[] = [
     { label: "Home", href: "/" },
     { label: "Dashboard", href: "/dashboard" },
+    { label: "Messages", href: "/messages" },
     { label: "Mentor Dashboard", href: "/mentor-dashboard" },
     { label: "Mentor Settings", href: "/mentor/settings" },
     ...(userIsAdmin ? [{ label: "Admin", href: "/admin" }] : []),
     { label: "Catalog", href: "/catalog" },
-    { label: "Apply as Mentor", href: "/apply" },
-    { label: "Saved", href: "/saved" },
+    ...(!isMentor ? [{ label: "Apply as Mentor", href: "/apply" }] : []),
     { label: "Settings", href: "/settings" },
     { label: "Sign out", onSelect: () => setShowSignOutConfirm(true) },
   ];
@@ -61,16 +76,18 @@ export default function Navbar() {
             <TopLink href="/catalog" active={pathname === "/catalog"}>
               Catalog
             </TopLink>
-            <TopLink href="/apply" active={pathname === "/apply"}>
-              Apply
-            </TopLink>
+            {!isMentor && (
+              <TopLink href="/apply" active={pathname === "/apply"}>
+                Apply
+              </TopLink>
+            )}
             {status === "authenticated" && (
               <>
-                <TopLink href="/saved" active={pathname === "/saved"}>
-                  Saved
-                </TopLink>
                 <TopLink href="/dashboard" active={pathname === "/dashboard"}>
                   Dashboard
+                </TopLink>
+                <TopLink href="/messages" active={pathname === "/messages"}>
+                  Messages
                 </TopLink>
                 <TopLink href="/mentor-dashboard" active={pathname === "/mentor-dashboard"}>
                   Mentor

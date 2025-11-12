@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, X } from "lucide-react";
 import { Notification } from "@prisma/client";
 
 interface NotificationBellProps {
@@ -15,23 +15,47 @@ export default function NotificationBell({
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [latestNotification, setLatestNotification] = useState<Notification | null>(null);
 
-  const fetchNotifications = async () => {
-    setLoading(true);
+  const fetchNotifications = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await fetch("/api/notifications");
       const data = await res.json();
 
       if (data.ok) {
-        setNotifications(data.data.notifications);
-        setUnreadCount(data.data.unreadCount);
+        const newNotifications = data.data.notifications;
+        const newUnreadCount = data.data.unreadCount;
+
+        // Check if there's a new notification
+        if (newUnreadCount > unreadCount && newNotifications.length > 0) {
+          const newest = newNotifications.find((n: Notification) => !n.isRead);
+          if (newest && (!latestNotification || newest.id !== latestNotification.id)) {
+            setLatestNotification(newest);
+            setShowPopup(true);
+          }
+        }
+
+        setNotifications(newNotifications);
+        setUnreadCount(newUnreadCount);
       }
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  // Poll for new notifications every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNotifications(true); // Silent fetch
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unreadCount, latestNotification]);
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -80,7 +104,7 @@ export default function NotificationBell({
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-primary-500 text-black text-xs font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary-500 text-black text-xs font-bold rounded-full flex items-center justify-center shadow-lg shadow-primary-500/50">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -150,6 +174,57 @@ export default function NotificationBell({
             )}
           </div>
         </>
+      )}
+
+      {/* Popup Notification Toast */}
+      {showPopup && latestNotification && (
+        <div className="fixed top-20 right-4 z-[100] w-96 animate-slide-up">
+          <div className="bg-gray-800 border-2 border-primary-500/70 rounded-lg shadow-2xl shadow-primary-500/30 overflow-hidden">
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-primary-500" />
+                  <h4 className="font-semibold text-white text-sm">New Notification</h4>
+                </div>
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="text-white/60 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="font-medium text-white text-sm mb-1">
+                {latestNotification.title}
+              </p>
+              <p className="text-white/70 text-sm mb-4">
+                {latestNotification.message}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {latestNotification.link && (
+                  <button
+                    onClick={() => {
+                      markAsRead(latestNotification.id);
+                      window.location.href = latestNotification.link!;
+                      setShowPopup(false);
+                    }}
+                    className="px-6 py-3 bg-[#F4D03F] hover:bg-[#F7DC6F] text-[#1a1a1a] text-base font-black rounded-lg transition-all duration-200 hover:scale-[1.02] shadow-2xl shadow-yellow-500/60 hover:shadow-2xl hover:shadow-yellow-400/80 uppercase tracking-wider"
+                  >
+                    VIEW NOW
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    markAsRead(latestNotification.id);
+                    setShowPopup(false);
+                  }}
+                  className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-base font-medium rounded-lg transition-all duration-200 border border-white/10"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

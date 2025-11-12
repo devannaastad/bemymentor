@@ -134,7 +134,7 @@ export default async function MentorDashboardPage() {
     );
   }
 
-  const { mentor, bookings, stats } = data;
+  const { mentor, bookings } = data;
 
   const mentorName = session.user?.name?.split(" ")[0] || "Mentor";
 
@@ -157,59 +157,6 @@ export default async function MentorDashboardPage() {
               Edit Profile
             </Button>
           </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/60">Pending Requests</p>
-                  <p className="text-3xl font-bold">{stats.pending}</p>
-                </div>
-                <div className="text-4xl">⏳</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/60">Confirmed</p>
-                  <p className="text-3xl font-bold">{stats.confirmed}</p>
-                </div>
-                <div className="text-4xl">✅</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/60">Completed</p>
-                  <p className="text-3xl font-bold">{stats.completed}</p>
-                </div>
-                <div className="text-4xl">🎉</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/60">Total Earnings</p>
-                  <p className="text-3xl font-bold">
-                    ${(stats.totalEarnings / 100).toFixed(0)}
-                  </p>
-                </div>
-                <div className="text-4xl">💰</div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Profile Completeness */}

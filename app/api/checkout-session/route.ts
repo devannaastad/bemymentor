@@ -106,8 +106,30 @@ export async function POST(req: NextRequest) {
         ? `ACCESS Pass - ${booking.mentor.name}`
         : `${booking.durationMinutes}min 1-on-1 Session with ${booking.mentor.name}`;
 
-    // Create Stripe checkout session
-    const checkoutSession = await stripe.checkout.sessions.create({
+    // Get mentor's full profile to check Stripe Connect status
+    const mentorFull = await db.mentor.findUnique({
+      where: { id: booking.mentor.id },
+      select: {
+        stripeConnectId: true,
+        stripeOnboarded: true,
+      },
+    });
+
+    console.log("[api/checkout-session] Booking details:", {
+      bookingId: booking.id,
+      type: booking.type,
+      mentorId: booking.mentor.id,
+      totalPrice: booking.totalPrice,
+      hasStripeConnectId: !!mentorFull?.stripeConnectId,
+      isOnboarded: mentorFull?.stripeOnboarded
+    });
+
+    // Calculate platform fee (15% of total)
+    const platformFeePercent = 0.15;
+    const platformFee = Math.round(booking.totalPrice * platformFeePercent);
+
+    // Create checkout session with Stripe Connect if mentor is onboarded
+    const checkoutSessionParams: Record<string, unknown> = {
       mode: "payment",
       payment_method_types: ["card"],
       customer_email: user.email || undefined,
@@ -137,7 +159,43 @@ export async function POST(req: NextRequest) {
       },
       success_url: `${appUrl}/bookings/${booking.id}/confirm?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/bookings/${booking.id}/confirm?canceled=true`,
-    });
+    };
+
+    // Add Stripe Connect split if mentor has connected account
+    if (mentorFull?.stripeConnectId && mentorFull?.stripeOnboarded) {
+      try {
+        // Verify the Stripe Connect account exists and is valid
+        const account = await stripe.accounts.retrieve(mentorFull.stripeConnectId);
+
+        // Only add payment splitting if account is valid and charges are enabled
+        if (account && account.charges_enabled) {
+          checkoutSessionParams.payment_intent_data = {
+            application_fee_amount: platformFee, // Platform gets 15%
+            transfer_data: {
+              destination: mentorFull.stripeConnectId, // Mentor gets 85% automatically
+            },
+          };
+          console.log("[api/checkout-session] Using Stripe Connect split for mentor:", booking.mentor.id);
+        } else {
+          console.warn("[api/checkout-session] Mentor Stripe account exists but charges not enabled:", mentorFull.stripeConnectId);
+        }
+      } catch (accountError: unknown) {
+        // If account doesn't exist or is invalid, log warning and proceed without split
+        const errorMessage = accountError instanceof Error ? accountError.message : "Unknown error";
+        console.warn("[api/checkout-session] Invalid Stripe Connect account:", mentorFull.stripeConnectId, errorMessage);
+
+        // Mark mentor as not onboarded since their account is invalid
+        await db.mentor.update({
+          where: { id: booking.mentor.id },
+          data: {
+            stripeOnboarded: false,
+            stripeConnectId: null, // Clear invalid ID
+          },
+        });
+      }
+    }
+
+    const checkoutSession = await stripe.checkout.sessions.create(checkoutSessionParams);
 
     console.log("[api/checkout-session] Created session:", checkoutSession.id, "for booking:", booking.id);
 

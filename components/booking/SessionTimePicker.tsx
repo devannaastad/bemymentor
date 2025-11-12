@@ -21,10 +21,9 @@ export default function SessionTimePicker({ onTimeSelect, hourlyRate }: SessionT
     return `${hour.toString().padStart(2, "0")}:00`;
   });
 
-  // Calculate minimum date (tomorrow)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  // Calculate minimum date (today - same-day bookings allowed)
+  const today = new Date();
+  const minDate = today.toISOString().split("T")[0];
 
   // Calculate price
   const sessionPrice = Math.round((hourlyRate / 60) * duration);
