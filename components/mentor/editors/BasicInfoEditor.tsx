@@ -396,23 +396,39 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
                 <input
                   type="text"
                   inputMode="decimal"
-                  value={profileData.accessPrice && profileData.accessPrice > 0 ? profileData.accessPrice : ""}
+                  value={profileData.accessPrice !== undefined && profileData.accessPrice !== null ? String(profileData.accessPrice) : ""}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9.]/g, "");
-                    // Allow partial decimals while typing (e.g., "11.")
-                    if (value === "" || value === ".") {
-                      updateField("accessPrice", 0);
-                    } else if (value.endsWith(".") || value.includes(".") && value.split(".")[1].length === 0) {
-                      // Keep the string with decimal point while typing
+                    let value = e.target.value;
+
+                    // Remove any non-numeric characters except decimal point
+                    value = value.replace(/[^0-9.]/g, "");
+
+                    // Prevent multiple decimal points
+                    const decimalCount = (value.match(/\./g) || []).length;
+                    if (decimalCount > 1) {
+                      return; // Don't update if trying to add more than one decimal
+                    }
+
+                    // Allow empty, just decimal, or valid decimal numbers
+                    if (value === "" || value === "0" || value === "." || value === "0.") {
                       updateField("accessPrice", value);
-                    } else {
-                      updateField("accessPrice", parseFloat(value) || 0);
+                    } else if (/^\d*\.?\d*$/.test(value)) {
+                      // Valid number format - keep as string for display, will parse on blur
+                      updateField("accessPrice", value);
                     }
                   }}
                   onBlur={(e) => {
-                    // Clean up trailing decimal on blur
-                    const value = e.target.value.replace(/[^0-9.]/g, "");
-                    updateField("accessPrice", value === "" ? 0 : parseFloat(value) || 0);
+                    // Clean up and convert to number on blur
+                    let value = e.target.value.replace(/[^0-9.]/g, "");
+
+                    // Remove trailing decimal point
+                    if (value.endsWith(".")) {
+                      value = value.slice(0, -1);
+                    }
+
+                    // Convert to number or 0 if empty
+                    const numValue = value === "" ? 0 : parseFloat(value);
+                    updateField("accessPrice", numValue);
                   }}
                   placeholder="49.99"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
@@ -432,23 +448,39 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
                 <input
                   type="text"
                   inputMode="decimal"
-                  value={profileData.hourlyRate && profileData.hourlyRate > 0 ? profileData.hourlyRate : ""}
+                  value={profileData.hourlyRate !== undefined && profileData.hourlyRate !== null ? String(profileData.hourlyRate) : ""}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9.]/g, "");
-                    // Allow partial decimals while typing (e.g., "11.")
-                    if (value === "" || value === ".") {
-                      updateField("hourlyRate", 0);
-                    } else if (value.endsWith(".") || value.includes(".") && value.split(".")[1].length === 0) {
-                      // Keep the string with decimal point while typing
+                    let value = e.target.value;
+
+                    // Remove any non-numeric characters except decimal point
+                    value = value.replace(/[^0-9.]/g, "");
+
+                    // Prevent multiple decimal points
+                    const decimalCount = (value.match(/\./g) || []).length;
+                    if (decimalCount > 1) {
+                      return; // Don't update if trying to add more than one decimal
+                    }
+
+                    // Allow empty, just decimal, or valid decimal numbers
+                    if (value === "" || value === "0" || value === "." || value === "0.") {
                       updateField("hourlyRate", value);
-                    } else {
-                      updateField("hourlyRate", parseFloat(value) || 0);
+                    } else if (/^\d*\.?\d*$/.test(value)) {
+                      // Valid number format - keep as string for display, will parse on blur
+                      updateField("hourlyRate", value);
                     }
                   }}
                   onBlur={(e) => {
-                    // Clean up trailing decimal on blur
-                    const value = e.target.value.replace(/[^0-9.]/g, "");
-                    updateField("hourlyRate", value === "" ? 0 : parseFloat(value) || 0);
+                    // Clean up and convert to number on blur
+                    let value = e.target.value.replace(/[^0-9.]/g, "");
+
+                    // Remove trailing decimal point
+                    if (value.endsWith(".")) {
+                      value = value.slice(0, -1);
+                    }
+
+                    // Convert to number or 0 if empty
+                    const numValue = value === "" ? 0 : parseFloat(value);
+                    updateField("hourlyRate", numValue);
                   }}
                   placeholder="75.00"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
