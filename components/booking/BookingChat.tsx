@@ -73,9 +73,13 @@ export default function BookingChat({ bookingId }: BookingChatProps) {
       if (data.ok) {
         setMessages((prev) => [...prev, data.data.message]);
         setNewMessage("");
+      } else {
+        // Show error message to user
+        alert(data.error || "Failed to send message");
       }
     } catch (error) {
       console.error("Failed to send message:", error);
+      alert("Failed to send message. Please try again.");
     } finally {
       setSending(false);
     }

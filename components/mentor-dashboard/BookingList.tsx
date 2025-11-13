@@ -121,6 +121,11 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(booking.status);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showMeetingLinkInput, setShowMeetingLinkInput] = useState(false);
+  const [meetingLink, setMeetingLink] = useState(booking.meetingLink || "");
+  const [isSavingLink, setIsSavingLink] = useState(false);
 
   const userName = booking.user.name || "Unknown User";
   const userEmail = booking.user.email || "";
@@ -175,6 +180,61 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
     }
   }
 
+  async function handleDeleteBooking() {
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/mentor/bookings/${booking.id}/delete`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete booking");
+      }
+
+      setShowDeleteModal(false);
+      window.location.reload();
+    } catch (err) {
+      console.error("Failed to delete booking:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete booking. Please try again.";
+      alert(errorMessage);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  async function handleSaveMeetingLink() {
+    if (!meetingLink.trim()) {
+      alert("Please enter a meeting link");
+      return;
+    }
+
+    setIsSavingLink(true);
+    try {
+      const res = await fetch(`/api/mentor/bookings/${booking.id}/meeting-link`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ meetingLink: meetingLink.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save meeting link");
+      }
+
+      setShowMeetingLinkInput(false);
+      window.location.reload();
+    } catch (err) {
+      console.error("Failed to save meeting link:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to save meeting link. Please try again.";
+      alert(errorMessage);
+    } finally {
+      setIsSavingLink(false);
+    }
+  }
+
   function getStatusVariant(status: string): "default" | "success" | "warning" | "danger" {
     if (status === "PENDING") return "warning";
     if (status === "CONFIRMED") return "success";
@@ -224,28 +284,80 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
               <p className="font-medium">{booking.durationMinutes} minutes</p>
             </div>
           </div>
-          {booking.meetingLink && (
-            <div className="mt-3 flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <p className="text-xs text-white/60 mb-1">Meeting Link</p>
-                <a
-                  href={booking.meetingLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-400 hover:underline break-all"
-                >
-                  {booking.meetingLink}
-                </a>
-              </div>
-              <Button
-                href={booking.meetingLink}
-                variant="primary"
-                size="sm"
-                target="_blank"
-                className="whitespace-nowrap"
-              >
-                Join Meeting 🎥
-              </Button>
+          {/* Meeting Link Section */}
+          {currentStatus === "CONFIRMED" && (
+            <div className="mt-3 border-t border-white/10 pt-3">
+              {booking.meetingLink && !showMeetingLinkInput ? (
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="text-xs text-white/60 mb-1">Meeting Link</p>
+                    <a
+                      href={booking.meetingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-blue-400 hover:underline break-all"
+                    >
+                      {booking.meetingLink}
+                    </a>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setShowMeetingLinkInput(true)}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      href={booking.meetingLink}
+                      variant="primary"
+                      size="sm"
+                      target="_blank"
+                      className="whitespace-nowrap"
+                    >
+                      Join Meeting 🎥
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs text-white/60 mb-2">
+                    {booking.meetingLink ? "Update Meeting Link" : "Add Meeting Link"}
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={meetingLink}
+                      onChange={(e) => setMeetingLink(e.target.value)}
+                      placeholder="https://zoom.us/j/123456789 or Google Meet link"
+                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                    />
+                    <Button
+                      onClick={handleSaveMeetingLink}
+                      disabled={isSavingLink}
+                      variant="primary"
+                      size="sm"
+                    >
+                      {isSavingLink ? "Saving..." : "Save"}
+                    </Button>
+                    {booking.meetingLink && (
+                      <Button
+                        onClick={() => {
+                          setShowMeetingLinkInput(false);
+                          setMeetingLink(booking.meetingLink || "");
+                        }}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-white/50">
+                    Add your Zoom, Google Meet, or other video call link
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -311,7 +423,23 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
           </>
         )}
 
-        {currentStatus === "COMPLETED" && <Badge variant="success">Session Completed</Badge>}
+        {currentStatus === "COMPLETED" && (
+          <>
+            <Badge variant="success">Session Completed</Badge>
+            {/* Only allow deletion if both parties have confirmed (for sessions) or for access passes */}
+            {(booking.type === "ACCESS" || (booking.mentorCompletedAt && booking.studentConfirmedAt)) && (
+              <Button
+                onClick={() => setShowDeleteModal(true)}
+                disabled={isDeleting}
+                variant="ghost"
+                size="sm"
+                className="text-red-400 hover:text-red-300"
+              >
+                🗑️ Delete
+              </Button>
+            )}
+          </>
+        )}
         {currentStatus === "CANCELLED" && <Badge variant="danger">Booking Cancelled</Badge>}
       </div>
 
@@ -333,6 +461,21 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
           </Button>
           <Button onClick={() => handleUpdateStatus("CANCELLED")} disabled={isUpdating} variant="danger">
             {isUpdating ? "Cancelling..." : "Yes, Cancel"}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+        <h3 className="text-base font-semibold text-white">Delete Booking?</h3>
+        <p className="mt-1 text-sm text-neutral-300">
+          Are you sure you want to permanently delete this completed booking with {userName}? This will remove it from your bookings list and cannot be undone.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button onClick={() => setShowDeleteModal(false)} disabled={isDeleting} variant="secondary">
+            Nevermind
+          </Button>
+          <Button onClick={handleDeleteBooking} disabled={isDeleting} variant="danger">
+            {isDeleting ? "Deleting..." : "Yes, Delete"}
           </Button>
         </div>
       </Modal>

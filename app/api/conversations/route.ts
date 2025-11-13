@@ -80,18 +80,32 @@ export async function GET() {
         },
       },
       orderBy: {
-        messages: {
-          _count: "desc",
-        },
+        updatedAt: "desc",
       },
     });
 
-    // Format conversations
-    const conversations = bookings.map((booking) => {
+    // Group bookings by mentor-student pair and use the most recent conversation
+    const conversationMap = new Map<string, typeof bookings[0]>();
+
+    for (const booking of bookings) {
+      const isStudent = booking.userId === user.id;
+      // Create a unique key for this mentor-student pair
+      const conversationKey = isStudent
+        ? `student-${booking.userId}-mentor-${booking.mentor.id}`
+        : `mentor-${booking.mentor.id}-student-${booking.userId}`;
+
+      // Only keep the most recent conversation for each pair (already sorted by updatedAt desc)
+      if (!conversationMap.has(conversationKey)) {
+        conversationMap.set(conversationKey, booking);
+      }
+    }
+
+    // Format conversations from the grouped map
+    const conversations = Array.from(conversationMap.values()).map((booking) => {
       const isStudent = booking.userId === user.id;
       const otherPerson = isStudent
-        ? { name: booking.mentor.name, image: booking.mentor.profileImage }
-        : { name: booking.user.name, image: booking.user.image };
+        ? { name: booking.mentor.name, image: booking.mentor.profileImage, mentorId: booking.mentor.id }
+        : { name: booking.user.name, image: booking.user.image, userId: booking.userId };
 
       const lastMessage = booking.messages[0];
       const unreadCount = booking._count.messages;

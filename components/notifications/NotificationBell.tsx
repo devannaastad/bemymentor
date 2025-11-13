@@ -57,23 +57,23 @@ export default function NotificationBell({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unreadCount, latestNotification]);
 
-  const markAsRead = async (notificationId: string) => {
+  const deleteNotification = async (notificationId: string) => {
     try {
-      const res = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: "POST",
+      const res = await fetch(`/api/notifications/${notificationId}/delete`, {
+        method: "DELETE",
       });
 
       if (res.ok) {
-        // Update local state
-        setNotifications((prev) =>
-          prev.map((n) =>
-            n.id === notificationId ? { ...n, isRead: true } : n
-          )
-        );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        // Remove notification from local state
+        setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+        // Update unread count if notification was unread
+        const notification = notifications.find((n) => n.id === notificationId);
+        if (notification && !notification.isRead) {
+          setUnreadCount((prev) => Math.max(0, prev - 1));
+        }
       }
     } catch (error) {
-      console.error("Failed to mark as read:", error);
+      console.error("Failed to delete notification:", error);
     }
   };
 
@@ -85,9 +85,8 @@ export default function NotificationBell({
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    if (!notification.isRead) {
-      markAsRead(notification.id);
-    }
+    // Delete the notification when clicked
+    deleteNotification(notification.id);
 
     if (notification.link) {
       window.location.href = notification.link;
@@ -203,7 +202,7 @@ export default function NotificationBell({
                 {latestNotification.link && (
                   <button
                     onClick={() => {
-                      markAsRead(latestNotification.id);
+                      deleteNotification(latestNotification.id);
                       window.location.href = latestNotification.link!;
                       setShowPopup(false);
                     }}
@@ -214,7 +213,7 @@ export default function NotificationBell({
                 )}
                 <button
                   onClick={() => {
-                    markAsRead(latestNotification.id);
+                    deleteNotification(latestNotification.id);
                     setShowPopup(false);
                   }}
                   className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-base font-medium rounded-lg transition-all duration-200 border border-white/10"

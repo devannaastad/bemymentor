@@ -113,12 +113,28 @@ export function BookingConfirmationEmail({
             <li>Check your dashboard for updates and resources</li>
           </ul>
         ) : (
-          <ul style={{ lineHeight: "1.8" }}>
-            <li>You&apos;ll receive a calendar invite with the meeting details</li>
-            <li>The mentor may reach out with preparation materials</li>
-            <li>Join the session at the scheduled time using the meeting link</li>
-            <li>Come prepared with questions and topics you&apos;d like to discuss</li>
-          </ul>
+          <>
+            <ul style={{ lineHeight: "1.8" }}>
+              <li>You&apos;ll receive reminder notifications 1 hour and 15 minutes before the session</li>
+              <li>The mentor will add a meeting link - check your dashboard for updates</li>
+              <li>Come prepared with questions and topics you&apos;d like to discuss</li>
+            </ul>
+            <div
+              style={{
+                backgroundColor: "#dbeafe",
+                border: "2px solid #3b82f6",
+                padding: "16px",
+                borderRadius: "8px",
+                marginTop: "16px",
+              }}
+            >
+              <strong>📅 Important:</strong>
+              <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>
+                The mentor will provide the meeting link (Zoom, Google Meet, etc.) before your session.
+                You&apos;ll receive it via email and notification. Check your dashboard for the latest updates!
+              </p>
+            </div>
+          </>
         )}
 
         <div style={{ textAlign: "center", margin: "32px 0" }}>

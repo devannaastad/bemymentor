@@ -131,12 +131,29 @@ export function MentorBookingNotificationEmail({
             <li>Welcome the new member and set expectations</li>
           </ul>
         ) : (
-          <ul style={{ lineHeight: "1.8" }}>
-            <li>Add the session to your calendar</li>
-            <li>Send a meeting link (Zoom, Google Meet, etc.) to the student</li>
-            <li>Review any preparation materials you want to share</li>
-            <li>Reach out to confirm the session 24 hours in advance</li>
-          </ul>
+          <>
+            <ul style={{ lineHeight: "1.8" }}>
+              <li>Add your meeting link (Zoom, Google Meet, etc.) in your Mentor Dashboard</li>
+              <li>Add the session to your personal calendar</li>
+              <li>Review any preparation materials you want to share</li>
+              <li>The student will receive automatic reminders 1 hour and 15 minutes before</li>
+            </ul>
+            <div
+              style={{
+                backgroundColor: "#fef3c7",
+                border: "2px solid #f59e0b",
+                padding: "16px",
+                borderRadius: "8px",
+                marginTop: "16px",
+              }}
+            >
+              <strong>⚠️ Action Required:</strong>
+              <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>
+                Please add your meeting link in your Mentor Dashboard as soon as possible. The student is
+                waiting for the link to join the session!
+              </p>
+            </div>
+          </>
         )}
 
         <div style={{ textAlign: "center", margin: "32px 0" }}>

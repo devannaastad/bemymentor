@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { containsInappropriateContent } from "@/lib/content-moderation";
 
 export const runtime = "nodejs";
 
@@ -97,6 +98,20 @@ export async function GET(
       },
     });
 
+    // Also mark any message notifications for this booking as read
+    await db.notification.updateMany({
+      where: {
+        userId: user.id,
+        bookingId,
+        type: "BOOKING_UPDATE",
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+
     return NextResponse.json({
       ok: true,
       data: {
@@ -155,6 +170,18 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "Message cannot be empty" }, { status: 400 });
     }
 
+    // Check for inappropriate content
+    const moderationResult = containsInappropriateContent(content);
+    if (moderationResult.isInappropriate) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: moderationResult.reason || "Message contains inappropriate content",
+        },
+        { status: 400 }
+      );
+    }
+
     // Verify user has access to this booking
     const booking = await db.booking.findUnique({
       where: { id: bookingId },
@@ -210,6 +237,18 @@ export async function POST(
     const recipientId = isStudent ? booking.mentor.userId : booking.userId;
     const senderName = user.name || "Someone";
 
+    // First, delete any existing unread message notifications for this booking
+    // This prevents duplicate notifications for the same conversation
+    await db.notification.deleteMany({
+      where: {
+        userId: recipientId,
+        bookingId,
+        type: "BOOKING_UPDATE",
+        isRead: false,
+      },
+    });
+
+    // Now create the new notification
     await db.notification.create({
       data: {
         userId: recipientId,

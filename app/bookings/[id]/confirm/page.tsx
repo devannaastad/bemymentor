@@ -38,15 +38,27 @@ export default async function BookingConfirmPage({
 
   const user = await db.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true },
+    select: {
+      id: true,
+      mentorProfile: {
+        select: { id: true }
+      }
+    },
   });
 
   if (!user) {
     redirect("/signin");
   }
 
-  let booking = await db.booking.findUnique({
-    where: { id, userId: user.id },
+  // Fetch booking and check if user is either the student OR the mentor
+  let booking = await db.booking.findFirst({
+    where: {
+      id,
+      OR: [
+        { userId: user.id }, // User is the student
+        { mentor: { userId: user.id } } // User is the mentor
+      ]
+    },
     include: {
       mentor: {
         select: {
@@ -55,12 +67,24 @@ export default async function BookingConfirmPage({
           category: true,
           tagline: true,
           profileImage: true,
+          userId: true,
         },
       },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          email: true,
+        }
+      }
     },
   });
 
   if (!booking) notFound();
+
+  // Determine if current user is the mentor
+  const isMentor = booking.mentor.userId === user.id;
 
   // If returning from Stripe with session_id, verify the payment
   if (stripeSessionId && booking.status === "PENDING") {
@@ -81,16 +105,69 @@ export default async function BookingConfirmPage({
             mentor: {
               select: {
                 id: true,
+                userId: true,
                 name: true,
                 category: true,
                 tagline: true,
                 profileImage: true,
               },
             },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                email: true,
+              },
+            },
           },
         });
 
         console.log("[BookingConfirmPage] Payment verified and booking updated:", id);
+
+        // Send confirmation emails to both student and mentor
+        try {
+          const { sendBookingConfirmation, sendMentorBookingNotification } = await import("@/lib/email");
+
+          // Get mentor's user email
+          const mentorUser = await db.user.findUnique({
+            where: { id: booking.mentor.userId },
+            select: { email: true, name: true },
+          });
+
+          // Send email to student
+          await sendBookingConfirmation({
+            to: booking.user.email!,
+            userName: booking.user.name || "Student",
+            mentorName: booking.mentor.name,
+            bookingType: booking.type,
+            totalAmount: booking.totalPrice,
+            scheduledAt: booking.scheduledAt?.toISOString() || null,
+            durationMinutes: booking.durationMinutes,
+            bookingId: booking.id,
+          });
+
+          // Send email to mentor
+          if (mentorUser?.email) {
+            await sendMentorBookingNotification({
+              to: mentorUser.email,
+              mentorName: booking.mentor.name,
+              userName: booking.user.name || "Student",
+              userEmail: booking.user.email!,
+              bookingType: booking.type,
+              totalAmount: booking.totalPrice,
+              scheduledAt: booking.scheduledAt?.toISOString() || null,
+              durationMinutes: booking.durationMinutes,
+              notes: booking.notes,
+              bookingId: booking.id,
+            });
+          }
+
+          console.log("[BookingConfirmPage] Confirmation emails sent for booking:", id);
+        } catch (emailError) {
+          console.error("[BookingConfirmPage] Failed to send confirmation emails:", emailError);
+          // Don't fail the page - email is nice to have but not critical
+        }
       }
     } catch (err) {
       console.error("[BookingConfirmPage] Failed to verify Stripe session:", err);
@@ -111,8 +188,11 @@ export default async function BookingConfirmPage({
       })
     : null;
 
-  const isPaid = booking.status === "CONFIRMED" && booking.stripePaidAt;
-  const isPending = booking.status === "PENDING" && !booking.stripePaymentIntentId;
+  const bookingStatus = booking.status;
+  const isPaid = bookingStatus === "CONFIRMED" && booking.stripePaidAt;
+  const isPending = bookingStatus === "PENDING" && !booking.stripePaymentIntentId;
+  const isCompleted = bookingStatus === "COMPLETED";
+  const showMessages = (isPaid || isCompleted) || (isMentor && (bookingStatus === "CONFIRMED" || isCompleted));
 
   return (
     <section className="section">
@@ -230,6 +310,57 @@ export default async function BookingConfirmPage({
                       <p className="font-medium">{booking.durationMinutes} minutes</p>
                     </div>
                   </div>
+
+                  {/* Meeting Link - Prominently displayed */}
+                  {booking.status === "CONFIRMED" && (
+                    <>
+                      <div className="h-px bg-white/10" />
+                      {booking.meetingLink ? (
+                        <div className="rounded-lg border-2 border-primary-500/30 bg-primary-500/10 p-4">
+                          <div className="mb-3 flex items-center gap-2">
+                            <span className="text-2xl">🎥</span>
+                            <h3 className="text-lg font-semibold text-primary-300">Join Your Session</h3>
+                          </div>
+                          <p className="mb-3 text-sm text-white/70">
+                            Click the link below to join your video call at the scheduled time:
+                          </p>
+                          <div className="mb-3 rounded-lg bg-white/5 p-3">
+                            <a
+                              href={booking.meetingLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="break-all text-sm font-medium text-blue-400 hover:text-blue-300 hover:underline"
+                            >
+                              {booking.meetingLink}
+                            </a>
+                          </div>
+                          <Button
+                            href={booking.meetingLink}
+                            variant="primary"
+                            size="lg"
+                            target="_blank"
+                            className="w-full"
+                          >
+                            Join Meeting Now 🎥
+                          </Button>
+                          <p className="mt-2 text-xs text-white/50 text-center">
+                            You&apos;ll receive reminder notifications 1 hour and 15 minutes before the session
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border-2 border-amber-500/30 bg-amber-500/10 p-4">
+                          <div className="mb-2 flex items-center gap-2">
+                            <span className="text-2xl">⏳</span>
+                            <h3 className="text-lg font-semibold text-amber-300">Meeting Link Pending</h3>
+                          </div>
+                          <p className="text-sm text-white/70">
+                            The mentor will add the meeting link soon. You&apos;ll receive a notification
+                            when it&apos;s available. Check back here or your email for updates.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </>
               )}
 
@@ -345,13 +476,16 @@ export default async function BookingConfirmPage({
           </div>
         )}
 
-        {/* Messages - Show for all bookings after payment */}
-        {isPaid && (
+        {/* Messages - Show for all bookings after payment or for mentors */}
+        {showMessages && (
           <Card className="mb-8">
             <CardContent>
               <h3 className="text-xl font-semibold mb-4">Messages</h3>
               <p className="text-sm text-white/60 mb-4">
-                Chat with {booking.type === "SESSION" ? "your mentor" : booking.mentor.name} about your booking
+                {isMentor
+                  ? `Chat with ${booking.user.name || "your student"} about this booking`
+                  : `Chat with ${booking.mentor.name} about your booking`
+                }
               </p>
               <BookingChat bookingId={booking.id} />
             </CardContent>
