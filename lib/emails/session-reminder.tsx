@@ -66,6 +66,9 @@ export default function SessionReminderEmail({
             <Text style={detail}>
               <strong>Duration:</strong> {durationMinutes} minutes
             </Text>
+            <Text style={{ ...detail, fontSize: "13px", color: "#999", marginTop: "8px" }}>
+              🌍 Times shown in your local timezone
+            </Text>
           </Section>
 
           {meetingLink && (

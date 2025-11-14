@@ -7,6 +7,7 @@ import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import Image from "next/image";
 import Modal from "@/components/common/Modal";
+import { formatDateWithTimezone } from "@/lib/utils/timezone";
 
 type BookingWithUser = Booking & {
   user: Pick<User, "id" | "name" | "email" | "image">;
@@ -131,10 +132,7 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
   const userEmail = booking.user.email || "";
   const formattedPrice = (booking.totalPrice / 100).toFixed(2);
   const scheduledDate = booking.scheduledAt
-    ? new Date(booking.scheduledAt).toLocaleString("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      })
+    ? formatDateWithTimezone(booking.scheduledAt)
     : null;
 
   // Check if the session date/time has passed

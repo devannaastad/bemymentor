@@ -4,6 +4,7 @@ import { useState } from "react";
 import CalendarPicker from "./CalendarPicker";
 import TimeSlotSelector from "./TimeSlotSelector";
 import { addDays } from "date-fns";
+import { getUserTimezone, getTimezoneAbbreviation } from "@/lib/utils/timezone";
 
 interface SessionSchedulerProps {
   mentorId: string;
@@ -136,7 +137,9 @@ export default function SessionScheduler({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-white/70">Time:</span>
-              <span className="font-semibold text-white">{selectedTime}</span>
+              <span className="font-semibold text-white">
+                {selectedTime} <span className="text-primary-300 ml-1">{getTimezoneAbbreviation(getUserTimezone())}</span>
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-white/70">Duration:</span>
@@ -148,6 +151,11 @@ export default function SessionScheduler({
                 ${calculatePrice()}
               </span>
             </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-white/10">
+            <p className="text-xs text-white/60 text-center">
+              🌍 Times shown in your timezone ({getTimezoneAbbreviation(getUserTimezone())})
+            </p>
           </div>
         </div>
       )}

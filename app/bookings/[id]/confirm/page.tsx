@@ -11,6 +11,7 @@ import PaymentButton from "@/components/booking/PaymentButton";
 import StudentConfirmation from "@/components/booking/StudentConfirmation";
 import AddToCalendarButton from "@/components/booking/AddToCalendarButton";
 import BookingChat from "@/components/booking/BookingChat";
+import { formatDateWithTimezone, formatTimeWithTimezone, formatDateOnly } from "@/lib/utils/timezone";
 
 type Params = { id: string };
 type SearchParams = {
@@ -182,10 +183,13 @@ export default async function BookingConfirmPage({
 
   const formattedPrice = (booking.totalPrice / 100).toFixed(2);
   const scheduledDate = booking.scheduledAt
-    ? new Date(booking.scheduledAt).toLocaleString("en-US", {
-        dateStyle: "full",
-        timeStyle: "short",
-      })
+    ? formatDateWithTimezone(booking.scheduledAt)
+    : null;
+  const scheduledDateOnly = booking.scheduledAt
+    ? formatDateOnly(booking.scheduledAt)
+    : null;
+  const scheduledTime = booking.scheduledAt
+    ? formatTimeWithTimezone(booking.scheduledAt)
     : null;
 
   const bookingStatus = booking.status;
@@ -299,14 +303,20 @@ export default async function BookingConfirmPage({
               {booking.type === "SESSION" && scheduledDate && (
                 <>
                   <div className="h-px bg-white/10" />
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-4">
                     <div>
-                      <p className="text-sm text-white/60">Scheduled For</p>
-                      <p className="font-medium">{scheduledDate}</p>
+                      <p className="text-sm text-white/60 mb-1">Session Date</p>
+                      <p className="font-medium">{scheduledDateOnly}</p>
                     </div>
-
                     <div>
-                      <p className="text-sm text-white/60">Duration</p>
+                      <p className="text-sm text-white/60 mb-1">Session Time</p>
+                      <p className="font-medium text-lg">{scheduledTime}</p>
+                      <p className="text-xs text-white/50 mt-1">
+                        🌍 Shown in your local timezone
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/60 mb-1">Duration</p>
                       <p className="font-medium">{booking.durationMinutes} minutes</p>
                     </div>
                   </div>

@@ -88,6 +88,13 @@ export function BookingConfirmationEmail({
                   </td>
                 </tr>
               )}
+              {formattedDate && (
+                <tr>
+                  <td colSpan={2} style={{ padding: "12px 0 8px 0", fontSize: "13px", color: "#999" }}>
+                    🌍 Times shown in your local timezone
+                  </td>
+                </tr>
+              )}
               <tr>
                 <td style={{ padding: "8px 0", color: "#666" }}>Amount Paid:</td>
                 <td style={{ padding: "8px 0", fontWeight: "bold", color: "#10b981" }}>

@@ -90,6 +90,73 @@ export function getTimezoneAbbreviation(timezone: string): string {
 }
 
 /**
+ * Format date with timezone abbreviation
+ * Example: "Dec 25, 2024, 2:30 PM PST"
+ */
+export function formatDateWithTimezone(
+  date: Date | string,
+  timezone?: string,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const tz = timezone || getUserTimezone();
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    timeZone: tz,
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    ...options,
+  };
+
+  const formatted = dateObj.toLocaleString('en-US', defaultOptions);
+  const tzAbbr = getTimezoneAbbreviation(tz);
+
+  return `${formatted} ${tzAbbr}`;
+}
+
+/**
+ * Format time only with timezone abbreviation
+ * Example: "2:30 PM PST"
+ */
+export function formatTimeWithTimezone(
+  date: Date | string,
+  timezone?: string
+): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const tz = timezone || getUserTimezone();
+
+  const formatted = dateObj.toLocaleTimeString('en-US', {
+    timeZone: tz,
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const tzAbbr = getTimezoneAbbreviation(tz);
+
+  return `${formatted} ${tzAbbr}`;
+}
+
+/**
+ * Format date only with full details
+ * Example: "Monday, December 25, 2024"
+ */
+export function formatDateOnly(
+  date: Date | string,
+  timezone?: string
+): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const tz = timezone || getUserTimezone();
+
+  return dateObj.toLocaleDateString('en-US', {
+    timeZone: tz,
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+/**
  * Common timezones for selector
  */
 export const COMMON_TIMEZONES = [
