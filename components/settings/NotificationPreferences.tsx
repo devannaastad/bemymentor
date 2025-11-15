@@ -9,7 +9,11 @@ import { toast } from "@/components/common/Toast";
 // Default notification preferences (stored in localStorage for now)
 const DEFAULT_PREFS = {
   emailBookingConfirmation: true,
-  emailBookingReminder: true,
+  emailSessionReminder24h: true,
+  emailSessionReminder1h: true,
+  emailSessionReminder15min: true,
+  emailMeetingLinkAdded: true,
+  emailBookingUpdate: true,
   emailApplicationUpdates: true,
   emailMarketingUpdates: false,
 };
@@ -53,61 +57,131 @@ export default function NotificationPreferences() {
 
   return (
     <div className="grid gap-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="font-medium text-white/90">Booking Confirmations</p>
-            <p className="text-sm text-white/60">
-              Get notified when a booking is confirmed
-            </p>
+      <p className="text-sm text-white/60">
+        Customize which email notifications you receive. You&apos;ll still see in-app notifications for all activities.
+      </p>
+
+      <div className="space-y-6">
+        {/* Booking & Session Notifications */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-white/80 uppercase tracking-wide">Bookings & Sessions</h3>
+
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">Booking Confirmations</p>
+              <p className="text-sm text-white/60">
+                Get notified when a booking is confirmed and payment is processed
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailBookingConfirmation}
+              onChange={() => handleToggle("emailBookingConfirmation")}
+              label="Booking confirmations toggle"
+            />
           </div>
-          <Toggle
-            checked={prefs.emailBookingConfirmation}
-            onChange={() => handleToggle("emailBookingConfirmation")}
-            label="Booking confirmations toggle"
-          />
+
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">24-Hour Session Reminder</p>
+              <p className="text-sm text-white/60">
+                Reminder email 24 hours before your session starts
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailSessionReminder24h}
+              onChange={() => handleToggle("emailSessionReminder24h")}
+              label="24-hour reminder toggle"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">1-Hour Session Reminder</p>
+              <p className="text-sm text-white/60">
+                Reminder email 1 hour before your session starts
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailSessionReminder1h}
+              onChange={() => handleToggle("emailSessionReminder1h")}
+              label="1-hour reminder toggle"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">15-Minute Session Reminder</p>
+              <p className="text-sm text-white/60">
+                Final reminder 15 minutes before your session starts
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailSessionReminder15min}
+              onChange={() => handleToggle("emailSessionReminder15min")}
+              label="15-minute reminder toggle"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">Meeting Link Updates</p>
+              <p className="text-sm text-white/60">
+                Get notified when a mentor adds or updates the meeting link
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailMeetingLinkAdded}
+              onChange={() => handleToggle("emailMeetingLinkAdded")}
+              label="Meeting link updates toggle"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">Booking Updates</p>
+              <p className="text-sm text-white/60">
+                Other booking changes (reschedules, cancellations, etc.)
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailBookingUpdate}
+              onChange={() => handleToggle("emailBookingUpdate")}
+              label="Booking updates toggle"
+            />
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="font-medium text-white/90">Booking Reminders</p>
-            <p className="text-sm text-white/60">
-              Receive reminders 24 hours before your sessions
-            </p>
-          </div>
-          <Toggle
-            checked={prefs.emailBookingReminder}
-            onChange={() => handleToggle("emailBookingReminder")}
-            label="Booking reminders toggle"
-          />
-        </div>
+        {/* Other Notifications */}
+        <div className="space-y-4 pt-4 border-t border-white/10">
+          <h3 className="text-sm font-semibold text-white/80 uppercase tracking-wide">Other</h3>
 
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="font-medium text-white/90">Application Updates</p>
-            <p className="text-sm text-white/60">
-              Get updates about your mentor application status
-            </p>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">Mentor Application Updates</p>
+              <p className="text-sm text-white/60">
+                Get updates about your mentor application status
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailApplicationUpdates}
+              onChange={() => handleToggle("emailApplicationUpdates")}
+              label="Application updates toggle"
+            />
           </div>
-          <Toggle
-            checked={prefs.emailApplicationUpdates}
-            onChange={() => handleToggle("emailApplicationUpdates")}
-            label="Application updates toggle"
-          />
-        </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="font-medium text-white/90">Marketing Updates</p>
-            <p className="text-sm text-white/60">
-              Receive newsletters and product updates
-            </p>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">Marketing & Product Updates</p>
+              <p className="text-sm text-white/60">
+                Receive newsletters, new features, and special offers
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailMarketingUpdates}
+              onChange={() => handleToggle("emailMarketingUpdates")}
+              label="Marketing updates toggle"
+            />
           </div>
-          <Toggle
-            checked={prefs.emailMarketingUpdates}
-            onChange={() => handleToggle("emailMarketingUpdates")}
-            label="Marketing updates toggle"
-          />
         </div>
       </div>
 

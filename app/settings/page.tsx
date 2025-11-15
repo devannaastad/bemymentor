@@ -7,7 +7,7 @@ import AvatarUploader from "@/components/settings/AvatarUploader";
 import ProfileForm from "@/components/settings/ProfileForm";
 import NotificationPreferences from "@/components/settings/NotificationPreferences";
 import TwoFactorSettings from "@/components/settings/TwoFactorSettings";
-import TimezoneSettings from "@/components/settings/TimezoneSettings";
+import PasswordChange from "@/components/settings/PasswordChange";
 import DangerZone from "@/components/settings/DangerZone";
 
 export const metadata = {
@@ -31,13 +31,21 @@ export default async function SettingsPage() {
       image: true,
       emailVerified: true,
       twoFactorEnabled: true,
-      timezone: true,
+      password: true,
+      accounts: {
+        select: {
+          provider: true,
+        },
+      },
     },
   });
 
   if (!user) {
     redirect("/signin");
   }
+
+  // Check if user has a password (email/password account)
+  const hasPassword = !!user.password;
 
   return (
     <section className="section">
@@ -64,13 +72,15 @@ export default async function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Timezone */}
-          <Card>
-            <CardContent>
-              <h2 className="mb-4 text-lg font-semibold">Timezone</h2>
-              <TimezoneSettings initialTimezone={user.timezone} />
-            </CardContent>
-          </Card>
+          {/* Password Change - Only show for email/password accounts */}
+          {hasPassword && (
+            <Card>
+              <CardContent>
+                <h2 className="mb-4 text-lg font-semibold">Change Password</h2>
+                <PasswordChange />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Notification Preferences */}
           <Card>
