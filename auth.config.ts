@@ -15,6 +15,7 @@ const authConfig = {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
+      checks: ["state"], // Use state instead of PKCE for serverless
       authorization: {
         params: {
           prompt: "consent",
