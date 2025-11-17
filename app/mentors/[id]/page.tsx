@@ -42,6 +42,12 @@ export default async function MentorPage({
 
   const mentor = await db.mentor.findUnique({
     where: { id, isActive: true },
+    include: {
+      subscriptionPlans: {
+        where: { isActive: true },
+        orderBy: { price: "asc" },
+      },
+    },
   });
 
   if (!mentor) notFound();
@@ -155,95 +161,6 @@ export default async function MentorPage({
           )}
         </div>
 
-        {/* Pricing Cards */}
-        <div className="mb-8 grid gap-4 md:grid-cols-2">
-          {mentor.offerType !== "TIME" && mentor.accessPrice != null && (
-            <Card className="border-emerald-500/20 bg-emerald-500/5">
-              <CardContent>
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-semibold">ACCESS Pass</h3>
-                  {mentor.offerType === "ACCESS" && (
-                    <Badge variant="success">Available</Badge>
-                  )}
-                </div>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold">
-                    {formatCurrency(mentor.accessPrice)}
-                  </span>
-                  <span className="text-white/60"> one-time</span>
-                </div>
-                <ul className="mb-4 space-y-2 text-sm text-white/80">
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400">✓</span>
-                    <span>Access to all digital resources</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400">✓</span>
-                    <span>Private Discord/Telegram community</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400">✓</span>
-                    <span>Weekly group Q&A sessions</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400">✓</span>
-                    <span>Exclusive templates & guides</span>
-                  </li>
-                </ul>
-                {hasAccessPass ? (
-                  <Button href={`/access-pass/${mentor.id}`} className="w-full" variant="primary">
-                    Access Your Content
-                  </Button>
-                ) : (
-                  <Button href={`/book/${mentor.id}`} className="w-full" variant="primary">
-                    Get ACCESS Pass
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {mentor.offerType !== "ACCESS" && mentor.hourlyRate != null && (
-            <Card className="border-blue-500/20 bg-blue-500/5">
-              <CardContent>
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-semibold">1-on-1 Sessions</h3>
-                  {mentor.offerType === "TIME" && (
-                    <Badge variant="outline">Available</Badge>
-                  )}
-                </div>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold">
-                    {formatCurrency(mentor.hourlyRate)}
-                  </span>
-                  <span className="text-white/60">/hour</span>
-                </div>
-                <ul className="mb-4 space-y-2 text-sm text-white/80">
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-400">✓</span>
-                    <span>Personalized 1-on-1 coaching</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-400">✓</span>
-                    <span>Screen sharing & live feedback</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-400">✓</span>
-                    <span>Custom action plan</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-400">✓</span>
-                    <span>Follow-up support via chat</span>
-                  </li>
-                </ul>
-                <Button href={`/book/${mentor.id}`} className="w-full">
-                  Book a Session
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
         {/* About Section */}
         <Card className="mb-8">
           <CardContent>
@@ -290,6 +207,140 @@ export default async function MentorPage({
 
             {/* Portfolio Section */}
             <PortfolioSection portfolio={portfolio} />
+
+            {/* Subscription Plans */}
+            {mentor.subscriptionPlans && mentor.subscriptionPlans.length > 0 && (
+              <div className="mb-8">
+                <h2 className="mb-4 text-xl font-semibold">Subscription Plans</h2>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {mentor.subscriptionPlans.map((plan) => {
+                    const features = Array.isArray(plan.features) ? plan.features as string[] : [];
+                    const intervalLabel =
+                      plan.interval === "WEEKLY" ? "week" :
+                      plan.interval === "MONTHLY" ? "month" : "year";
+
+                    return (
+                      <Card key={plan.id} className="border-purple-500/20 bg-purple-500/5">
+                        <CardContent>
+                          <div className="mb-3">
+                            <h3 className="font-semibold text-lg">{plan.name}</h3>
+                            {plan.description && (
+                              <p className="mt-1 text-sm text-white/60">{plan.description}</p>
+                            )}
+                          </div>
+                          <div className="mb-4">
+                            <span className="text-3xl font-bold">
+                              {formatCurrency(plan.price)}
+                            </span>
+                            <span className="text-white/60">/{intervalLabel}</span>
+                          </div>
+                          <ul className="mb-4 space-y-2 text-sm text-white/80">
+                            {features.map((feature, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-purple-400">✓</span>
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          <Button href={`/subscribe/${mentor.id}/${plan.id}`} className="w-full" variant="primary">
+                            Subscribe
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Pricing Cards */}
+            <div className="mb-8 grid gap-4 md:grid-cols-2">
+              {mentor.offerType !== "TIME" && mentor.accessPrice != null && (
+                <Card className="border-emerald-500/20 bg-emerald-500/5">
+                  <CardContent>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="font-semibold">ACCESS Pass</h3>
+                      {mentor.offerType === "ACCESS" && (
+                        <Badge variant="success">Available</Badge>
+                      )}
+                    </div>
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold">
+                        {formatCurrency(mentor.accessPrice)}
+                      </span>
+                      <span className="text-white/60"> one-time</span>
+                    </div>
+                    <ul className="mb-4 space-y-2 text-sm text-white/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-emerald-400">✓</span>
+                        <span>Access to all digital resources</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-emerald-400">✓</span>
+                        <span>Private Discord/Telegram community</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-emerald-400">✓</span>
+                        <span>Weekly group Q&A sessions</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-emerald-400">✓</span>
+                        <span>Exclusive templates & guides</span>
+                      </li>
+                    </ul>
+                    {hasAccessPass ? (
+                      <Button href={`/access-pass/${mentor.id}`} className="w-full" variant="primary">
+                        Access Your Content
+                      </Button>
+                    ) : (
+                      <Button href={`/book/${mentor.id}`} className="w-full" variant="primary">
+                        Get ACCESS Pass
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {mentor.offerType !== "ACCESS" && mentor.hourlyRate != null && (
+                <Card className="border-blue-500/20 bg-blue-500/5">
+                  <CardContent>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="font-semibold">1-on-1 Sessions</h3>
+                      {mentor.offerType === "TIME" && (
+                        <Badge variant="outline">Available</Badge>
+                      )}
+                    </div>
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold">
+                        {formatCurrency(mentor.hourlyRate)}
+                      </span>
+                      <span className="text-white/60">/hour</span>
+                    </div>
+                    <ul className="mb-4 space-y-2 text-sm text-white/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-400">✓</span>
+                        <span>Personalized 1-on-1 coaching</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-400">✓</span>
+                        <span>Screen sharing & live feedback</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-400">✓</span>
+                        <span>Custom action plan</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-400">✓</span>
+                        <span>Follow-up support via chat</span>
+                      </li>
+                    </ul>
+                    <Button href={`/book/${mentor.id}`} className="w-full">
+                      Book a Session
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
             {/* Reviews Section */}
             <Card>

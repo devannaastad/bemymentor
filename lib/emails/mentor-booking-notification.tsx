@@ -5,7 +5,7 @@ interface MentorBookingNotificationEmailProps {
   mentorName: string;
   userName: string;
   userEmail: string;
-  bookingType: "ACCESS" | "SESSION";
+  bookingType: "ACCESS" | "SESSION" | "SUBSCRIPTION";
   totalAmount: number; // in cents
   scheduledAt?: string | null;
   durationMinutes?: number | null;

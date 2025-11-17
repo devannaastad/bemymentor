@@ -30,7 +30,7 @@ async function getDashboardData(email: string) {
     return null;
   }
 
-  const [savedMentors, application, bookings] = await Promise.all([
+  const [savedMentors, application, bookings, subscriptions] = await Promise.all([
     // Get saved mentors
     db.savedMentor
       .findMany({
@@ -64,9 +64,29 @@ async function getDashboardData(email: string) {
       orderBy: { scheduledAt: "desc" },
       take: 10,
     }),
+
+    // Get user's active subscriptions
+    db.userSubscription.findMany({
+      where: {
+        userId: user.id,
+        status: "ACTIVE",
+      },
+      include: {
+        plan: true,
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+            profileImage: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
-  return { user, savedMentors, application, bookings };
+  return { user, savedMentors, application, bookings, subscriptions };
 }
 
 export default async function DashboardPage() {
@@ -83,7 +103,7 @@ export default async function DashboardPage() {
     redirect("/signin");
   }
 
-  const { user, savedMentors, application, bookings } = data;
+  const { user, savedMentors, application, bookings, subscriptions } = data;
 
   const userName = session.user?.name?.split(" ")[0] || "there";
 
@@ -336,6 +356,45 @@ export default async function DashboardPage() {
                         <p className="text-sm text-white/60 mb-3">ACCESS Pass</p>
                         <Button href={`/access-pass/${pass.mentor.id}`} variant="primary" size="sm">
                           View Content →
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Active Subscriptions Section */}
+        {subscriptions.length > 0 && (
+          <div className="mb-8">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Your Active Subscriptions</h2>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {subscriptions.map((sub) => (
+                <Card key={sub.id}>
+                  <CardContent>
+                    <div className="flex items-start gap-4">
+                      {sub.mentor.profileImage && (
+                        <Image
+                          src={sub.mentor.profileImage}
+                          alt={sub.mentor.name}
+                          width={64}
+                          height={64}
+                          className="h-16 w-16 rounded-lg object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-1">{sub.mentor.name}</h3>
+                        <p className="text-sm text-white/60 mb-1">{sub.plan.name}</p>
+                        <p className="text-xs text-white/40 mb-3">
+                          Next billing: {new Date(sub.currentPeriodEnd).toLocaleDateString()}
+                        </p>
+                        <Button href={`/subscription/${sub.id}`} variant="primary" size="sm">
+                          View Subscription →
                         </Button>
                       </div>
                     </div>

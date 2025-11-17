@@ -38,6 +38,22 @@ export const ourFileRouter = {
       console.log("Proof image uploaded:", file.url);
       return { url: file.url };
     }),
+
+  imageUploader: f({ image: { maxFileSize: "4MB" } })
+    .middleware(async () => {
+      const session = await auth();
+
+      if (!session?.user?.email) {
+        throw new UploadThingError("Unauthorized");
+      }
+
+      return { email: session.user.email };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Image uploaded by:", metadata.email);
+      console.log("Image URL:", file.url);
+      return { uploadedBy: metadata.email, url: file.url };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

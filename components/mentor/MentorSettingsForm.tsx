@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import Select from "@/components/common/Select";
-import { Gift, AlertCircle, CheckCircle, Globe, Video } from "lucide-react";
+import { Gift, AlertCircle, CheckCircle, Video } from "lucide-react";
 import type { Mentor } from "@prisma/client";
 import { getUserFriendlyError } from "@/lib/utils/error-messages";
 import { toast } from "@/components/common/Toast";
@@ -20,9 +20,6 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  // Timezone state
-  const [timezone, setTimezone] = useState(mentor.timezone || "America/New_York");
 
   // Meeting platform state
   const [meetingPlatform, setMeetingPlatform] = useState(mentor.meetingPlatform || "generic");
@@ -39,7 +36,6 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
 
     try {
       const payload = {
-        timezone,
         meetingPlatform,
         customMeetingLink: meetingPlatform === "custom" ? customMeetingLink : null,
         autoGenerateMeetingLinks,
@@ -63,9 +59,6 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
       }
 
       // Update local state with the new values from the response
-      if (data.data.timezone) {
-        setTimezone(data.data.timezone);
-      }
       if (data.data.meetingPlatform) {
         setMeetingPlatform(data.data.meetingPlatform);
       }
@@ -95,77 +88,6 @@ export default function MentorSettingsForm({ mentor }: MentorSettingsFormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Timezone Section */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <Globe className="h-6 w-6 text-purple-400" />
-          <h2 className="text-2xl font-bold">Timezone</h2>
-        </div>
-
-        <div className="space-y-4 p-6 bg-white/5 rounded-lg border border-white/10">
-          <div>
-            <label htmlFor="timezone" className="block text-sm font-semibold text-white mb-2">
-              Your Timezone
-            </label>
-            <Select
-              id="timezone"
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              className="h-12 text-base"
-            >
-              <optgroup label="US & Canada">
-                <option value="America/New_York">Eastern Time (ET)</option>
-                <option value="America/Chicago">Central Time (CT)</option>
-                <option value="America/Denver">Mountain Time (MT)</option>
-                <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                <option value="America/Anchorage">Alaska Time (AKT)</option>
-                <option value="America/Adak">Hawaii-Aleutian Time (HAT)</option>
-                <option value="Pacific/Honolulu">Hawaii Time (HT)</option>
-              </optgroup>
-              <optgroup label="Europe">
-                <option value="Europe/London">London (GMT/BST)</option>
-                <option value="Europe/Paris">Paris (CET/CEST)</option>
-                <option value="Europe/Berlin">Berlin (CET/CEST)</option>
-                <option value="Europe/Rome">Rome (CET/CEST)</option>
-                <option value="Europe/Madrid">Madrid (CET/CEST)</option>
-                <option value="Europe/Athens">Athens (EET/EEST)</option>
-                <option value="Europe/Moscow">Moscow (MSK)</option>
-              </optgroup>
-              <optgroup label="Asia">
-                <option value="Asia/Dubai">Dubai (GST)</option>
-                <option value="Asia/Kolkata">India (IST)</option>
-                <option value="Asia/Shanghai">China (CST)</option>
-                <option value="Asia/Tokyo">Tokyo (JST)</option>
-                <option value="Asia/Seoul">Seoul (KST)</option>
-                <option value="Asia/Singapore">Singapore (SGT)</option>
-                <option value="Asia/Hong_Kong">Hong Kong (HKT)</option>
-              </optgroup>
-              <optgroup label="Australia & Pacific">
-                <option value="Australia/Sydney">Sydney (AEDT/AEST)</option>
-                <option value="Australia/Melbourne">Melbourne (AEDT/AEST)</option>
-                <option value="Australia/Brisbane">Brisbane (AEST)</option>
-                <option value="Australia/Perth">Perth (AWST)</option>
-                <option value="Pacific/Auckland">Auckland (NZDT/NZST)</option>
-              </optgroup>
-              <optgroup label="Americas">
-                <option value="America/Sao_Paulo">São Paulo (BRT)</option>
-                <option value="America/Argentina/Buenos_Aires">Buenos Aires (ART)</option>
-                <option value="America/Mexico_City">Mexico City (CST)</option>
-                <option value="America/Toronto">Toronto (ET)</option>
-              </optgroup>
-              <optgroup label="Africa">
-                <option value="Africa/Cairo">Cairo (EET)</option>
-                <option value="Africa/Johannesburg">Johannesburg (SAST)</option>
-                <option value="Africa/Lagos">Lagos (WAT)</option>
-              </optgroup>
-            </Select>
-            <p className="text-sm text-white/50 mt-2">
-              Your availability and bookings will be displayed in this timezone
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Meeting Platform Section */}
       <div>
         <div className="flex items-center gap-3 mb-4">

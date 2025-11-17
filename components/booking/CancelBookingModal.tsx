@@ -8,7 +8,7 @@ import { X, AlertTriangle } from "lucide-react";
 
 interface CancelBookingModalProps {
   bookingId: string;
-  bookingType: "ACCESS" | "SESSION";
+  bookingType: "ACCESS" | "SESSION" | "SUBSCRIPTION";
   onClose: () => void;
   onSuccess: () => void;
 }

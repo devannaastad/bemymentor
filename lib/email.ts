@@ -125,7 +125,7 @@ export async function sendBookingConfirmation({
   to: string;
   userName: string;
   mentorName: string;
-  bookingType: "ACCESS" | "SESSION";
+  bookingType: "ACCESS" | "SESSION" | "SUBSCRIPTION";
   totalAmount: number;
   scheduledAt?: string | null;
   durationMinutes?: number | null;
@@ -181,7 +181,7 @@ export async function sendMentorBookingNotification({
   mentorName: string;
   userName: string;
   userEmail: string;
-  bookingType: "ACCESS" | "SESSION";
+  bookingType: "ACCESS" | "SESSION" | "SUBSCRIPTION";
   totalAmount: number;
   scheduledAt?: string | null;
   durationMinutes?: number | null;

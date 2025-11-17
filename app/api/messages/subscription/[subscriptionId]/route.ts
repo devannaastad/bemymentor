@@ -1,4 +1,4 @@
-// app/api/messages/[bookingId]/route.ts
+// app/api/messages/subscription/[subscriptionId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -7,12 +7,12 @@ import { containsInappropriateContent } from "@/lib/content-moderation";
 export const runtime = "nodejs";
 
 /**
- * GET /api/messages/[bookingId]
- * Get all messages for a booking
+ * GET /api/messages/subscription/[subscriptionId]
+ * Get all messages for a subscription
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ bookingId: string }> }
+  { params }: { params: Promise<{ subscriptionId: string }> }
 ) {
   try {
     const session = await auth();
@@ -31,11 +31,11 @@ export async function GET(
       return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
     }
 
-    const { bookingId } = await params;
+    const { subscriptionId } = await params;
 
-    // Verify user has access to this booking
-    const booking = await db.booking.findUnique({
-      where: { id: bookingId },
+    // Verify user has access to this subscription
+    const subscription = await db.userSubscription.findUnique({
+      where: { id: subscriptionId },
       select: {
         id: true,
         userId: true,
@@ -57,21 +57,21 @@ export async function GET(
       },
     });
 
-    if (!booking) {
-      return NextResponse.json({ ok: false, error: "Booking not found" }, { status: 404 });
+    if (!subscription) {
+      return NextResponse.json({ ok: false, error: "Subscription not found" }, { status: 404 });
     }
 
-    // Check if user is either the student or the mentor
-    const isStudent = booking.userId === user.id;
-    const isMentor = user.mentorProfile?.id === booking.mentorId;
+    // Check if user is either the subscriber or the mentor
+    const isSubscriber = subscription.userId === user.id;
+    const isMentor = user.mentorProfile?.id === subscription.mentorId;
 
-    if (!isStudent && !isMentor) {
+    if (!isSubscriber && !isMentor) {
       return NextResponse.json({ ok: false, error: "Access denied" }, { status: 403 });
     }
 
-    // Get all messages for this booking
+    // Get all messages for this subscription
     const messages = await db.message.findMany({
-      where: { bookingId },
+      where: { subscriptionId },
       include: {
         sender: {
           select: {
@@ -85,25 +85,11 @@ export async function GET(
     });
 
     // Mark messages as read if they were sent by the other party
-    const otherUserId = isStudent ? booking.mentor.userId : booking.userId;
+    const otherUserId = isSubscriber ? subscription.mentor.userId : subscription.userId;
     await db.message.updateMany({
       where: {
-        bookingId,
+        subscriptionId,
         senderId: otherUserId,
-        isRead: false,
-      },
-      data: {
-        isRead: true,
-        readAt: new Date(),
-      },
-    });
-
-    // Also mark any message notifications for this booking as read
-    await db.notification.updateMany({
-      where: {
-        userId: user.id,
-        bookingId,
-        type: "BOOKING_UPDATE",
         isRead: false,
       },
       data: {
@@ -116,21 +102,21 @@ export async function GET(
       ok: true,
       data: {
         messages,
-        booking: {
-          id: booking.id,
-          student: booking.user,
+        subscription: {
+          id: subscription.id,
+          subscriber: subscription.user,
           mentor: {
-            id: booking.mentorId,
-            userId: booking.mentor.userId,
-            name: booking.mentor.name,
-            profileImage: booking.mentor.profileImage,
+            id: subscription.mentorId,
+            userId: subscription.mentor.userId,
+            name: subscription.mentor.name,
+            profileImage: subscription.mentor.profileImage,
           },
         },
         currentUserId: user.id,
       },
     });
   } catch (error) {
-    console.error("[api/messages] GET error:", error);
+    console.error("[api/messages/subscription] GET error:", error);
     return NextResponse.json(
       { ok: false, error: "Failed to fetch messages" },
       { status: 500 }
@@ -139,12 +125,12 @@ export async function GET(
 }
 
 /**
- * POST /api/messages/[bookingId]
+ * POST /api/messages/subscription/[subscriptionId]
  * Send a new message
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ bookingId: string }> }
+  { params }: { params: Promise<{ subscriptionId: string }> }
 ) {
   try {
     const session = await auth();
@@ -163,7 +149,7 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
     }
 
-    const { bookingId } = await params;
+    const { subscriptionId } = await params;
     const { content } = await req.json();
 
     if (!content || content.trim().length === 0) {
@@ -182,9 +168,9 @@ export async function POST(
       );
     }
 
-    // Verify user has access to this booking
-    const booking = await db.booking.findUnique({
-      where: { id: bookingId },
+    // Verify user has access to this subscription
+    const subscription = await db.userSubscription.findUnique({
+      where: { id: subscriptionId },
       select: {
         id: true,
         userId: true,
@@ -203,23 +189,23 @@ export async function POST(
       },
     });
 
-    if (!booking) {
-      return NextResponse.json({ ok: false, error: "Booking not found" }, { status: 404 });
+    if (!subscription) {
+      return NextResponse.json({ ok: false, error: "Subscription not found" }, { status: 404 });
     }
 
-    // Check if user is either the student or the mentor
-    const isStudent = booking.userId === user.id;
-    const isMentor = user.mentorProfile?.id === booking.mentorId;
+    // Check if user is either the subscriber or the mentor
+    const isSubscriber = subscription.userId === user.id;
+    const isMentor = user.mentorProfile?.id === subscription.mentorId;
 
-    if (!isStudent && !isMentor) {
+    if (!isSubscriber && !isMentor) {
       return NextResponse.json({ ok: false, error: "Access denied" }, { status: 403 });
     }
 
     // Create the message
     const message = await db.message.create({
       data: {
-        bookingId,
-        mentorId: booking.mentorId,
+        subscriptionId,
+        mentorId: subscription.mentorId,
         senderId: user.id,
         content: content.trim(),
       },
@@ -235,40 +221,27 @@ export async function POST(
     });
 
     // Create notification for the recipient
-    const recipientId = isStudent ? booking.mentor.userId : booking.userId;
+    const recipientId = isSubscriber ? subscription.mentor.userId : subscription.userId;
     const senderName = user.name || "Someone";
 
-    // First, delete any existing unread message notifications for this booking
-    // This prevents duplicate notifications for the same conversation
-    await db.notification.deleteMany({
-      where: {
-        userId: recipientId,
-        bookingId,
-        type: "BOOKING_UPDATE",
-        isRead: false,
-      },
-    });
-
-    // Now create the new notification
     await db.notification.create({
       data: {
         userId: recipientId,
-        bookingId,
-        type: "BOOKING_UPDATE",
-        title: "New message",
+        type: "BOOKING_UPDATE", // Reusing this type for now
+        title: "New subscription message",
         message: `${senderName} sent you a message: "${content.substring(0, 50)}${content.length > 50 ? "..." : ""}"`,
-        link: `/bookings/${bookingId}/confirm?tab=messages`,
+        link: `/subscription/${subscriptionId}?tab=messages`,
       },
     });
 
-    console.log(`[api/messages] Message sent from ${user.id} to ${recipientId} for booking ${bookingId}`);
+    console.log(`[api/messages/subscription] Message sent from ${user.id} to ${recipientId} for subscription ${subscriptionId}`);
 
     return NextResponse.json({
       ok: true,
       data: { message },
     });
   } catch (error) {
-    console.error("[api/messages] POST error:", error);
+    console.error("[api/messages/subscription] POST error:", error);
     return NextResponse.json(
       { ok: false, error: "Failed to send message" },
       { status: 500 }

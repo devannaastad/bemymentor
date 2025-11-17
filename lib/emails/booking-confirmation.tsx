@@ -4,7 +4,7 @@ import * as React from "react";
 interface BookingConfirmationEmailProps {
   userName: string;
   mentorName: string;
-  bookingType: "ACCESS" | "SESSION";
+  bookingType: "ACCESS" | "SESSION" | "SUBSCRIPTION";
   totalAmount: number; // in cents
   scheduledAt?: string | null;
   durationMinutes?: number | null;

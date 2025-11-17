@@ -34,6 +34,20 @@ enum ApplicationStatus {
 enum BookingType {
   ACCESS
   SESSION
+  SUBSCRIPTION
+}
+
+enum SubscriptionInterval {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAUSED
 }
 
 enum BookingStatus {
@@ -83,6 +97,9 @@ model User {
 
   // back-relation: all messages sent by this user
   messages Message[]
+
+  // back-relation: all subscriptions for this user
+  subscriptions UserSubscription[]
 }
 
 model Account {
@@ -149,6 +166,9 @@ model Mentor {
   // Access Pass exclusive content
   accessPassWelcome String?      @db.Text  // Welcome message for access pass holders
   accessPassLinks   Json?                  // Array of exclusive links: [{ type, title, url, description }]
+  accessPassPageContent String?  @db.Text  // Custom page content/description for access pass
+  accessPassVideos     Json?               // Array of videos: [{ title, url, description? }]
+  accessPassImages     Json?               // Array of images: [{ url, caption? }]
 
   isActive     Boolean        @default(true) // Can be toggled off by admin or mentor
   flagged      Boolean        @default(false) // Admin flag for suspicious/scamming mentors
@@ -202,6 +222,15 @@ model Mentor {
 
   // back-relation: blocked time slots
   blockedSlots BlockedSlot[]
+
+  // back-relation: subscription plans offered by this mentor
+  subscriptionPlans SubscriptionPlan[]
+
+  // back-relation: active subscriptions for this mentor
+  subscriptions UserSubscription[]
+
+  // back-relation: messages with this mentor
+  messages Message[]
 
   @@index([userId])
   @@index([category])
@@ -451,22 +480,113 @@ model Notification {
 }
 
 /**
- * Messages - Direct messaging between student and mentor for bookings
+ * Messages - Direct messaging between student and mentor
  */
 model Message {
-  id        String   @id @default(cuid())
-  bookingId String   // Related booking
-  senderId  String   // User who sent the message
-  content   String   @db.Text
-  isRead    Boolean  @default(false)
-  readAt    DateTime?
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  bookingId      String?  // Related booking (optional)
+  subscriptionId String?  // Related subscription (optional)
+  mentorId       String   // Mentor in the conversation
+  senderId       String   // User who sent the message
+  content        String   @db.Text
+  isRead         Boolean  @default(false)
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
 
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  booking      Booking?           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  subscription UserSubscription?  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  mentor       Mentor             @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  sender       User               @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
+  @@index([subscriptionId])
+  @@index([mentorId])
   @@index([senderId])
   @@index([createdAt])
   @@index([isRead])
+}
+
+/**
+ * Subscription Plans - Recurring subscription tiers offered by mentors
+ */
+model SubscriptionPlan {
+  id          String               @id @default(cuid())
+  mentorId    String
+
+  name        String               // e.g., "Weekly Check-ins", "Monthly Coaching"
+  description String?              @db.Text
+
+  interval    SubscriptionInterval // WEEKLY, MONTHLY, YEARLY
+  price       Int                  // Price in cents
+
+  // What's included
+  features    Json?                // Array of feature strings: ["Weekly 1:1 calls", "Priority support"]
+
+  // Subscriber access content
+  welcomeMessage String?           @db.Text // Welcome message shown on success page
+  accessLinks    Json?             // Array of { title: string, url: string } for resources
+
+  // Custom subscription page content (editable from mentor dashboard)
+  pageContent    String?           @db.Text // Rich text content describing the subscription
+  pageVideos     Json?             // Array of video URLs: [{ title: string, url: string, description?: string }]
+  pageImages     Json?             // Array of image URLs: [{ url: string, caption?: string }]
+
+  isActive    Boolean              @default(true) // Mentor can deactivate plans
+
+  // Stripe integration
+  stripePriceId String?            @unique // Stripe Price ID for billing
+  stripeProductId String?          // Stripe Product ID
+
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  mentor      Mentor               @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  // back-relation: all active subscriptions for this plan
+  subscriptions UserSubscription[]
+
+  @@index([mentorId])
+  @@index([isActive])
+  @@index([interval])
+}
+
+/**
+ * User Subscriptions - Active subscriptions students have with mentors
+ */
+model UserSubscription {
+  id                String             @id @default(cuid())
+  userId            String
+  mentorId          String
+  planId            String
+
+  status            SubscriptionStatus @default(ACTIVE)
+
+  // Billing
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean            @default(false)
+
+  // Stripe integration
+  stripeSubscriptionId String?         @unique // Stripe Subscription ID
+  stripeCustomerId     String?         // Stripe Customer ID
+
+  // Cancellation tracking
+  cancelledAt       DateTime?
+  cancellationReason String?           @db.Text
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentor            Mentor             @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  plan              SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  // back-relation: messages for this subscription
+  messages          Message[]
+
+  @@index([userId])
+  @@index([mentorId])
+  @@index([planId])
+  @@index([status])
+  @@index([currentPeriodEnd])
 }

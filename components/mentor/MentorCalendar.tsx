@@ -441,7 +441,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
           <span>Available for Booking</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded bg-emerald-500/30 border-2 border-emerald-500"></div>
+          <div className="h-3 w-3 rounded bg-pink-500/30 border-2 border-pink-500"></div>
           <span>Free Session Available</span>
         </div>
         <div className="flex items-center gap-2">
@@ -486,7 +486,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                 const hasAvailability = dayInfo && dayInfo.hasAvailability;
                 const hasFreeSession = dayInfo && dayInfo.availableSlots.some(slot => slot.isFreeSession);
 
-                // Determine color: Blue (bookings) > Emerald (free session) > Green (available) > Red (blocked/default)
+                // Determine color: Blue (bookings) > Pink (free session) > Green (available) > Red (blocked/default)
                 let dayColor = "bg-red-500/30 border-2 border-red-500"; // Default: blocked/unavailable
 
                 if (hasAvailability && !isBlocked) {
@@ -494,7 +494,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                 }
 
                 if (hasFreeSession && !isBlocked) {
-                  dayColor = "bg-emerald-500/30 border-2 border-emerald-500"; // Free session available
+                  dayColor = "bg-pink-500/30 border-2 border-pink-500"; // Free session available
                 }
 
                 if (hasBookings) {
@@ -636,7 +636,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                                 key={slot.id}
                                 className={`p-3 rounded-lg text-sm ${
                                   slot.isFreeSession
-                                    ? "bg-emerald-500/10 border border-emerald-500/30"
+                                    ? "bg-pink-500/10 border border-pink-500/30"
                                     : "bg-green-500/10 border border-green-500/30"
                                 }`}
                               >
@@ -667,7 +667,7 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                                   </div>
                                 </div>
                                 {slot.isFreeSession && (
-                                  <div className="mt-2 flex items-center gap-2 text-xs text-emerald-400 font-medium">
+                                  <div className="mt-2 flex items-center gap-2 text-xs text-pink-400 font-medium">
                                     <span>🎁 Free Session</span>
                                   </div>
                                 )}
@@ -789,13 +789,13 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                 />
               </div>
 
-              <div className="p-4 bg-emerald-500/5 rounded-lg border border-emerald-500/20">
+              <div className="p-4 bg-pink-500/5 rounded-lg border border-pink-500/20">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isFreeSession}
                     onChange={(e) => setIsFreeSession(e.target.checked)}
-                    className="w-5 h-5 rounded border-white/20 bg-white/10 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                    className="w-5 h-5 rounded border-white/20 bg-white/10 text-pink-500 focus:ring-pink-500 focus:ring-offset-0 cursor-pointer"
                   />
                   <div className="flex-1">
                     <span className="text-white font-medium block">Mark as Free Session</span>
@@ -955,13 +955,13 @@ export default function MentorCalendar({ mentorId }: MentorCalendarProps) {
                 />
               </div>
 
-              <div className="p-4 bg-emerald-500/5 rounded-lg border border-emerald-500/20">
+              <div className="p-4 bg-pink-500/5 rounded-lg border border-pink-500/20">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isFreeSession}
                     onChange={(e) => setIsFreeSession(e.target.checked)}
-                    className="w-5 h-5 rounded border-white/20 bg-white/10 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                    className="w-5 h-5 rounded border-white/20 bg-white/10 text-pink-500 focus:ring-pink-500 focus:ring-offset-0 cursor-pointer"
                   />
                   <div className="flex-1">
                     <span className="text-white font-medium block">Mark as Free Session</span>

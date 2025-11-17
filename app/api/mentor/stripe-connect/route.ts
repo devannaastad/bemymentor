@@ -45,11 +45,44 @@ export async function POST() {
       : `${appUrl}/mentor/onboarding?step=5&success=true`;
 
     if (mentor.stripeConnectId) {
-      const { onboarded, detailsSubmitted } = await checkAccountOnboarding(mentor.stripeConnectId);
+      try {
+        const { onboarded, detailsSubmitted } = await checkAccountOnboarding(mentor.stripeConnectId);
 
-      // If fully onboarded OR details submitted (basically done with onboarding), use login link
-      if (onboarded || detailsSubmitted) {
+        // If fully onboarded OR details submitted (basically done with onboarding), use login link
+        if (onboarded || detailsSubmitted) {
+          try {
+            const loginLink = await createLoginLink(mentor.stripeConnectId);
+            return NextResponse.json({
+              ok: true,
+              data: {
+                url: loginLink.url,
+                isOnboarded: true,
+              },
+            });
+          } catch (loginError) {
+            console.error("[stripe-connect] Login link error:", loginError);
+            // If login link fails, fall through to try account link
+          }
+        }
+
+        // Try to create account link for continuing onboarding
         try {
+          const accountLink = await createAccountLink(
+            mentor.stripeConnectId,
+            refreshUrl,
+            returnUrl
+          );
+
+          return NextResponse.json({
+            ok: true,
+            data: {
+              url: accountLink.url,
+              isOnboarded: false,
+            },
+          });
+        } catch (linkError) {
+          console.error("[stripe-connect] Account link error:", linkError);
+          // If account link fails but they have an account, try login link as fallback
           const loginLink = await createLoginLink(mentor.stripeConnectId);
           return NextResponse.json({
             ok: true,
@@ -58,38 +91,22 @@ export async function POST() {
               isOnboarded: true,
             },
           });
-        } catch (loginError) {
-          console.error("[stripe-connect] Login link error:", loginError);
-          // If login link fails, fall through to try account link
         }
-      }
+      } catch (accountError) {
+        // If account doesn't exist or we don't have access, clear it and create a new one
+        const errorMessage = accountError instanceof Error ? accountError.message : String(accountError);
+        console.error("[stripe-connect] Invalid Stripe account, clearing:", mentor.stripeConnectId, errorMessage);
 
-      // Try to create account link for continuing onboarding
-      try {
-        const accountLink = await createAccountLink(
-          mentor.stripeConnectId,
-          refreshUrl,
-          returnUrl
-        );
-
-        return NextResponse.json({
-          ok: true,
+        // Clear invalid account ID
+        await db.mentor.update({
+          where: { id: mentor.id },
           data: {
-            url: accountLink.url,
-            isOnboarded: false,
+            stripeConnectId: null,
+            stripeOnboarded: false,
           },
         });
-      } catch (linkError) {
-        console.error("[stripe-connect] Account link error:", linkError);
-        // If account link fails but they have an account, try login link as fallback
-        const loginLink = await createLoginLink(mentor.stripeConnectId);
-        return NextResponse.json({
-          ok: true,
-          data: {
-            url: loginLink.url,
-            isOnboarded: true,
-          },
-        });
+
+        // Fall through to create new account below
       }
     }
 
@@ -187,27 +204,49 @@ export async function GET() {
       });
     }
 
-    const status = await checkAccountOnboarding(mentor.stripeConnectId);
+    try {
+      const status = await checkAccountOnboarding(mentor.stripeConnectId);
 
-    if (status.onboarded && !mentor.stripeOnboarded) {
+      if (status.onboarded && !mentor.stripeOnboarded) {
+        await db.mentor.update({
+          where: { id: mentor.id },
+          data: {
+            stripeOnboarded: true,
+            onboardingComplete: true,
+            onboardingStep: 5,
+          },
+        });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        data: {
+          hasAccount: true,
+          isOnboarded: status.onboarded,
+          ...status,
+        },
+      });
+    } catch (accountError) {
+      // If account doesn't exist or we don't have access, clear it
+      const errorMessage = accountError instanceof Error ? accountError.message : String(accountError);
+      console.error("[stripe-connect] Invalid Stripe account in GET, clearing:", mentor.stripeConnectId, errorMessage);
+
       await db.mentor.update({
         where: { id: mentor.id },
         data: {
-          stripeOnboarded: true,
-          onboardingComplete: true,
-          onboardingStep: 5,
+          stripeConnectId: null,
+          stripeOnboarded: false,
+        },
+      });
+
+      return NextResponse.json({
+        ok: true,
+        data: {
+          hasAccount: false,
+          isOnboarded: false,
         },
       });
     }
-
-    return NextResponse.json({
-      ok: true,
-      data: {
-        hasAccount: true,
-        isOnboarded: status.onboarded,
-        ...status,
-      },
-    });
   } catch (error) {
     console.error("[stripe-connect] GET error:", error);
     return NextResponse.json(

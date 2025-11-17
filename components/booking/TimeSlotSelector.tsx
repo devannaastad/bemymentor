@@ -141,10 +141,10 @@ export default function TimeSlotSelector({
                     ? "border-white/10 bg-white/5 text-white/30 cursor-not-allowed"
                     : isSelected
                     ? slot.isFreeSession
-                      ? "border-emerald-500 bg-emerald-600 text-white ring-2 ring-emerald-400"
+                      ? "border-pink-500 bg-pink-600 text-white ring-2 ring-pink-400"
                       : "border-purple-500 bg-purple-600 text-white ring-2 ring-purple-400"
                     : slot.isFreeSession
-                    ? "border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-500/50 hover:bg-emerald-500/20"
+                    ? "border-pink-500/30 bg-pink-500/10 hover:border-pink-500/50 hover:bg-pink-500/20"
                     : "border-white/20 bg-white/5 hover:border-purple-500/50 hover:bg-white/10"
                 }
               `}
@@ -153,7 +153,7 @@ export default function TimeSlotSelector({
                 {formatTimeDisplay(slot.time)}
               </div>
               {slot.isFreeSession && !isDisabled && (
-                <div className="text-xs mt-1 font-semibold text-emerald-300">
+                <div className="text-xs mt-1 font-semibold text-pink-300">
                   FREE
                 </div>
               )}

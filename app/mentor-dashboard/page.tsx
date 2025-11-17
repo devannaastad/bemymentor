@@ -9,6 +9,9 @@ import MentorCalendar from "@/components/mentor/MentorCalendar";
 import EarningsDashboard from "@/components/mentor-dashboard/EarningsDashboard";
 import AnalyticsDashboard from "@/components/mentor-dashboard/AnalyticsDashboard";
 import ProfileCompletenessCard from "@/components/mentor/ProfileCompletenessCard";
+import StripeConnectButton from "@/components/mentor-dashboard/StripeConnectButton";
+import MentorDashboardTabs from "@/components/mentor-dashboard/MentorDashboardTabs";
+import MentorMessages from "@/components/mentor-dashboard/MentorMessages";
 
 export const dynamic = "force-dynamic";
 
@@ -150,6 +153,13 @@ export default async function MentorDashboardPage() {
             </p>
           </div>
           <div className="flex gap-3">
+            <StripeConnectButton mentor={mentor} />
+            <Button href="/mentor-dashboard/access-pass" variant="ghost">
+              Access Pass Page
+            </Button>
+            <Button href="/mentor-dashboard/subscriptions" variant="ghost">
+              Subscription Pages
+            </Button>
             <Button href="/mentor/settings" variant="ghost">
               Settings
             </Button>
@@ -182,31 +192,44 @@ export default async function MentorDashboardPage() {
           </Card>
         )}
 
-        {/* Bookings List */}
-        <Card className="mb-8">
-          <CardContent>
-            <h2 className="mb-6 text-lg font-semibold">Your Bookings</h2>
-            <BookingList bookings={bookings} />
-          </CardContent>
-        </Card>
-
-        {/* Calendar */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Your Calendar</h2>
-          <MentorCalendar mentorId={mentor.id} />
-        </div>
-
-        {/* Analytics Dashboard */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">📊 Analytics & Insights</h2>
-          <AnalyticsDashboard />
-        </div>
-
-        {/* Earnings Dashboard */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Earnings & Payouts</h2>
-          <EarningsDashboard />
-        </div>
+        {/* Tabbed Dashboard */}
+        <MentorDashboardTabs
+          overviewSlot={
+            <>
+              {/* Bookings List */}
+              <Card className="mb-8">
+                <CardContent>
+                  <h2 className="mb-6 text-lg font-semibold">Your Bookings</h2>
+                  <BookingList bookings={bookings} />
+                </CardContent>
+              </Card>
+            </>
+          }
+          messagesSlot={
+            <>
+              <h2 className="mb-6 text-2xl font-bold">Messages</h2>
+              <MentorMessages />
+            </>
+          }
+          calendarSlot={
+            <>
+              <h2 className="mb-6 text-2xl font-bold">Your Calendar</h2>
+              <MentorCalendar mentorId={mentor.id} />
+            </>
+          }
+          analyticsSlot={
+            <>
+              <h2 className="mb-6 text-2xl font-bold">📊 Analytics & Insights</h2>
+              <AnalyticsDashboard />
+            </>
+          }
+          earningsSlot={
+            <>
+              <h2 className="mb-6 text-2xl font-bold">Earnings & Payouts</h2>
+              <EarningsDashboard />
+            </>
+          }
+        />
       </div>
     </section>
   );

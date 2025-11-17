@@ -3,15 +3,16 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
-import { User, Briefcase, Video, Lock, Save } from "lucide-react";
+import { User, Briefcase, Video, Lock, Save, Calendar } from "lucide-react";
 import BasicInfoEditor from "./editors/BasicInfoEditor";
 import PortfolioEditor from "./editors/PortfolioEditor";
 import VideoEditor from "./editors/VideoEditor";
 import AccessPassEditor from "./editors/AccessPassEditor";
+import SubscriptionEditor from "./editors/SubscriptionEditor";
 import { ProfileEditorProvider, useProfileEditor } from "./ProfileEditorContext";
 import { useRouter } from "next/navigation";
 
-type Tab = "basic" | "portfolio" | "video" | "access";
+type Tab = "basic" | "portfolio" | "video" | "access" | "subscriptions";
 
 import { Mentor } from "@prisma/client";
 
@@ -49,6 +50,7 @@ function ProfileEditorContent({ mentor }: ProfileEditorProps) {
     { id: "portfolio" as Tab, label: "Portfolio", icon: Briefcase },
     { id: "video" as Tab, label: "Video Intro", icon: Video },
     { id: "access" as Tab, label: "Access Pass Content", icon: Lock },
+    { id: "subscriptions" as Tab, label: "Subscriptions", icon: Calendar },
   ];
 
   const handleSave = async () => {
@@ -112,6 +114,7 @@ function ProfileEditorContent({ mentor }: ProfileEditorProps) {
         {activeTab === "portfolio" && <PortfolioEditor />}
         {activeTab === "video" && <VideoEditor mentor={mentor} />}
         {activeTab === "access" && <AccessPassEditor mentor={mentor} />}
+        {activeTab === "subscriptions" && <SubscriptionEditor />}
       </div>
 
       {/* Save Button */}
