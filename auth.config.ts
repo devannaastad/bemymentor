@@ -8,21 +8,12 @@ import { z } from "zod";
 
 const authConfig = {
   trustHost: true,
-  useSecureCookies: process.env.NODE_ENV === "production",
-  debug: process.env.NODE_ENV === "development",
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
-      checks: ["state"], // Use state instead of PKCE for serverless
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-        },
-      },
+      checks: ["none"], // Disable PKCE and state checks for serverless
     }),
     Credentials({
       credentials: {
