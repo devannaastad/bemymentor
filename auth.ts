@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(db),
+  secret: process.env.AUTH_SECRET,
 });
 
 export const { GET, POST } = handlers;
