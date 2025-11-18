@@ -1,27 +1,32 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTransition, useState, useEffect } from "react";
 
 export default function EnhancedFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  const [priceMax, setPriceMax] = useState(() => {
-    const priceMaxParam = searchParams.get("priceMax");
-    // Convert from cents to dollars for display
-    return priceMaxParam ? Math.round(parseInt(priceMaxParam) / 100) : 500;
-  });
-  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "rating");
-  const [minRating, setMinRating] = useState(
-    parseFloat(searchParams.get("minRating") || "0")
-  );
-  const [verifiedOnly, setVerifiedOnly] = useState(
-    searchParams.get("verified") === "true"
-  );
+  // Derive values directly from URL parameters
+  const priceMaxParam = searchParams.get("priceMax");
+  const priceMaxFromUrl = priceMaxParam ? Math.round(parseInt(priceMaxParam) / 100) : 500;
+
+  // Local state for smooth slider dragging
+  const [priceMax, setPriceMaxLocal] = useState(priceMaxFromUrl);
+
+  // Sync local state when URL changes
+  useEffect(() => {
+    setPriceMaxLocal(priceMaxFromUrl);
+  }, [priceMaxFromUrl]);
+
+  const sortBy = searchParams.get("sort") || "rating";
+
+  const minRating = parseFloat(searchParams.get("minRating") || "0");
+
+  const verifiedOnly = searchParams.get("verified") === "true";
 
   const handlePriceChange = (value: number) => {
-    setPriceMax(value);
     const params = new URLSearchParams(searchParams.toString());
     if (value < 500) {
       // Convert dollars to cents for the API
@@ -30,19 +35,21 @@ export default function EnhancedFilters() {
       params.delete("priceMax");
     }
     params.delete("page");
-    router.push(`/catalog?${params.toString()}`);
+    startTransition(() => {
+      router.replace(`/catalog?${params.toString()}`);
+    });
   };
 
   const handleSortChange = (value: string) => {
-    setSortBy(value);
     const params = new URLSearchParams(searchParams.toString());
     params.set("sort", value);
     params.delete("page");
-    router.push(`/catalog?${params.toString()}`);
+    startTransition(() => {
+      router.replace(`/catalog?${params.toString()}`);
+    });
   };
 
   const handleRatingChange = (value: number) => {
-    setMinRating(value);
     const params = new URLSearchParams(searchParams.toString());
     if (value > 0) {
       params.set("minRating", value.toString());
@@ -50,12 +57,13 @@ export default function EnhancedFilters() {
       params.delete("minRating");
     }
     params.delete("page");
-    router.push(`/catalog?${params.toString()}`);
+    startTransition(() => {
+      router.replace(`/catalog?${params.toString()}`);
+    });
   };
 
   const handleVerifiedToggle = () => {
     const newValue = !verifiedOnly;
-    setVerifiedOnly(newValue);
     const params = new URLSearchParams(searchParams.toString());
     if (newValue) {
       params.set("verified", "true");
@@ -63,7 +71,9 @@ export default function EnhancedFilters() {
       params.delete("verified");
     }
     params.delete("page");
-    router.push(`/catalog?${params.toString()}`);
+    startTransition(() => {
+      router.replace(`/catalog?${params.toString()}`);
+    });
   };
 
   const activeFiltersCount = [
@@ -82,13 +92,30 @@ export default function EnhancedFilters() {
           <label className="block text-sm font-medium text-white mb-2">
             Max Price: ${priceMax}{priceMax >= 500 ? "+" : ""}
           </label>
+          <div className="flex gap-2 items-center mb-2">
+            <input
+              type="number"
+              min="0"
+              max="500"
+              value={priceMax >= 500 ? "" : priceMax}
+              onChange={(e) => {
+                const val = e.target.value === "" ? 500 : parseInt(e.target.value);
+                handlePriceChange(Math.min(Math.max(0, val), 500));
+              }}
+              placeholder="500+"
+              className="w-24 px-3 py-1.5 bg-dark-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+            <span className="text-xs text-white/40">per session</span>
+          </div>
           <input
             type="range"
             min="0"
             max="500"
-            step="25"
+            step="1"
             value={priceMax}
-            onChange={(e) => handlePriceChange(parseInt(e.target.value))}
+            onChange={(e) => setPriceMaxLocal(parseInt(e.target.value))}
+            onMouseUp={(e) => handlePriceChange(parseInt((e.target as HTMLInputElement).value))}
+            onTouchEnd={(e) => handlePriceChange(parseInt((e.target as HTMLInputElement).value))}
             className="w-full h-2 bg-dark-700 rounded-lg appearance-none cursor-pointer"
             style={{
               background: `linear-gradient(to right, rgb(99 102 241) 0%, rgb(99 102 241) ${
@@ -107,12 +134,12 @@ export default function EnhancedFilters() {
           <label className="block text-sm font-medium text-white mb-2">
             Minimum Rating
           </label>
-          <div className="flex gap-2">
-            {[0, 3, 4, 4.5].map((rating) => (
+          <div className="grid grid-cols-3 gap-2">
+            {[0, 3, 3.5, 4, 4.5, 5].map((rating) => (
               <button
                 key={rating}
                 onClick={() => handleRatingChange(rating)}
-                className={`flex-1 px-3 py-2 rounded-lg border transition ${
+                className={`px-3 py-2 rounded-lg border transition ${
                   minRating === rating
                     ? "bg-primary-500 border-primary-500 text-white"
                     : "bg-dark-800 border-white/10 text-white/60 hover:border-white/20"
@@ -245,7 +272,9 @@ export default function EnhancedFilters() {
               />
             )}
             <button
-              onClick={() => router.push("/catalog")}
+              onClick={() => {
+                window.location.href = "/catalog";
+              }}
               className="text-sm text-red-400 hover:text-red-300 ml-2 transition"
             >
               Clear all

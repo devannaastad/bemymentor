@@ -24,12 +24,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
 
   const googleSignIn = async () => {
     "use server";
-    try {
-      await signIn("google", { redirectTo: callbackUrl || "/" });
-    } catch (error) {
-      console.error("Sign in error:", error);
-      throw error;
-    }
+    await signIn("google", { redirectTo: callbackUrl || "/" });
   };
 
   return (
