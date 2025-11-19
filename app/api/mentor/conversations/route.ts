@@ -160,6 +160,17 @@ export async function GET() {
       (a, b) => b.lastMessage.createdAt.getTime() - a.lastMessage.createdAt.getTime()
     );
 
+    // Debug logging
+    console.log('[mentor/conversations] User ID:', user.id);
+    conversationList.forEach(conv => {
+      console.log(`[mentor/conversations] Conversation ${conv.id}:`, {
+        unreadCount: conv.unreadCount,
+        lastMessageSenderId: conv.lastMessage.senderId,
+        lastMessageIsRead: conv.lastMessage.isRead,
+        lastMessageContent: conv.lastMessage.content.substring(0, 30)
+      });
+    });
+
     return NextResponse.json({
       ok: true,
       data: {

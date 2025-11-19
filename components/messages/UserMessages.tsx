@@ -158,23 +158,25 @@ export default function UserMessages() {
                 <CardContent>
                   <div className="flex items-start gap-4">
                     {/* Mentor Avatar */}
-                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
-                      {conversation.mentor.profileImage ? (
-                        <Image
-                          src={conversation.mentor.profileImage}
-                          alt={conversation.mentor.name}
-                          width={48}
-                          height={48}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 text-lg font-bold text-white">
-                          {conversation.mentor.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                    <div className="relative h-12 w-12 shrink-0">
+                      <div className="h-full w-full overflow-hidden rounded-full">
+                        {conversation.mentor.profileImage ? (
+                          <Image
+                            src={conversation.mentor.profileImage}
+                            alt={conversation.mentor.name}
+                            width={48}
+                            height={48}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 text-lg font-bold text-white">
+                            {conversation.mentor.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
                       {conversation.unreadCount > 0 && (
-                        <div className="absolute -right-1 -top-1">
-                          <div className="h-3 w-3 rounded-full bg-yellow-400 shadow-lg shadow-yellow-400/50 animate-pulse" />
+                        <div className="absolute -right-1 -top-1 z-10">
+                          <div className="h-4 w-4 rounded-full bg-yellow-400 shadow-lg shadow-yellow-400/50 animate-pulse border-2 border-black" />
                         </div>
                       )}
                     </div>

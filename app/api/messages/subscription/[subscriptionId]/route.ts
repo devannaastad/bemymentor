@@ -208,6 +208,7 @@ export async function POST(
         mentorId: subscription.mentorId,
         senderId: user.id,
         content: content.trim(),
+        isRead: false,
       },
       include: {
         sender: {

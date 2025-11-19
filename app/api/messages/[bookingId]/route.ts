@@ -222,6 +222,7 @@ export async function POST(
         mentorId: booking.mentorId,
         senderId: user.id,
         content: content.trim(),
+        isRead: false,
       },
       include: {
         sender: {
