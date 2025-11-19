@@ -103,9 +103,9 @@ export default function NotificationBell({
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary-500 text-black text-xs font-bold rounded-full flex items-center justify-center shadow-lg shadow-primary-500/50">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
+          <div className="absolute top-1 right-1">
+            <div className="h-3 w-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50 animate-pulse border-2 border-gray-900" />
+          </div>
         )}
       </button>
 

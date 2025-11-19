@@ -59,6 +59,12 @@ export default function BookingChat({ bookingId }: BookingChatProps) {
 
     if (!newMessage.trim() || sending) return;
 
+    // Client-side length validation
+    if (newMessage.trim().length > 5000) {
+      alert("Message is too long (max 5000 characters)");
+      return;
+    }
+
     setSending(true);
 
     try {
@@ -177,26 +183,34 @@ export default function BookingChat({ bookingId }: BookingChatProps) {
 
       {/* Input Area */}
       <form onSubmit={sendMessage} className="p-4 border-t border-white/10">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
-            disabled={sending}
-          />
-          <button
-            type="submit"
-            disabled={!newMessage.trim() || sending}
-            className="px-6 py-2 bg-[#F4D03F] hover:bg-[#F7DC6F] disabled:bg-white/10 disabled:text-white/40 text-[#1a1a1a] font-black rounded-lg transition-all duration-200 hover:scale-105 shadow-xl shadow-yellow-500/50 hover:shadow-yellow-400/60 flex items-center gap-2"
-          >
-            {sending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              maxLength={5000}
+              className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+              disabled={sending}
+            />
+            <button
+              type="submit"
+              disabled={!newMessage.trim() || sending}
+              className="px-6 py-2 bg-[#F4D03F] hover:bg-[#F7DC6F] disabled:bg-white/10 disabled:text-white/40 text-[#1a1a1a] font-black rounded-lg transition-all duration-200 hover:scale-105 shadow-xl shadow-yellow-500/50 hover:shadow-yellow-400/60 flex items-center gap-2"
+            >
+              {sending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+          {newMessage.length > 4500 && (
+            <p className={`text-xs ${newMessage.length >= 5000 ? "text-red-400" : "text-white/60"}`}>
+              {newMessage.length}/5000 characters
+            </p>
+          )}
         </div>
       </form>
     </div>

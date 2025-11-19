@@ -170,6 +170,28 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "Message cannot be empty" }, { status: 400 });
     }
 
+    // Message length limit (5000 characters)
+    if (content.trim().length > 5000) {
+      return NextResponse.json({ ok: false, error: "Message is too long (max 5000 characters)" }, { status: 400 });
+    }
+
+    // Rate limiting: Check how many messages this user sent in the last minute
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+    const recentMessageCount = await db.message.count({
+      where: {
+        senderId: user.id,
+        bookingId,
+        createdAt: {
+          gte: oneMinuteAgo,
+        },
+      },
+    });
+
+    // Allow max 10 messages per minute per conversation
+    if (recentMessageCount >= 10) {
+      return NextResponse.json({ ok: false, error: "You're sending messages too quickly. Please wait a moment." }, { status: 429 });
+    }
+
     // Check for inappropriate content
     const moderationResult = containsInappropriateContent(content);
     if (moderationResult.isInappropriate) {

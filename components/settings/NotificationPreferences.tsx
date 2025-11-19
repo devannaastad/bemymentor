@@ -14,6 +14,7 @@ const DEFAULT_PREFS = {
   emailSessionReminder15min: true,
   emailMeetingLinkAdded: true,
   emailBookingUpdate: true,
+  emailNewMessage: true,
   emailApplicationUpdates: true,
   emailMarketingUpdates: false,
 };
@@ -147,6 +148,20 @@ export default function NotificationPreferences() {
               checked={prefs.emailBookingUpdate}
               onChange={() => handleToggle("emailBookingUpdate")}
               label="Booking updates toggle"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-medium text-white/90">New Messages</p>
+              <p className="text-sm text-white/60">
+                Get notified when you receive a new message from a mentor or student
+              </p>
+            </div>
+            <Toggle
+              checked={prefs.emailNewMessage}
+              onChange={() => handleToggle("emailNewMessage")}
+              label="New messages toggle"
             />
           </div>
         </div>
