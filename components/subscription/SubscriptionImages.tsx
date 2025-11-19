@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/common/Card";
 import { Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 interface ImageItem {
   url: string;
@@ -25,14 +26,16 @@ export default function SubscriptionImages({ images }: SubscriptionImagesProps) 
         <div className="grid gap-4 sm:grid-cols-2">
           {images.map((image, idx) => (
             <div key={idx} className="rounded-lg border border-white/10 bg-white/5 p-3">
-              <img
-                src={image.url}
-                alt={image.caption || `Resource ${idx + 1}`}
-                className="mb-3 w-full rounded-lg object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
+              <div className="relative mb-3 w-full aspect-video">
+                <Image
+                  src={image.url}
+                  alt={image.caption || `Resource ${idx + 1}`}
+                  fill
+                  className="rounded-lg object-cover"
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  loading="lazy"
+                />
+              </div>
               {image.caption && (
                 <p className="text-sm text-white/70">{image.caption}</p>
               )}

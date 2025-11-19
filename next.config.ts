@@ -25,8 +25,10 @@ const nextConfig: NextConfig = {
   compress: true,
   // Enable experimental features for better performance
   experimental: {
-    optimizePackageImports: ["lucide-react", "@prisma/client"],
+    optimizePackageImports: ["lucide-react", "@prisma/client", "date-fns", "react-hot-toast"],
   },
+  // Optimize production bundle
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;

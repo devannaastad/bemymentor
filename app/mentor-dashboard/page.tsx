@@ -2,16 +2,29 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
+import dynamicImport from "next/dynamic";
 import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
-import BookingList from "@/components/mentor-dashboard/BookingList";
-import MentorCalendar from "@/components/mentor/MentorCalendar";
-import EarningsDashboard from "@/components/mentor-dashboard/EarningsDashboard";
-import AnalyticsDashboard from "@/components/mentor-dashboard/AnalyticsDashboard";
 import ProfileCompletenessCard from "@/components/mentor/ProfileCompletenessCard";
 import StripeConnectButton from "@/components/mentor-dashboard/StripeConnectButton";
 import MentorDashboardTabs from "@/components/mentor-dashboard/MentorDashboardTabs";
-import MentorMessages from "@/components/mentor-dashboard/MentorMessages";
+
+// Lazy load heavy components
+const BookingList = dynamicImport(() => import("@/components/mentor-dashboard/BookingList"), {
+  loading: () => <div className="animate-pulse h-64 bg-white/5 rounded-lg" />,
+});
+const MentorCalendar = dynamicImport(() => import("@/components/mentor/MentorCalendar"), {
+  loading: () => <div className="animate-pulse h-96 bg-white/5 rounded-lg" />,
+});
+const EarningsDashboard = dynamicImport(() => import("@/components/mentor-dashboard/EarningsDashboard"), {
+  loading: () => <div className="animate-pulse h-64 bg-white/5 rounded-lg" />,
+});
+const AnalyticsDashboard = dynamicImport(() => import("@/components/mentor-dashboard/AnalyticsDashboard"), {
+  loading: () => <div className="animate-pulse h-64 bg-white/5 rounded-lg" />,
+});
+const MentorMessages = dynamicImport(() => import("@/components/mentor-dashboard/MentorMessages"), {
+  loading: () => <div className="animate-pulse h-64 bg-white/5 rounded-lg" />,
+});
 
 export const dynamic = "force-dynamic";
 

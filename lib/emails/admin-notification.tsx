@@ -152,6 +152,7 @@ export function AdminNotificationEmail({
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px", marginBottom: "16px" }}>
               {proofImages.map((url, index) => (
                 <a key={index} href={url} target="_blank" rel="noopener noreferrer" style={{ display: "block" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={url}
                     alt={`Proof ${index + 1}`}

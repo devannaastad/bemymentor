@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/common/Card";
 import { MessageSquare, Calendar, CreditCard, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Conversation {
   type: "booking" | "subscription";
@@ -159,9 +160,11 @@ export default function UserMessages() {
                     {/* Mentor Avatar */}
                     <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
                       {conversation.mentor.profileImage ? (
-                        <img
+                        <Image
                           src={conversation.mentor.profileImage}
                           alt={conversation.mentor.name}
+                          width={48}
+                          height={48}
                           className="h-full w-full object-cover"
                         />
                       ) : (

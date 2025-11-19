@@ -6,7 +6,7 @@ import { useTransition, useState, useEffect } from "react";
 export default function EnhancedFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   // Derive values directly from URL parameters
   const priceMaxParam = searchParams.get("priceMax");

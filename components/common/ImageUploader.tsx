@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { toast } from "@/components/common/Toast";
 import { Upload, X, Loader2 } from "lucide-react";
 import { useUploadThing } from "@/lib/uploadthing";
@@ -77,12 +78,13 @@ export default function ImageUploader({
       {/* Preview */}
       {previewUrl && (
         <div className="relative inline-block">
-          <img
+          <Image
             src={previewUrl}
             alt="Preview"
+            width={300}
+            height={192}
             className="max-h-48 rounded-lg border border-white/10 object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
+            onError={() => {
               setPreviewUrl(undefined);
             }}
           />

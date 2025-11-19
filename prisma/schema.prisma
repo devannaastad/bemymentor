@@ -236,6 +236,11 @@ model Mentor {
   @@index([category])
   @@index([isActive])
   @@index([isTrusted])
+  @@index([rating])
+  @@index([accessPrice])
+  @@index([hourlyRate])
+  @@index([category, isActive, rating]) // Composite index for catalog filtering
+  @@index([isActive, rating, reviews]) // Composite index for sorting by popularity
 }
 
 /**

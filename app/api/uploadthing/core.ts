@@ -19,14 +19,14 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Upload complete for email:", metadata.email);
-      console.log("file url", file.url);
+      console.log("file url", file.ufsUrl);
 
       await db.user.update({
         where: { email: metadata.email },
-        data: { image: file.url },
+        data: { image: file.ufsUrl },
       });
 
-      return { uploadedBy: metadata.email, url: file.url };
+      return { uploadedBy: metadata.email, url: file.ufsUrl };
     }),
 
   proofUploader: f({ image: { maxFileSize: "8MB", maxFileCount: 5 } })
@@ -35,8 +35,8 @@ export const ourFileRouter = {
       return { uploadType: "proof" };
     })
     .onUploadComplete(async ({ file }) => {
-      console.log("Proof image uploaded:", file.url);
-      return { url: file.url };
+      console.log("Proof image uploaded:", file.ufsUrl);
+      return { url: file.ufsUrl };
     }),
 
   imageUploader: f({ image: { maxFileSize: "4MB" } })
@@ -51,8 +51,8 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Image uploaded by:", metadata.email);
-      console.log("Image URL:", file.url);
-      return { uploadedBy: metadata.email, url: file.url };
+      console.log("Image URL:", file.ufsUrl);
+      return { uploadedBy: metadata.email, url: file.ufsUrl };
     }),
 } satisfies FileRouter;
 

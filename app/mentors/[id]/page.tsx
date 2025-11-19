@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { auth } from "@/auth";
+import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
 import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
@@ -12,6 +13,9 @@ import ReviewList from "@/components/reviews/ReviewList";
 import PortfolioSection, { type PortfolioItem } from "@/components/mentor/PortfolioSection";
 import VideoIntroSection from "@/components/mentor/VideoIntroSection";
 import { formatCurrency } from "@/lib/utils/format";
+
+// ISR: Revalidate every 5 minutes
+export const revalidate = 300;
 
 type Params = { id: string };
 
@@ -32,6 +36,50 @@ export async function generateMetadata({
   };
 }
 
+// Cached mentor data fetch
+const getMentorData = unstable_cache(
+  async (mentorId: string) => {
+    return db.mentor.findUnique({
+      where: { id: mentorId, isActive: true },
+      include: {
+        subscriptionPlans: {
+          where: { isActive: true },
+          orderBy: { price: "asc" },
+        },
+      },
+    });
+  },
+  ["mentor-data"],
+  { revalidate: 300, tags: ["mentor"] }
+);
+
+// Cached reviews fetch
+const getMentorReviews = unstable_cache(
+  async (mentorId: string) => {
+    return db.review.findMany({
+      where: { mentorId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        booking: {
+          select: {
+            type: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+  ["mentor-reviews"],
+  { revalidate: 60, tags: ["reviews"] }
+);
+
 export default async function MentorPage({
   params,
 }: {
@@ -40,15 +88,7 @@ export default async function MentorPage({
   const { id } = await params;
   const session = await auth();
 
-  const mentor = await db.mentor.findUnique({
-    where: { id, isActive: true },
-    include: {
-      subscriptionPlans: {
-        where: { isActive: true },
-        orderBy: { price: "asc" },
-      },
-    },
-  });
+  const mentor = await getMentorData(id);
 
   if (!mentor) notFound();
 
@@ -68,26 +108,8 @@ export default async function MentorPage({
     hasAccessPass = !!existingAccessPass;
   }
 
-  // Fetch reviews for this mentor
-  const reviews = await db.review.findMany({
-    where: { mentorId: id },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
-      },
-      booking: {
-        select: {
-          type: true,
-          createdAt: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  // Fetch reviews for this mentor (cached)
+  const reviews = await getMentorReviews(id);
 
   const badges = Array.isArray(mentor.badges) ? (mentor.badges as string[]) : [];
   const skills = Array.isArray(mentor.skills) ? (mentor.skills as string[]) : [];
