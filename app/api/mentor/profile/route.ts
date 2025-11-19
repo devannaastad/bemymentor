@@ -44,12 +44,28 @@ export async function PUT(req: NextRequest) {
     }
     if (body.offerType !== undefined) updateData.offerType = body.offerType;
     if (body.accessPrice !== undefined) {
+      const priceInDollars = parseFloat(body.accessPrice);
+      // Validate minimum price (Stripe requires at least $0.50)
+      if (priceInDollars < 0.50) {
+        return NextResponse.json(
+          { ok: false, error: "Access price must be at least $0.50 (Stripe requirement)" },
+          { status: 400 }
+        );
+      }
       // Convert dollars to cents
-      updateData.accessPrice = Math.round(body.accessPrice * 100);
+      updateData.accessPrice = Math.round(priceInDollars * 100);
     }
     if (body.hourlyRate !== undefined) {
+      const rateInDollars = parseFloat(body.hourlyRate);
+      // Validate minimum rate (Stripe requires at least $0.50)
+      if (rateInDollars < 0.50) {
+        return NextResponse.json(
+          { ok: false, error: "Hourly rate must be at least $0.50 (Stripe requirement)" },
+          { status: 400 }
+        );
+      }
       // Convert dollars to cents
-      updateData.hourlyRate = Math.round(body.hourlyRate * 100);
+      updateData.hourlyRate = Math.round(rateInDollars * 100);
     }
     if (body.socialLinks !== undefined) updateData.socialLinks = body.socialLinks;
 

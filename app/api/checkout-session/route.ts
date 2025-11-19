@@ -98,6 +98,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate minimum amount (Stripe requires at least $0.50 = 50 cents)
+    if (booking.totalPrice < 50) {
+      return NextResponse.json(
+        { ok: false, error: "Booking amount must be at least $0.50 (Stripe requirement)" },
+        { status: 400 }
+      );
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     // Create description based on booking type

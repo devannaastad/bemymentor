@@ -434,7 +434,7 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                 />
                 <p className="mt-1 text-xs text-white/50">
-                  Monthly subscription price for access pass holders
+                  Monthly subscription price for access pass holders (minimum $0.50)
                 </p>
               </div>
             )}
@@ -486,7 +486,7 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                 />
                 <p className="mt-1 text-xs text-white/50">
-                  Price per hour for 1-on-1 coaching sessions
+                  Price per hour for 1-on-1 coaching sessions (minimum $0.50)
                 </p>
               </div>
             )}

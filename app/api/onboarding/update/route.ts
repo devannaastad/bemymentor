@@ -76,6 +76,25 @@ export async function POST(req: NextRequest) {
 
       case 3:
         // Pricing & Offers
+        // Validate minimum prices (Stripe requires at least $0.50)
+        if (data.accessPrice !== undefined && data.accessPrice !== null) {
+          const accessPriceInCents = Number(data.accessPrice);
+          if (accessPriceInCents < 50) {
+            return NextResponse.json(
+              { ok: false, error: "Access price must be at least $0.50 (Stripe requirement)" },
+              { status: 400 }
+            );
+          }
+        }
+        if (data.hourlyRate !== undefined && data.hourlyRate !== null) {
+          const hourlyRateInCents = Number(data.hourlyRate);
+          if (hourlyRateInCents < 50) {
+            return NextResponse.json(
+              { ok: false, error: "Hourly rate must be at least $0.50 (Stripe requirement)" },
+              { status: 400 }
+            );
+          }
+        }
         updateData = {
           offerType: data.offerType as OfferType,
           accessPrice: data.accessPrice,

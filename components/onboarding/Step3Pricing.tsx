@@ -46,17 +46,17 @@ export default function Step3Pricing({
       return;
     }
 
-    // Validate pricing based on offer type
+    // Validate pricing based on offer type (Stripe requires minimum $0.50)
     if (offerType === "ACCESS" || offerType === "BOTH") {
-      if (!accessPrice || parseFloat(accessPrice) <= 0) {
-        setError("ACCESS pass price must be greater than $0");
+      if (!accessPrice || parseFloat(accessPrice) < 0.50) {
+        setError("ACCESS pass price must be at least $0.50 (Stripe requirement)");
         return;
       }
     }
 
     if (offerType === "TIME" || offerType === "BOTH") {
-      if (!hourlyRate || parseFloat(hourlyRate) <= 0) {
-        setError("Hourly rate must be greater than $0");
+      if (!hourlyRate || parseFloat(hourlyRate) < 0.50) {
+        setError("Hourly rate must be at least $0.50 (Stripe requirement)");
         return;
       }
     }
@@ -156,7 +156,7 @@ export default function Step3Pricing({
                     id="accessPrice"
                     type="number"
                     step="0.01"
-                    min="1"
+                    min="0.50"
                     value={accessPrice}
                     onChange={(e) => setAccessPrice(e.target.value)}
                     placeholder="49.99"
@@ -164,7 +164,7 @@ export default function Step3Pricing({
                   />
                 </div>
                 <p className="text-xs text-white/40 mt-1">
-                  One-time payment for ongoing access
+                  One-time payment for ongoing access (minimum $0.50)
                 </p>
               </div>
             )}
@@ -182,7 +182,7 @@ export default function Step3Pricing({
                     id="hourlyRate"
                     type="number"
                     step="0.01"
-                    min="1"
+                    min="0.50"
                     value={hourlyRate}
                     onChange={(e) => setHourlyRate(e.target.value)}
                     placeholder="99.99"
@@ -190,7 +190,7 @@ export default function Step3Pricing({
                   />
                 </div>
                 <p className="text-xs text-white/40 mt-1">
-                  Price per hour for 1-on-1 sessions
+                  Price per hour for 1-on-1 sessions (minimum $0.50)
                 </p>
               </div>
             )}
