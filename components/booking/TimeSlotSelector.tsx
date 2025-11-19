@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } from "date-fns-tz";
+import { toZonedTime, fromZonedTime, formatInTimeZone } from "date-fns-tz";
 import { getTimezoneAbbreviation, getUserTimezone } from "@/lib/utils/timezone";
 
 interface TimeSlotSelectorProps {
@@ -122,7 +122,7 @@ export default function TimeSlotSelector({
       mentorDateTime.setHours(hours, minutes, 0, 0);
 
       // Convert this local time in mentor's timezone to UTC
-      const utcDate = zonedTimeToUtc(mentorDateTime, fromTz);
+      const utcDate = fromZonedTime(mentorDateTime, fromTz);
 
       // Convert UTC to user's timezone and format as HH:mm
       const userTime = formatInTimeZone(utcDate, toTz, "HH:mm");
