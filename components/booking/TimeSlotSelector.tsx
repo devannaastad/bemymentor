@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { toZonedTime, fromZonedTime, formatInTimeZone } from "date-fns-tz";
+import { fromZonedTime, formatInTimeZone } from "date-fns-tz";
 import { getTimezoneAbbreviation, getUserTimezone } from "@/lib/utils/timezone";
 
 interface TimeSlotSelectorProps {
@@ -46,7 +46,6 @@ export default function TimeSlotSelector({
   const [slots, setSlots] = useState<ConvertedSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mentorTimezone, setMentorTimezone] = useState<string>("");
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -70,7 +69,6 @@ export default function TimeSlotSelector({
         if (data.data) {
           const mentorTz = data.data.timezone;
           const userTz = getUserTimezone();
-          setMentorTimezone(mentorTz);
 
           // Convert each slot from mentor's timezone to user's timezone
           const convertedSlots: ConvertedSlot[] = data.data.slots.map((slot) => {
