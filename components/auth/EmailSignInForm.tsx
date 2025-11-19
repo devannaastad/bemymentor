@@ -101,7 +101,7 @@ export default function EmailSignInForm({ callbackUrl }: EmailSignInFormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2.5 text-white placeholder:text-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              className="w-full rounded-lg border border-white/10 bg-dark-800 px-4 py-2.5 text-white placeholder:text-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
               placeholder="you@example.com"
             />
           </div>
@@ -118,13 +118,13 @@ export default function EmailSignInForm({ callbackUrl }: EmailSignInFormProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2.5 pr-12 text-white placeholder:text-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                className="w-full rounded-lg border border-white/10 bg-dark-800 px-4 py-2.5 pr-12 text-white placeholder:text-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                 placeholder="••••••••"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white/90 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
@@ -149,7 +149,7 @@ export default function EmailSignInForm({ callbackUrl }: EmailSignInFormProps) {
             maxLength={6}
             required
             autoFocus
-            className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-center text-2xl tracking-widest text-white placeholder:text-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+            className="w-full rounded-lg border border-white/10 bg-dark-800 px-4 py-3 text-center text-2xl tracking-widest text-white placeholder:text-white/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
             placeholder="000000"
           />
           <p className="mt-2 text-xs text-white/60">
