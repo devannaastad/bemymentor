@@ -173,8 +173,8 @@ export default function UserMessages() {
                         </div>
                       )}
                       {conversation.unreadCount > 0 && (
-                        <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white shadow-lg shadow-amber-500/50">
-                          {conversation.unreadCount}
+                        <div className="absolute -right-1 -top-1">
+                          <div className="h-3 w-3 rounded-full bg-yellow-400 shadow-lg shadow-yellow-400/50 animate-pulse" />
                         </div>
                       )}
                     </div>
