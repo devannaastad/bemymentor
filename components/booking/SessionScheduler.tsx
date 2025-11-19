@@ -17,10 +17,17 @@ export default function SessionScheduler({
   onSchedule,
   hourlyRate,
 }: SessionSchedulerProps) {
+  // Calculate if 30 minutes would be below minimum ($0.50 = 50 cents)
+  const thirtyMinPriceInCents = Math.round((hourlyRate / 60) * 30);
+  const is30MinBelowMinimum = thirtyMinPriceInCents < 50;
+
+  // Default to 60 minutes if 30 minutes is below minimum
+  const defaultDuration = is30MinBelowMinimum ? 60 : 30;
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [, setSelectedIsFreeSession] = useState<boolean>(false);
-  const [duration, setDuration] = useState<number>(60);
+  const [duration, setDuration] = useState<number>(defaultDuration);
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
@@ -66,22 +73,37 @@ export default function SessionScheduler({
           {[30, 60, 90, 120].map((dur) => {
             // hourlyRate is in cents, convert to dollars
             const price = ((hourlyRate / 100) / 60 * dur).toFixed(2);
+            const priceInCents = Math.round((hourlyRate / 60) * dur);
+
+            // Disable 30min if it would be below Stripe's $0.50 minimum
+            const isBelowMinimum = priceInCents < 50;
+            const isDisabled = dur === 30 && isBelowMinimum;
+
             return (
               <button
                 key={dur}
                 type="button"
-                onClick={() => handleDurationChange(dur)}
+                onClick={() => !isDisabled && handleDurationChange(dur)}
+                disabled={isDisabled}
                 className={`
-                  rounded-lg border p-3 text-left transition
+                  rounded-lg border p-3 text-left transition relative
                   ${
-                    duration === dur
+                    isDisabled
+                      ? "border-white/10 bg-white/5 opacity-50 cursor-not-allowed"
+                      : duration === dur
                       ? "border-purple-500 bg-purple-600/20 ring-2 ring-purple-400"
                       : "border-white/20 bg-white/5 hover:bg-white/10"
                   }
                 `}
+                title={isDisabled ? "Minimum booking price is $0.50" : undefined}
               >
-                <div className="text-sm font-semibold">{dur} min</div>
+                <div className={`text-sm font-semibold ${isDisabled ? 'line-through' : ''}`}>
+                  {dur} min
+                </div>
                 <div className="text-xs text-white/60">${price}</div>
+                {isDisabled && (
+                  <div className="text-xs text-red-400 mt-1">Below minimum</div>
+                )}
               </button>
             );
           })}

@@ -18,6 +18,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [isMentor, setIsMentor] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const username =
     (session?.user?.name && session.user.name.trim()) ||
@@ -39,6 +40,11 @@ export default function Navbar() {
         .catch(console.error);
     }
   }, [status]);
+
+  // Reset image error when avatar changes
+  useEffect(() => {
+    setImageError(false);
+  }, [session?.user?.image]);
 
   const items: NavItem[] = [
     { label: "Home", href: "/" },
@@ -124,8 +130,18 @@ export default function Navbar() {
                     aria-label="Account menu"
                   >
                     <div className="relative h-8 w-8 overflow-hidden rounded-full bg-white/10">
-                      {avatar ? (
-                        <Image src={avatar} alt="Avatar" fill sizes="32px" className="object-cover" />
+                      {avatar && !imageError ? (
+                        <Image
+                          src={avatar}
+                          alt="Avatar"
+                          fill
+                          sizes="32px"
+                          className="object-cover"
+                          unoptimized={avatar.includes('utfs.io')}
+                          onError={() => {
+                            setImageError(true);
+                          }}
+                        />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs text-neutral-300">
                           {username.slice(0, 2).toUpperCase()}
