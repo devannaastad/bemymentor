@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } from "date-fns-tz";
 import { getTimezoneAbbreviation, getUserTimezone } from "@/lib/utils/timezone";
 
 interface TimeSlotSelectorProps {
@@ -25,9 +26,14 @@ interface AvailableSlotsResponse {
     date: string;
     duration: number;
     slots: TimeSlot[];
-    timezone: string;
+    timezone: string; // Mentor's timezone
   };
   error?: string;
+}
+
+interface ConvertedSlot extends TimeSlot {
+  originalTime: string; // Original time in mentor's timezone (for booking)
+  displayTime: string; // Converted time in user's timezone (for display)
 }
 
 export default function TimeSlotSelector({
@@ -37,9 +43,10 @@ export default function TimeSlotSelector({
   selectedTime,
   onSelectTime,
 }: TimeSlotSelectorProps) {
-  const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [slots, setSlots] = useState<ConvertedSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mentorTimezone, setMentorTimezone] = useState<string>("");
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -61,7 +68,27 @@ export default function TimeSlotSelector({
         }
 
         if (data.data) {
-          setSlots(data.data.slots);
+          const mentorTz = data.data.timezone;
+          const userTz = getUserTimezone();
+          setMentorTimezone(mentorTz);
+
+          // Convert each slot from mentor's timezone to user's timezone
+          const convertedSlots: ConvertedSlot[] = data.data.slots.map((slot) => {
+            const displayTime = convertTimeToUserTimezone(
+              slot.time,
+              selectedDate,
+              mentorTz,
+              userTz
+            );
+
+            return {
+              ...slot,
+              originalTime: slot.time, // Keep original for booking
+              displayTime, // Converted for display
+            };
+          });
+
+          setSlots(convertedSlots);
         }
       } catch (err) {
         console.error("Error fetching slots:", err);
@@ -74,6 +101,38 @@ export default function TimeSlotSelector({
 
     fetchSlots();
   }, [mentorId, selectedDate, duration]);
+
+  // Convert time from mentor's timezone to user's timezone
+  const convertTimeToUserTimezone = (
+    time: string,
+    date: Date,
+    fromTz: string,
+    toTz: string
+  ): string => {
+    // If same timezone, no conversion needed
+    if (fromTz === toTz) {
+      return time;
+    }
+
+    try {
+      const [hours, minutes] = time.split(":").map(Number);
+
+      // Create a date object in the mentor's timezone
+      const mentorDateTime = new Date(date);
+      mentorDateTime.setHours(hours, minutes, 0, 0);
+
+      // Convert this local time in mentor's timezone to UTC
+      const utcDate = zonedTimeToUtc(mentorDateTime, fromTz);
+
+      // Convert UTC to user's timezone and format as HH:mm
+      const userTime = formatInTimeZone(utcDate, toTz, "HH:mm");
+
+      return userTime;
+    } catch (error) {
+      console.error("Timezone conversion error:", error);
+      return time; // Fallback to original time
+    }
+  };
 
   const formatTimeDisplay = (time: string) => {
     // Convert "09:00" to "9:00 AM"
@@ -126,13 +185,13 @@ export default function TimeSlotSelector({
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
         {slots.map((slot) => {
-          const isSelected = selectedTime === slot.time;
+          const isSelected = selectedTime === slot.originalTime;
           const isDisabled = slot.isPast || slot.isBooked;
 
           return (
             <button
-              key={slot.time}
-              onClick={() => !isDisabled && onSelectTime(slot.time, slot.isFreeSession)}
+              key={slot.originalTime}
+              onClick={() => !isDisabled && onSelectTime(slot.originalTime, slot.isFreeSession)}
               disabled={isDisabled}
               className={`
                 rounded-lg border px-4 py-3 text-sm font-medium transition-all relative
@@ -150,7 +209,7 @@ export default function TimeSlotSelector({
               `}
             >
               <div className={isDisabled ? "line-through" : ""}>
-                {formatTimeDisplay(slot.time)}
+                {formatTimeDisplay(slot.displayTime)}
               </div>
               {slot.isFreeSession && !isDisabled && (
                 <div className="text-xs mt-1 font-semibold text-pink-300">

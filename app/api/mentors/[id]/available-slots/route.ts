@@ -162,8 +162,16 @@ export async function GET(
 
         // Add slot if not blocked - include past times and booked times but mark them
         if (!isBlocked) {
+          // Format time in mentor's timezone
+          const timeInMentorTz = currentSlotStart.toLocaleTimeString("en-US", {
+            timeZone: mentorTimezone,
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+
           slots.push({
-            time: format(currentSlotStart, "HH:mm"),
+            time: timeInMentorTz,
             isFreeSession: avail.isFreeSession,
             isPast: isPastTime,
             isBooked: isBooked,
