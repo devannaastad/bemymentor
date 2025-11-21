@@ -143,7 +143,7 @@ export async function GET(req: Request) {
         include: {
           subscriptionPlans: {
             where: { isActive: true },
-            orderBy: { pricePerInterval: 'asc' },
+            orderBy: { price: 'asc' },
           },
         },
       }),

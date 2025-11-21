@@ -28,11 +28,6 @@ export default function MentorCard({ m }: { m: MentorWithSubscriptions }) {
     toggle(m.id);
   };
 
-  // Calculate starting price
-  const startingPrice = m.offerType === "ACCESS" && m.accessPrice
-    ? m.accessPrice
-    : m.hourlyRate || m.accessPrice || 0;
-
   // Get cheapest subscription plan if available
   const cheapestSubscription = m.subscriptionPlans?.[0]; // Already sorted by price in API
   const hasSubscription = !!cheapestSubscription;
@@ -163,7 +158,7 @@ export default function MentorCard({ m }: { m: MentorWithSubscriptions }) {
                   </div>
                   <div className="flex items-baseline gap-1">
                     <p className="text-2xl font-bold text-primary-400">
-                      {formatCurrency(cheapestSubscription.pricePerInterval)}
+                      {formatCurrency(cheapestSubscription.price)}
                     </p>
                     <span className="text-xs text-white/60">
                       /{cheapestSubscription.interval.toLowerCase()}
