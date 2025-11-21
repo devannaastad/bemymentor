@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendSessionReminder } from "@/lib/email";
 import { format, addMinutes } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 export const runtime = "nodejs";
 
@@ -48,6 +49,7 @@ export async function GET(req: NextRequest) {
             id: true,
             name: true,
             userId: true,
+            timezone: true,
           },
         },
         user: {
@@ -55,6 +57,7 @@ export async function GET(req: NextRequest) {
             id: true,
             name: true,
             email: true,
+            timezone: true,
           },
         },
       },
@@ -76,25 +79,35 @@ export async function GET(req: NextRequest) {
           continue;
         }
 
-        const sessionDate = format(booking.scheduledAt!, "EEEE, MMMM d, yyyy");
-        const sessionTime = format(booking.scheduledAt!, "h:mm a");
         const durationMinutes = booking.durationMinutes || 60;
 
-        // Send email to student
+        // Convert times to user timezones
+        const studentTimezone = booking.user.timezone || "America/New_York";
+        const mentorTimezone = booking.mentor.timezone || "America/New_York";
+
+        const studentSessionTime = toZonedTime(booking.scheduledAt!, studentTimezone);
+        const mentorSessionTime = toZonedTime(booking.scheduledAt!, mentorTimezone);
+
+        const studentSessionTimeStr = format(studentSessionTime, "h:mm a");
+        const mentorSessionTimeStr = format(mentorSessionTime, "h:mm a");
+
+        const sessionDate = format(booking.scheduledAt!, "EEEE, MMMM d, yyyy");
+
+        // Send email to student (using student's timezone)
         await sendSessionReminder({
           to: booking.user.email,
           recipientName: booking.user.name || "there",
           mentorName: booking.mentor.name,
           studentName: booking.user.name || booking.user.email,
           sessionDate,
-          sessionTime,
+          sessionTime: studentSessionTimeStr,
           durationMinutes,
           meetingLink: booking.meetingLink || undefined,
           bookingId: booking.id,
           isMentor: false,
         });
 
-        // Send email to mentor (get mentor's email)
+        // Send email to mentor (get mentor's email, using mentor's timezone)
         const mentorUser = await db.user.findUnique({
           where: { id: booking.mentor.userId },
           select: { email: true, name: true },
@@ -107,7 +120,7 @@ export async function GET(req: NextRequest) {
             mentorName: booking.mentor.name,
             studentName: booking.user.name || booking.user.email,
             sessionDate,
-            sessionTime,
+            sessionTime: mentorSessionTimeStr,
             durationMinutes,
             meetingLink: booking.meetingLink || undefined,
             bookingId: booking.id,
@@ -115,24 +128,24 @@ export async function GET(req: NextRequest) {
           });
         }
 
-        // Create in-app notifications
+        // Create in-app notifications (each with their own timezone)
         await db.notification.createMany({
           data: [
-            // Student notification
+            // Student notification (using student's timezone)
             {
               userId: booking.userId,
               type: "SESSION_REMINDER_15MIN",
               title: "Session starting soon!",
-              message: `Your session with ${booking.mentor.name} starts in 15 minutes at ${sessionTime}`,
+              message: `Your session with ${booking.mentor.name} starts in 15 minutes at ${studentSessionTimeStr}`,
               link: `/bookings/${booking.id}/confirm`,
               bookingId: booking.id,
             },
-            // Mentor notification
+            // Mentor notification (using mentor's timezone)
             {
               userId: booking.mentor.userId,
               type: "SESSION_REMINDER_15MIN",
               title: "Session starting soon!",
-              message: `Your session with ${booking.user.name || "a student"} starts in 15 minutes at ${sessionTime}`,
+              message: `Your session with ${booking.user.name || "a student"} starts in 15 minutes at ${mentorSessionTimeStr}`,
               link: `/mentor-dashboard`,
               bookingId: booking.id,
             },

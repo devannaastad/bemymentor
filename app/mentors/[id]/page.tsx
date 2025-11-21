@@ -72,6 +72,12 @@ const getMentorReviews = unstable_cache(
             createdAt: true,
           },
         },
+        subscription: {
+          select: {
+            id: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });

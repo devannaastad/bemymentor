@@ -360,27 +360,41 @@ model Booking {
   @@index([payoutStatus])
 }
 
+enum ReviewType {
+  SESSION           // Review for a live 1-on-1 session
+  CONTENT_PASS     // Review for a content pass purchase
+  SUBSCRIPTION     // Review for a subscription
+}
+
 /**
- * Reviews - user reviews for mentors (only after completed bookings)
+ * Reviews - user reviews for mentors (for sessions, content passes, and subscriptions)
  */
 model Review {
-  id                String   @id @default(cuid())
-  bookingId         String   @unique // One review per booking
-  userId            String   // Who wrote the review
-  mentorId          String   // Who is being reviewed
-  rating            Int      // 1-5 stars
-  comment           String?  @db.Text // Optional review text
-  isVerifiedPurchase Boolean @default(true) // Always true if tied to booking
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                String     @id @default(cuid())
+  type              ReviewType // What type of product is being reviewed
+  userId            String     // Who wrote the review
+  mentorId          String     // Who is being reviewed
+  rating            Int        // 1-5 stars
+  comment           String?    @db.Text // Optional review text
+  isVerifiedPurchase Boolean   @default(true) // Always true if tied to purchase
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mentor  Mentor  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  // Product references (only one will be set based on type)
+  bookingId         String?    @unique // For SESSION and CONTENT_PASS reviews (bookings track both)
+  subscriptionId    String?    // For SUBSCRIPTION reviews (can have multiple reviews over time)
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentor       Mentor             @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  booking      Booking?           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  subscription UserSubscription?  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([mentorId])
   @@index([bookingId])
+  @@index([subscriptionId])
+  @@index([type])
   @@index([createdAt])
 }
 /**
@@ -579,6 +593,9 @@ model UserSubscription {
   cancelledAt       DateTime?
   cancellationReason String?           @db.Text
 
+  // Review reminder tracking
+  lastReviewReminderSentAt DateTime? // When the last review reminder was sent (prevent spam)
+
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -588,6 +605,9 @@ model UserSubscription {
 
   // back-relation: messages for this subscription
   messages          Message[]
+
+  // back-relation: reviews for this subscription
+  reviews           Review[]
 
   @@index([userId])
   @@index([mentorId])

@@ -313,6 +313,7 @@ async function main() {
       // Create review
       await db.review.create({
         data: {
+          type: "SESSION",
           userId: reviewer.id,
           mentorId: mentor.id,
           bookingId: booking.id,

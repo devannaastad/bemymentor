@@ -38,6 +38,12 @@ export async function GET(req: NextRequest) {
             createdAt: true,
           },
         },
+        subscription: {
+          select: {
+            id: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -85,40 +91,135 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { bookingId, rating, comment } = validation.data;
+    const { type, bookingId, subscriptionId, rating, comment } = validation.data;
 
-    // Verify booking exists, belongs to user, and is completed
-    const booking = await db.booking.findUnique({
-      where: { id: bookingId },
-      include: {
-        review: true, // Check if review already exists
-      },
-    });
+    let mentorId: string;
+    let existingReview = null;
 
-    if (!booking) {
-      return NextResponse.json(
-        { ok: false, error: "Booking not found" },
-        { status: 404 }
-      );
+    // Handle SESSION and CONTENT_PASS reviews (both use bookingId)
+    if (type === "SESSION" || type === "CONTENT_PASS") {
+      if (!bookingId) {
+        return NextResponse.json(
+          { ok: false, error: "bookingId is required for SESSION and CONTENT_PASS reviews" },
+          { status: 400 }
+        );
+      }
+
+      const booking = await db.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+          review: true, // Check if review already exists
+        },
+      });
+
+      if (!booking) {
+        return NextResponse.json(
+          { ok: false, error: "Booking not found" },
+          { status: 404 }
+        );
+      }
+
+      if (booking.userId !== user.id) {
+        return NextResponse.json(
+          { ok: false, error: "You can only review your own purchases" },
+          { status: 403 }
+        );
+      }
+
+      // For SESSION reviews, check if completed
+      if (type === "SESSION" && booking.status !== "COMPLETED") {
+        return NextResponse.json(
+          { ok: false, error: "You can only review completed sessions" },
+          { status: 400 }
+        );
+      }
+
+      // For CONTENT_PASS reviews, check if it's actually a content pass booking
+      if (type === "CONTENT_PASS" && booking.type !== "ACCESS") {
+        return NextResponse.json(
+          { ok: false, error: "This booking is not a content pass purchase" },
+          { status: 400 }
+        );
+      }
+
+      // For SESSION reviews, check if it's actually a session booking
+      if (type === "SESSION" && booking.type !== "SESSION") {
+        return NextResponse.json(
+          { ok: false, error: "This booking is not a session" },
+          { status: 400 }
+        );
+      }
+
+      existingReview = booking.review;
+      mentorId = booking.mentorId;
     }
+    // Handle SUBSCRIPTION reviews
+    else if (type === "SUBSCRIPTION") {
+      if (!subscriptionId) {
+        return NextResponse.json(
+          { ok: false, error: "subscriptionId is required for SUBSCRIPTION reviews" },
+          { status: 400 }
+        );
+      }
 
-    if (booking.userId !== user.id) {
-      return NextResponse.json(
-        { ok: false, error: "You can only review your own bookings" },
-        { status: 403 }
-      );
-    }
+      const subscription = await db.userSubscription.findUnique({
+        where: { id: subscriptionId },
+        include: {
+          reviews: {
+            where: { userId: user.id },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      });
 
-    if (booking.status !== "COMPLETED") {
+      if (!subscription) {
+        return NextResponse.json(
+          { ok: false, error: "Subscription not found" },
+          { status: 404 }
+        );
+      }
+
+      if (subscription.userId !== user.id) {
+        return NextResponse.json(
+          { ok: false, error: "You can only review your own subscriptions" },
+          { status: 403 }
+        );
+      }
+
+      if (subscription.status !== "ACTIVE") {
+        return NextResponse.json(
+          { ok: false, error: "You can only review active subscriptions" },
+          { status: 400 }
+        );
+      }
+
+      // Check if user already reviewed this subscription in the last 30 days
+      if (subscription.reviews.length > 0) {
+        const lastReview = subscription.reviews[0];
+        const daysSinceLastReview = Math.floor(
+          (Date.now() - lastReview.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (daysSinceLastReview < 30) {
+          return NextResponse.json(
+            { ok: false, error: `You can review this subscription again in ${30 - daysSinceLastReview} days` },
+            { status: 400 }
+          );
+        }
+      }
+
+      mentorId = subscription.mentorId;
+    } else {
       return NextResponse.json(
-        { ok: false, error: "You can only review completed bookings" },
+        { ok: false, error: "Invalid review type" },
         { status: 400 }
       );
     }
 
-    if (booking.review) {
+    // Check if review already exists (for SESSION and CONTENT_PASS only)
+    if (existingReview) {
       return NextResponse.json(
-        { ok: false, error: "You have already reviewed this booking" },
+        { ok: false, error: "You have already reviewed this purchase" },
         { status: 400 }
       );
     }
@@ -126,9 +227,11 @@ export async function POST(req: NextRequest) {
     // Create the review
     const review = await db.review.create({
       data: {
-        bookingId,
+        type,
+        bookingId: bookingId || null,
+        subscriptionId: subscriptionId || null,
         userId: user.id,
-        mentorId: booking.mentorId,
+        mentorId,
         rating,
         comment: comment || null,
         isVerifiedPurchase: true,
@@ -145,7 +248,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Update mentor's rating and review count
-    await updateMentorRating(booking.mentorId);
+    await updateMentorRating(mentorId);
 
     console.log("[api/reviews] Created review:", review.id);
 

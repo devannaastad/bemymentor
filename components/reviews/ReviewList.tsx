@@ -4,6 +4,7 @@ import Image from "next/image";
 
 interface Review {
   id: string;
+  type: "SESSION" | "CONTENT_PASS" | "SUBSCRIPTION";
   rating: number;
   comment: string | null;
   isVerifiedPurchase: boolean;
@@ -13,10 +14,14 @@ interface Review {
     name: string | null;
     image: string | null;
   };
-  booking: {
+  booking?: {
     type: string;
     createdAt: Date;
-  };
+  } | null;
+  subscription?: {
+    id: string;
+    createdAt: Date;
+  } | null;
 }
 
 interface ReviewListProps {
@@ -107,10 +112,12 @@ export default function ReviewList({ reviews }: ReviewListProps) {
                 </p>
               )}
 
-              {/* Booking Type Badge */}
+              {/* Review Type Badge */}
               <div className="mt-3">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/60">
-                  {review.booking.type === "SESSION" ? "Session" : "Access"} booking
+                  {review.type === "SESSION" && "Session"}
+                  {review.type === "CONTENT_PASS" && "Content Pass"}
+                  {review.type === "SUBSCRIPTION" && "Subscription"}
                 </span>
               </div>
             </div>
