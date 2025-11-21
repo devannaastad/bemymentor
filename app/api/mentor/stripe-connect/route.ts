@@ -93,20 +93,39 @@ export async function POST() {
           });
         }
       } catch (accountError) {
-        // If account doesn't exist or we don't have access, clear it and create a new one
         const errorMessage = accountError instanceof Error ? accountError.message : String(accountError);
-        console.error("[stripe-connect] Invalid Stripe account, clearing:", mentor.stripeConnectId, errorMessage);
+        console.error("[stripe-connect] Error checking Stripe account:", mentor.stripeConnectId, errorMessage);
 
-        // Clear invalid account ID
-        await db.mentor.update({
-          where: { id: mentor.id },
-          data: {
-            stripeConnectId: null,
-            stripeOnboarded: false,
-          },
-        });
+        // Only clear the account ID if it's actually invalid (404, doesn't exist)
+        // Don't clear for temporary errors like network issues, rate limits, etc.
+        const shouldClearAccount =
+          errorMessage.includes("No such account") ||
+          errorMessage.includes("does not exist") ||
+          errorMessage.includes("resource_missing") ||
+          errorMessage.includes("account_invalid");
 
-        // Fall through to create new account below
+        if (shouldClearAccount) {
+          console.log("[stripe-connect] Account truly invalid, clearing:", mentor.stripeConnectId);
+          await db.mentor.update({
+            where: { id: mentor.id },
+            data: {
+              stripeConnectId: null,
+              stripeOnboarded: false,
+            },
+          });
+          // Fall through to create new account below
+        } else {
+          // For other errors (API issues, rate limits, etc.), return error instead of creating new account
+          console.error("[stripe-connect] Temporary error, not creating new account");
+          return NextResponse.json(
+            {
+              ok: false,
+              error: "Unable to access Stripe account. Please try again in a moment.",
+              temporary: true
+            },
+            { status: 503 }
+          );
+        }
       }
     }
 
@@ -227,25 +246,44 @@ export async function GET() {
         },
       });
     } catch (accountError) {
-      // If account doesn't exist or we don't have access, clear it
       const errorMessage = accountError instanceof Error ? accountError.message : String(accountError);
-      console.error("[stripe-connect] Invalid Stripe account in GET, clearing:", mentor.stripeConnectId, errorMessage);
+      console.error("[stripe-connect] Error checking Stripe account in GET:", mentor.stripeConnectId, errorMessage);
 
-      await db.mentor.update({
-        where: { id: mentor.id },
-        data: {
-          stripeConnectId: null,
-          stripeOnboarded: false,
-        },
-      });
+      // Only clear the account ID if it's actually invalid (404, doesn't exist)
+      const shouldClearAccount =
+        errorMessage.includes("No such account") ||
+        errorMessage.includes("does not exist") ||
+        errorMessage.includes("resource_missing") ||
+        errorMessage.includes("account_invalid");
 
-      return NextResponse.json({
-        ok: true,
-        data: {
-          hasAccount: false,
-          isOnboarded: false,
-        },
-      });
+      if (shouldClearAccount) {
+        console.log("[stripe-connect] Account truly invalid in GET, clearing:", mentor.stripeConnectId);
+        await db.mentor.update({
+          where: { id: mentor.id },
+          data: {
+            stripeConnectId: null,
+            stripeOnboarded: false,
+          },
+        });
+
+        return NextResponse.json({
+          ok: true,
+          data: {
+            hasAccount: false,
+            isOnboarded: false,
+          },
+        });
+      } else {
+        // For temporary errors, still return the account exists but with error info
+        return NextResponse.json({
+          ok: true,
+          data: {
+            hasAccount: true,
+            isOnboarded: mentor.stripeOnboarded || false,
+            error: "Temporary error checking account status",
+          },
+        });
+      }
     }
   } catch (error) {
     console.error("[stripe-connect] GET error:", error);
