@@ -140,6 +140,12 @@ export async function GET(req: Request) {
         orderBy,
         skip,
         take: limit,
+        include: {
+          subscriptionPlans: {
+            where: { isActive: true },
+            orderBy: { pricePerInterval: 'asc' },
+          },
+        },
       }),
       prisma.mentor.count({ where }),
     ]);

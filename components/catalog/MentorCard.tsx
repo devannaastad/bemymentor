@@ -7,10 +7,14 @@ import { Card, CardContent } from "@/components/common/Card";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import { formatCurrency } from "@/lib/utils/format";
-import type { Mentor } from "@prisma/client";
+import type { Mentor, SubscriptionPlan } from "@prisma/client";
 import { useSaved } from "./useSaved";
 
-export default function MentorCard({ m }: { m: Mentor }) {
+type MentorWithSubscriptions = Mentor & {
+  subscriptionPlans?: SubscriptionPlan[];
+};
+
+export default function MentorCard({ m }: { m: MentorWithSubscriptions }) {
   const { isSaved, toggle } = useSaved();
 
   const saved = isSaved(m.id);
@@ -28,6 +32,10 @@ export default function MentorCard({ m }: { m: Mentor }) {
   const startingPrice = m.offerType === "ACCESS" && m.accessPrice
     ? m.accessPrice
     : m.hourlyRate || m.accessPrice || 0;
+
+  // Get cheapest subscription plan if available
+  const cheapestSubscription = m.subscriptionPlans?.[0]; // Already sorted by price in API
+  const hasSubscription = !!cheapestSubscription;
 
   return (
     <Card className="hover:border-primary-500/30 transition-colors relative">
@@ -106,44 +114,60 @@ export default function MentorCard({ m }: { m: Mentor }) {
               </div>
             )}
 
-            {/* Pricing - Show both prices if available */}
-            <div className="flex items-start gap-6 mt-2 pt-3 border-t border-white/10">
-              {m.offerType === "BOTH" ? (
-                <>
-                  {/* Session Price */}
-                  {m.hourlyRate != null && (
-                    <div>
-                      <span className="text-white/60 text-xs uppercase tracking-wide">Session</span>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-2xl font-bold text-primary-400">
-                          {formatCurrency(m.hourlyRate)}
-                        </p>
-                        <span className="text-xs text-white/60">/hr</span>
-                      </div>
-                    </div>
-                  )}
-                  {/* Access Price */}
-                  {m.accessPrice != null && (
-                    <div>
-                      <span className="text-white/60 text-xs uppercase tracking-wide">Access Pass</span>
-                      <p className="text-2xl font-bold text-primary-400">
-                        {formatCurrency(m.accessPrice)}
-                      </p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div>
-                  <span className="text-white/60 text-xs uppercase tracking-wide">
-                    {m.offerType === "ACCESS" ? "Access Pass" : "Session"}
-                  </span>
+            {/* Pricing - Show all available pricing options */}
+            <div className="flex items-start gap-4 mt-2 pt-3 border-t border-white/10 flex-wrap">
+              {/* Session Price */}
+              {(m.offerType === "TIME" || m.offerType === "BOTH") && m.hourlyRate != null && (
+                <div className="flex-1 min-w-[140px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <svg className="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-white/60 text-xs uppercase tracking-wide font-medium">Live Session</span>
+                  </div>
                   <div className="flex items-baseline gap-1">
                     <p className="text-2xl font-bold text-primary-400">
-                      {formatCurrency(startingPrice)}
+                      {formatCurrency(m.hourlyRate)}
                     </p>
-                    {m.offerType === "TIME" && (
-                      <span className="text-xs text-white/60">/hr</span>
-                    )}
+                    <span className="text-xs text-white/60">/hour</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Access Price */}
+              {(m.offerType === "ACCESS" || m.offerType === "BOTH") && m.accessPrice != null && (
+                <div className="flex-1 min-w-[140px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span className="text-white/60 text-xs uppercase tracking-wide font-medium">Content Pass</span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <p className="text-2xl font-bold text-primary-400">
+                      {formatCurrency(m.accessPrice)}
+                    </p>
+                    <span className="text-xs text-white/60">one-time</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Subscription Price */}
+              {hasSubscription && cheapestSubscription && (
+                <div className="flex-1 min-w-[140px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span className="text-white/60 text-xs uppercase tracking-wide font-medium">Subscription</span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <p className="text-2xl font-bold text-primary-400">
+                      {formatCurrency(cheapestSubscription.pricePerInterval)}
+                    </p>
+                    <span className="text-xs text-white/60">
+                      /{cheapestSubscription.interval.toLowerCase()}
+                    </span>
                   </div>
                 </div>
               )}

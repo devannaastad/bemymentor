@@ -10,16 +10,16 @@ const QA = [
     a: "Every mentor submits proof of expertise (portfolios, rank screenshots, sample work) and completes KYC verification through Stripe Connect. Our team manually reviews each application to ensure quality before approval. Only verified, legitimate experts make it onto our platform.",
   },
   {
-    q: "What's the difference between ACCESS and TIME?",
-    a: "ACCESS passes give you lifetime access to a mentor's exclusive content - Discord servers, guides, resources, and community. TIME bookings are live 1-on-1 coaching sessions scheduled at a specific time. Choose ACCESS for ongoing learning, or TIME for personalized coaching.",
+    q: "What's the difference between Content Pass, Subscriptions, and Live Sessions?",
+    a: "Content Pass gives you lifetime access to a mentor's exclusive materials - Discord communities, guides, courses, and resources. You pay once and keep access forever. Subscriptions provide ongoing access to evolving content with regular updates - you pay monthly/weekly for continuous engagement. Live Sessions are scheduled 1-on-1 video coaching calls where you get personalized feedback and advice. Choose Content Pass for one-time access, Subscriptions for active learning with regular updates, or Live Sessions for direct coaching.",
   },
   {
     q: "What's your refund policy?",
-    a: "For ACCESS passes: You have 24 hours to request a refund if you haven't accessed the content. For TIME sessions: Cancel up to 24 hours before your session for a full refund. If a session doesn't happen as agreed, you can dispute within 24 hours for a full refund. We protect both students and mentors.",
+    a: "For Content Passes: You have 24 hours to request a refund if you haven't accessed the content yet. For Subscriptions: You can cancel anytime, and you'll retain access until the end of your billing period. For Live Sessions: Cancel up to 24 hours before your scheduled time for a full refund. If a session doesn't happen as agreed, you can dispute within 24 hours for a full refund. We protect both students and mentors.",
   },
   {
     q: "How do mentors get paid?",
-    a: "Mentors keep 85% of every sale - one of the highest rates in the industry. For new mentors (under 5 verified bookings), payouts are held for 7 days as an anti-fraud measure. Once you become a trusted mentor, you get instant payouts after students confirm session completion.",
+    a: "Mentors keep 85% of every sale - one of the highest rates in the industry. For new mentors (under 5 verified purchases), payouts are held for 7 days as an anti-fraud measure. Once you become a trusted mentor, you get instant payouts after students confirm their purchase or session completion.",
   },
   {
     q: "Can I save my favorite mentors?",

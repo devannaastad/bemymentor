@@ -330,13 +330,13 @@ export default function ApplyForm() {
           What do you want to offer? <span className="text-rose-400">*</span>
         </label>
         <Select id="offerType" {...register("offerType")}>
-          <option value="ACCESS">📚 ACCESS - Digital product (guide, course, community)</option>
-          <option value="TIME">🎯 TIME - Live 1-on-1 sessions</option>
-          <option value="BOTH">⚡ BOTH - Digital product + live sessions</option>
+          <option value="ACCESS">📚 Content Pass - Guides, Discord, resources (one-time fee)</option>
+          <option value="TIME">🎯 Live Sessions - 1-on-1 video coaching (pay per hour)</option>
+          <option value="BOTH">⚡ Both - Content + live sessions</option>
         </Select>
         {errors.offerType?.message && <FormFieldError error={errors.offerType.message} />}
         <p className="mt-2 text-sm text-white/50">
-          Choose what best fits your teaching style
+          Content Pass = lifetime access to your materials. Live Sessions = scheduled video calls. You can also add subscription plans later from your dashboard.
         </p>
       </div>
 
@@ -344,7 +344,7 @@ export default function ApplyForm() {
       {(offerType === "ACCESS" || offerType === "BOTH") && (
         <div>
           <label htmlFor="price" className="mb-2 block text-base font-semibold text-white">
-            ACCESS Price (USD) <span className="text-rose-400">*</span>
+            Content Pass Price (USD) <span className="text-rose-400">*</span>
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 text-lg font-medium">
@@ -361,7 +361,7 @@ export default function ApplyForm() {
           </div>
           {errors.price?.message && <FormFieldError error={errors.price.message} />}
           <p className="mt-2 text-sm text-white/50">
-            One-time price for your digital product/community access
+            One-time fee for lifetime access to your guides, Discord, and resources
           </p>
         </div>
       )}
@@ -369,7 +369,7 @@ export default function ApplyForm() {
       {(offerType === "TIME" || offerType === "BOTH") && (
         <div>
           <label htmlFor="hourlyRate" className="mb-2 block text-base font-semibold text-white">
-            Hourly Rate (USD) <span className="text-rose-400">*</span>
+            Session Hourly Rate (USD) <span className="text-rose-400">*</span>
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 text-lg font-medium">
