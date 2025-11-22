@@ -24,6 +24,7 @@ export default function CalendarPicker({
 }: CalendarPickerProps) {
   const [currentMonth, setCurrentMonth] = useState(selectedDate || new Date());
   const [availableDates, setAvailableDates] = useState<Set<string>>(new Set());
+  const [freeDates, setFreeDates] = useState<Set<string>>(new Set());
 
   // Fetch availability calendar when month changes
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function CalendarPicker({
 
         if (data.ok && data.data?.availableDates) {
           setAvailableDates(new Set(data.data.availableDates));
+          setFreeDates(new Set(data.data.freeDates || []));
         }
       } catch (err) {
         console.error("Failed to fetch availability:", err);
@@ -162,6 +164,7 @@ export default function CalendarPicker({
           const isToday = isSameDay(day, new Date());
           const dateStr = format(day, "yyyy-MM-dd");
           const hasAvailability = availableDates.has(dateStr);
+          const hasFreeSession = freeDates.has(dateStr);
 
           // Determine availability styling
           let availabilityClass = "";
@@ -169,11 +172,19 @@ export default function CalendarPicker({
 
           if (showAvailability && isCurrentMonth && !isDisabled) {
             if (hasAvailability) {
-              // Available day - green background/border
-              availabilityClass = isSelected
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-green-500/20 hover:bg-green-500/30";
-              borderClass = "ring-2 ring-green-500/50";
+              if (hasFreeSession) {
+                // Free session - pink background/border
+                availabilityClass = isSelected
+                  ? "bg-pink-600 hover:bg-pink-700"
+                  : "bg-pink-500/20 hover:bg-pink-500/30";
+                borderClass = "ring-2 ring-pink-500/50";
+              } else {
+                // Available day - green background/border
+                availabilityClass = isSelected
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-green-500/20 hover:bg-green-500/30";
+                borderClass = "ring-2 ring-green-500/50";
+              }
             } else {
               // Unavailable day - red background/border
               availabilityClass = "bg-red-500/20";
@@ -214,6 +225,10 @@ export default function CalendarPicker({
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded border-2 border-green-500 bg-green-500/20"></div>
               <span>Available</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded border-2 border-pink-500 bg-pink-500/20"></div>
+              <span>Free Session</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded border-2 border-red-500 bg-red-500/20"></div>

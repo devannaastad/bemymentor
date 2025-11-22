@@ -77,6 +77,22 @@ export default function NotificationBell({
     }
   };
 
+  const clearAllNotifications = async () => {
+    try {
+      const res = await fetch("/api/notifications/clear-all", {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        // Clear all notifications from local state
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error("Failed to clear all notifications:", error);
+    }
+  };
+
   const handleBellClick = () => {
     setShowDropdown(!showDropdown);
     if (!showDropdown && notifications.length === 0) {
@@ -119,8 +135,16 @@ export default function NotificationBell({
 
           {/* Dropdown */}
           <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-gray-900 border border-white/20 rounded-lg shadow-lg z-50">
-            <div className="p-4 border-b border-white/10">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <h3 className="font-semibold text-white">Notifications</h3>
+              {notifications.length > 0 && (
+                <button
+                  onClick={clearAllNotifications}
+                  className="text-xs text-white/60 hover:text-white transition-colors px-2 py-1 hover:bg-white/5 rounded"
+                >
+                  Clear All
+                </button>
+              )}
             </div>
 
             {loading && (

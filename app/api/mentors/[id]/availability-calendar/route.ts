@@ -43,6 +43,7 @@ export async function GET(
       },
       select: {
         startTime: true,
+        isFreeSession: true,
       },
     });
 
@@ -52,6 +53,7 @@ export async function GET(
         data: {
           month: monthParam,
           availableDates: [],
+          freeDates: [],
           message: "Mentor has no availability set",
         },
       });
@@ -59,18 +61,26 @@ export async function GET(
 
     // Extract unique dates from available slots
     const availableDatesSet = new Set<string>();
+    const freeDatesSet = new Set<string>();
+
     for (const slot of availableSlots) {
       const dateStr = format(new Date(slot.startTime), "yyyy-MM-dd");
       availableDatesSet.add(dateStr);
+
+      if (slot.isFreeSession) {
+        freeDatesSet.add(dateStr);
+      }
     }
 
     const availableDates = Array.from(availableDatesSet).sort();
+    const freeDates = Array.from(freeDatesSet).sort();
 
     return NextResponse.json({
       ok: true,
       data: {
         month: monthParam,
         availableDates,
+        freeDates,
         totalDays: availableDates.length,
       },
     });
