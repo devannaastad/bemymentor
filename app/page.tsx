@@ -19,8 +19,43 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
+  // JSON-LD structured data for Google search
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "BeMyMentor",
+    "url": "https://www.bemymentor.dev",
+    "logo": "https://www.bemymentor.dev/logo.png",
+    "description": "Mentorship for the next generation. Learn from top Gaming & Esports pros, Trading experts, Streamers, and YouTube creators.",
+    "sameAs": [
+      // Add your social media profiles here when available
+    ],
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "BeMyMentor",
+    "url": "https://www.bemymentor.dev",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.bemymentor.dev/catalog?search={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
+      {/* JSON-LD for Google Search */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(80%_50%_at_50%_0%,rgba(147,51,234,0.25)_0%,rgba(0,0,0,0)_60%)]" />
       <Hero />
       <HowItWorks />
