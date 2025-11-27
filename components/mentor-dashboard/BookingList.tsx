@@ -424,21 +424,45 @@ function BookingCard({ booking }: { booking: BookingWithUser }) {
         {currentStatus === "COMPLETED" && (
           <>
             <Badge variant="success">Session Completed</Badge>
-            {/* Only allow deletion if both parties have confirmed (for sessions) or for access passes */}
-            {(booking.type === "ACCESS" || (booking.mentorCompletedAt && booking.studentConfirmedAt)) && (
-              <Button
-                onClick={() => setShowDeleteModal(true)}
-                disabled={isDeleting}
-                variant="ghost"
-                size="sm"
-                className="text-red-400 hover:text-red-300"
-              >
-                🗑️ Delete
-              </Button>
-            )}
+            <Button
+              onClick={() => setShowDeleteModal(true)}
+              disabled={isDeleting}
+              variant="ghost"
+              size="sm"
+              className="text-red-400 hover:text-red-300"
+            >
+              🗑️ Delete
+            </Button>
           </>
         )}
-        {currentStatus === "CANCELLED" && <Badge variant="danger">Booking Cancelled</Badge>}
+        {currentStatus === "CANCELLED" && (
+          <>
+            <Badge variant="danger">Booking Cancelled</Badge>
+            <Button
+              onClick={() => setShowDeleteModal(true)}
+              disabled={isDeleting}
+              variant="ghost"
+              size="sm"
+              className="text-red-400 hover:text-red-300"
+            >
+              🗑️ Delete
+            </Button>
+          </>
+        )}
+        {currentStatus === "REFUNDED" && (
+          <>
+            <Badge variant="danger">Refunded</Badge>
+            <Button
+              onClick={() => setShowDeleteModal(true)}
+              disabled={isDeleting}
+              variant="ghost"
+              size="sm"
+              className="text-red-400 hover:text-red-300"
+            >
+              🗑️ Delete
+            </Button>
+          </>
+        )}
       </div>
 
       <div className="mt-4 border-t border-white/10 pt-3 text-xs text-white/50">
