@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { startOfMonth, endOfMonth, format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 export async function GET(req: NextRequest) {
   try {
@@ -100,21 +101,26 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Get mentor's timezone from user profile
+    const mentorTimezone = user.timezone || "America/New_York";
+
     // Generate available dates based on available slots
+    // Format dates in the MENTOR'S timezone (not UTC)
     const availableDates: string[] = [];
     const availableDateSet = new Set<string>();
 
     availableSlots.forEach((slot) => {
-      const dateStr = format(new Date(slot.startTime), "yyyy-MM-dd");
+      // Convert UTC time to mentor's timezone before formatting
+      const slotInMentorTz = toZonedTime(new Date(slot.startTime), mentorTimezone);
+      const dateStr = format(slotInMentorTz, "yyyy-MM-dd");
 
       // Check if this day is blocked
       const isBlocked = blockedSlots.some((blocked) => {
-        const blockedDate = new Date(blocked.startTime);
-        const slotDate = new Date(slot.startTime);
+        const blockedInMentorTz = toZonedTime(new Date(blocked.startTime), mentorTimezone);
         return (
-          blockedDate.getFullYear() === slotDate.getFullYear() &&
-          blockedDate.getMonth() === slotDate.getMonth() &&
-          blockedDate.getDate() === slotDate.getDate()
+          blockedInMentorTz.getFullYear() === slotInMentorTz.getFullYear() &&
+          blockedInMentorTz.getMonth() === slotInMentorTz.getMonth() &&
+          blockedInMentorTz.getDate() === slotInMentorTz.getDate()
         );
       });
 

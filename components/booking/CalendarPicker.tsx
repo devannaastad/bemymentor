@@ -33,7 +33,9 @@ export default function CalendarPicker({
     const fetchAvailability = async () => {
       try {
         const monthStr = format(currentMonth, "yyyy-MM");
-        const res = await fetch(`/api/mentors/${mentorId}/availability-calendar?month=${monthStr}`);
+        // Get user's timezone to show availability in their local time
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const res = await fetch(`/api/mentors/${mentorId}/availability-calendar?month=${monthStr}&timezone=${encodeURIComponent(userTimezone)}`);
         const data = await res.json();
 
         if (data.ok && data.data?.availableDates) {

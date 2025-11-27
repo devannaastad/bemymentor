@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { startOfMonth, endOfMonth, format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 type Params = { id: string };
 
@@ -17,6 +18,7 @@ export async function GET(
     const { id: mentorId } = await context.params;
     const { searchParams } = new URL(req.url);
     const monthParam = searchParams.get("month"); // YYYY-MM
+    const userTimezone = searchParams.get("timezone"); // User's timezone
 
     if (!monthParam) {
       return NextResponse.json(
@@ -24,6 +26,9 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    // Use user's timezone if provided, otherwise default
+    const viewerTimezone = userTimezone || "America/New_York";
 
     // Parse month - fix timezone issues like in mentor calendar
     const [year, month] = monthParam.split("-").map(Number);
@@ -43,6 +48,7 @@ export async function GET(
       },
       select: {
         startTime: true,
+        endTime: true,
         isFreeSession: true,
       },
     });
@@ -60,15 +66,34 @@ export async function GET(
     }
 
     // Extract unique dates from available slots
+    // Convert to VIEWER'S timezone (might show across 2 days if slot crosses midnight)
     const availableDatesSet = new Set<string>();
     const freeDatesSet = new Set<string>();
 
     for (const slot of availableSlots) {
-      const dateStr = format(new Date(slot.startTime), "yyyy-MM-dd");
-      availableDatesSet.add(dateStr);
+      const slotStart = new Date(slot.startTime);
+      const slotEnd = new Date(slot.endTime);
 
+      // Convert both start and end to viewer's timezone
+      const startInViewerTz = toZonedTime(slotStart, viewerTimezone);
+      const endInViewerTz = toZonedTime(slotEnd, viewerTimezone);
+
+      // Get the date strings
+      const startDateStr = format(startInViewerTz, "yyyy-MM-dd");
+      const endDateStr = format(endInViewerTz, "yyyy-MM-dd");
+
+      // Add both dates (they might be different if slot crosses midnight in viewer's TZ)
+      availableDatesSet.add(startDateStr);
+      if (startDateStr !== endDateStr) {
+        availableDatesSet.add(endDateStr);
+      }
+
+      // Mark free session dates
       if (slot.isFreeSession) {
-        freeDatesSet.add(dateStr);
+        freeDatesSet.add(startDateStr);
+        if (startDateStr !== endDateStr) {
+          freeDatesSet.add(endDateStr);
+        }
       }
     }
 
