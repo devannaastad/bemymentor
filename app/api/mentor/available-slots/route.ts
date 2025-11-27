@@ -134,19 +134,19 @@ export async function POST(req: NextRequest) {
     const [endHour, endMinute] = endTime.split(":").map(Number);
 
     // Create Date objects in the user's timezone, then convert to UTC for storage
-    // fromZonedTime interprets the date as being in the specified timezone
-    const startDateTime = fromZonedTime(
-      new Date(year, month - 1, day, startHour, startMinute, 0),
-      userTimezone
-    );
-    const endDateTime = fromZonedTime(
-      new Date(year, month - 1, day, endHour, endMinute, 0),
-      userTimezone
-    );
+    // Create date string in ISO format, then use fromZonedTime to properly convert
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const startTimeStr = `${dateStr}T${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00`;
+    const endTimeStr = `${dateStr}T${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}:00`;
+
+    const startDateTime = fromZonedTime(startTimeStr, userTimezone);
+    const endDateTime = fromZonedTime(endTimeStr, userTimezone);
 
     // Check if there's already an available slot for this date (any time)
-    const dayStart = fromZonedTime(new Date(year, month - 1, day, 0, 0, 0), userTimezone);
-    const dayEnd = fromZonedTime(new Date(year, month - 1, day, 23, 59, 59), userTimezone);
+    const dayStartStr = `${dateStr}T00:00:00`;
+    const dayEndStr = `${dateStr}T23:59:59`;
+    const dayStart = fromZonedTime(dayStartStr, userTimezone);
+    const dayEnd = fromZonedTime(dayEndStr, userTimezone);
 
     const existingForDate = await db.availableSlot.findFirst({
       where: {
