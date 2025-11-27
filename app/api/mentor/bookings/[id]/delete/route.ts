@@ -59,18 +59,18 @@ export async function DELETE(
       );
     }
 
-    // Only allow deletion of COMPLETED bookings that have been confirmed by both sides
-    if (booking.status !== "COMPLETED") {
+    // Allow deletion of COMPLETED or CANCELLED bookings
+    if (booking.status !== "COMPLETED" && booking.status !== "CANCELLED") {
       return NextResponse.json(
-        { ok: false, error: "Only completed bookings can be deleted" },
+        { ok: false, error: "Only completed or cancelled bookings can be deleted" },
         { status: 400 }
       );
     }
 
-    // For SESSION bookings, ensure both mentor and student have confirmed completion
-    if (!booking.mentorCompletedAt || !booking.studentConfirmedAt) {
+    // For COMPLETED SESSION bookings, ensure both mentor and student have confirmed completion
+    if (booking.status === "COMPLETED" && (!booking.mentorCompletedAt || !booking.studentConfirmedAt)) {
       return NextResponse.json(
-        { ok: false, error: "Booking must be confirmed by both parties before deletion" },
+        { ok: false, error: "Completed bookings must be confirmed by both parties before deletion" },
         { status: 400 }
       );
     }

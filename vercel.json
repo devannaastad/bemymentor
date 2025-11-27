@@ -27,6 +27,10 @@
     {
       "path": "/api/cron/review-reminders-subscription",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/cancel-unpaid-bookings",
+      "schedule": "*/10 * * * *"
     }
   ]
 }
