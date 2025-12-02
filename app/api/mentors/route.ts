@@ -61,9 +61,13 @@ export async function GET(req: Request) {
     where.OR = orConditions;
   }
 
-  // Category filter
+  // Category filter - match if category is in their categories array OR their primary category
   if ((Object.values(MentorCategory) as string[]).includes(category)) {
-    where.category = category as MentorCategory;
+    where.OR = [
+      ...(where.OR || []),
+      { category: category as MentorCategory },
+      { categories: { has: category as MentorCategory } },
+    ];
   }
 
   // Offer type filter

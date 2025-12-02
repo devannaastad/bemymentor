@@ -13,6 +13,7 @@ import ReviewList from "@/components/reviews/ReviewList";
 import PortfolioSection, { type PortfolioItem } from "@/components/mentor/PortfolioSection";
 import VideoIntroSection from "@/components/mentor/VideoIntroSection";
 import { formatCurrency } from "@/lib/utils/format";
+import { getCategoryLabel, getCategoryIcon } from "@/lib/utils/categories";
 
 // ISR: Revalidate every 5 minutes
 export const revalidate = 300;
@@ -168,7 +169,18 @@ export default async function MentorPage({
                 {badge}
               </Badge>
             ))}
-            <Badge variant="outline">{mentor.category}</Badge>
+            {/* Show all selected categories */}
+            {mentor.categories && mentor.categories.length > 0 ? (
+              mentor.categories.map((cat) => (
+                <Badge key={cat} variant="outline">
+                  {getCategoryIcon(cat)} {getCategoryLabel(cat)}
+                </Badge>
+              ))
+            ) : (
+              <Badge variant="outline">
+                {getCategoryIcon(mentor.category)} {getCategoryLabel(mentor.category)}
+              </Badge>
+            )}
           </div>
 
           {/* Skills */}

@@ -34,6 +34,8 @@ function ProfileEditorContent({ mentor }: ProfileEditorProps) {
       bio: mentor.bio || undefined,
       profileImage: mentor.profileImage || undefined,
       skills: (mentor.skills || []).join(", "),
+      category: mentor.category,
+      categories: mentor.categories || [],
       offerType: mentor.offerType,
       accessPrice: mentor.accessPrice ? mentor.accessPrice / 100 : 0,
       hourlyRate: mentor.hourlyRate ? mentor.hourlyRate / 100 : 0,

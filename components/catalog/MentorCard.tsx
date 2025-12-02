@@ -9,6 +9,7 @@ import Button from "@/components/common/Button";
 import { formatCurrency } from "@/lib/utils/format";
 import type { Mentor, SubscriptionPlan } from "@prisma/client";
 import { useSaved } from "./useSaved";
+import { getCategoryLabel, getCategoryIcon } from "@/lib/utils/categories";
 
 type MentorWithSubscriptions = Mentor & {
   subscriptionPlans?: SubscriptionPlan[];
@@ -79,6 +80,18 @@ export default function MentorCard({ m }: { m: MentorWithSubscriptions }) {
                   {b}
                 </Badge>
               ))}
+              {/* Show all selected categories */}
+              {m.categories && m.categories.length > 0 ? (
+                m.categories.map((cat) => (
+                  <Badge key={cat} variant="outline" className="text-xs">
+                    {getCategoryIcon(cat)} {getCategoryLabel(cat)}
+                  </Badge>
+                ))
+              ) : (
+                <Badge variant="outline" className="text-xs">
+                  {getCategoryIcon(m.category)} {getCategoryLabel(m.category)}
+                </Badge>
+              )}
             </div>
 
             <p className="text-white/80 text-sm leading-relaxed">{m.tagline}</p>

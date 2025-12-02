@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { MentorCategory } from "@prisma/client";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -41,6 +42,23 @@ export async function PUT(req: NextRequest) {
         .split(",")
         .map((s: string) => s.trim())
         .filter((s: string) => s.length > 0);
+    }
+    if (body.category !== undefined) {
+      // Validate category is a valid enum value
+      if (Object.values(MentorCategory).includes(body.category as MentorCategory)) {
+        updateData.category = body.category;
+      }
+    }
+    if (body.categories !== undefined) {
+      // Validate all categories are valid enum values
+      const validCategories = (body.categories as MentorCategory[]).filter((cat) =>
+        Object.values(MentorCategory).includes(cat)
+      );
+      updateData.categories = validCategories;
+      // Also update the primary category to the first selected one for backwards compatibility
+      if (validCategories.length > 0) {
+        updateData.category = validCategories[0];
+      }
     }
     if (body.offerType !== undefined) updateData.offerType = body.offerType;
     if (body.accessPrice !== undefined) {

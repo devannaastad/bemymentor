@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/common/Card";
-import { Mentor } from "@prisma/client";
+import { Mentor, MentorCategory } from "@prisma/client";
 import { useProfileEditor } from "../ProfileEditorContext";
 import MentorAvatarUploader from "../MentorAvatarUploader";
 import Button from "@/components/common/Button";
 import { Twitter, Linkedin, Globe, Youtube, Github, Instagram, Facebook, CheckCircle, AlertCircle, ExternalLink, DollarSign } from "lucide-react";
+import { CATEGORY_LABELS, getCategoryIcon } from "@/lib/utils/categories";
 
 interface BasicInfoEditorProps {
   mentor: Mentor;
@@ -159,6 +160,57 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
               />
               <p className="mt-1 text-xs text-white/50">
                 Separate skills with commas
+              </p>
+            </div>
+
+            {/* Categories (Multi-select) */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-white/80">
+                Categories
+              </label>
+              <div className="space-y-2">
+                {Object.entries(CATEGORY_LABELS).map(([value, label]) => {
+                  const categories = profileData.categories || mentor.categories || [];
+                  const isSelected = categories.includes(value as MentorCategory);
+
+                  return (
+                    <label
+                      key={value}
+                      className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-purple-500 bg-purple-500/10"
+                          : "border-white/10 bg-white/5 hover:border-white/20"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          const currentCategories = profileData.categories || mentor.categories || [];
+                          let newCategories: MentorCategory[];
+
+                          if (e.target.checked) {
+                            // Add category
+                            newCategories = [...currentCategories, value as MentorCategory];
+                          } else {
+                            // Remove category
+                            newCategories = currentCategories.filter((c) => c !== value);
+                          }
+
+                          updateField("categories", newCategories);
+                        }}
+                        className="h-4 w-4 rounded border-white/20 bg-white/5 text-purple-600 focus:ring-2 focus:ring-purple-500"
+                      />
+                      <span className="flex items-center gap-2 text-sm">
+                        <span>{getCategoryIcon(value as MentorCategory)}</span>
+                        <span className="font-medium">{label}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs text-white/50">
+                Select all categories that apply to your mentoring. This helps users find you when filtering the catalog.
               </p>
             </div>
           </div>

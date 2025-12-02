@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { MentorCategory } from "@prisma/client";
 
 interface ProfileData {
   // Basic Info
@@ -9,6 +10,8 @@ interface ProfileData {
   bio?: string;
   profileImage?: string;
   skills?: string;
+  category?: string;
+  categories?: MentorCategory[];
   offerType?: string;
   accessPrice?: number;
   hourlyRate?: number;

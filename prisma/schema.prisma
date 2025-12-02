@@ -150,7 +150,8 @@ model Mentor {
   id           String         @id @default(cuid())
   userId       String         @unique // Link to User who owns this profile
   name         String
-  category     MentorCategory
+  category     MentorCategory // Primary category for backwards compatibility
+  categories   MentorCategory[] @default([]) // Multiple categories support
   tagline      String
   bio          String?        @db.Text // Full bio/description
   profileImage String?        // URL to profile photo
