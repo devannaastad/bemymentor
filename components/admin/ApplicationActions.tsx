@@ -34,7 +34,7 @@ export default function ApplicationActions({
         body: JSON.stringify({
           status,
           notes: notes.trim() || undefined,
-          reviewedBy: "admin@bemymentor.dev", // TODO: Use actual admin email from session
+          reviewedBy: "admin@bemymentor.co", // TODO: Use actual admin email from session
         }),
       });
 

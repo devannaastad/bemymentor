@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
 
     // Send a test email
     await resend.emails.send({
-      from: process.env.EMAIL_FROM || "BeMyMentor <noreply@bemymentor.dev>",
+      from: process.env.EMAIL_FROM || "BeMyMentor <noreply@bemymentor.co>",
       to,
-      subject: "Test Email from BeMyMentor.dev",
+      subject: "Test Email from BeMyMentor",
       html: `
         <!DOCTYPE html>
         <html>
@@ -35,12 +35,12 @@ export async function POST(req: NextRequest) {
             <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
               <h2 style="color: #667eea; margin-top: 0;">Your email is working perfectly!</h2>
 
-              <p>This is a test email from <strong>BeMyMentor.dev</strong> to confirm your email configuration is working correctly.</p>
+              <p>This is a test email from <strong>BeMyMentor</strong> to confirm your email configuration is working correctly.</p>
 
               <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
                 <h3 style="margin-top: 0; color: #333;">Configuration Details:</h3>
                 <ul style="list-style: none; padding: 0;">
-                  <li>✉️ <strong>From:</strong> noreply@bemymentor.dev</li>
+                  <li>✉️ <strong>From:</strong> noreply@bemymentor.co</li>
                   <li>📧 <strong>To:</strong> ${to}</li>
                   <li>🚀 <strong>Provider:</strong> Resend</li>
                   <li>🔐 <strong>DKIM:</strong> Verified</li>
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
               <p style="color: #666; font-size: 14px; text-align: center;">
-                If you have any questions, contact us at <a href="mailto:support@bemymentor.dev" style="color: #667eea;">support@bemymentor.dev</a>
+                If you have any questions, contact us at <a href="mailto:support@bemymentor.co" style="color: #667eea;">support@bemymentor.co</a>
               </p>
             </div>
           </body>

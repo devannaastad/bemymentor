@@ -105,8 +105,8 @@ export default function BookingRescheduleEmail({
 
           <Text style={footer}>
             Questions? Reply to this email or contact us at{" "}
-            <Link href="mailto:support@bemymentor.dev" style={link}>
-              support@bemymentor.dev
+            <Link href="mailto:support@bemymentor.co" style={link}>
+              support@bemymentor.co
             </Link>
           </Text>
 

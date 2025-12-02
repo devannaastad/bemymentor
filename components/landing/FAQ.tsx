@@ -104,7 +104,7 @@ export default function FAQ() {
         <div className="mt-12 text-center">
           <p className="text-white/60">Still have questions?</p>
           <a
-            href="mailto:support@bemymentor.dev"
+            href="mailto:support@bemymentor.co"
             className="mt-2 inline-block text-lg font-semibold text-purple-400 hover:text-purple-300 transition-colors"
           >
             Contact our support team →

@@ -24,8 +24,8 @@ export default function HomePage() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "BeMyMentor",
-    "url": "https://www.bemymentor.dev",
-    "logo": "https://www.bemymentor.dev/logo.png",
+    "url": "https://www.bemymentor.co",
+    "logo": "https://www.bemymentor.co/logo.png",
     "description": "Mentorship for the next generation. Learn from top Gaming & Esports pros, Trading experts, Streamers, and YouTube creators.",
     "sameAs": [
       // Add your social media profiles here when available
@@ -36,10 +36,10 @@ export default function HomePage() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "BeMyMentor",
-    "url": "https://www.bemymentor.dev",
+    "url": "https://www.bemymentor.co",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://www.bemymentor.dev/catalog?search={search_term_string}",
+      "target": "https://www.bemymentor.co/catalog?search={search_term_string}",
       "query-input": "required name=search_term_string",
     },
   };

@@ -133,8 +133,8 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold mb-4">12. Contact</h2>
             <p>
               For questions about these Terms, contact us at{" "}
-              <a href="mailto:legal@bemymentor.dev" className="text-purple-400 hover:text-purple-300">
-                legal@bemymentor.dev
+              <a href="mailto:legal@bemymentor.co" className="text-purple-400 hover:text-purple-300">
+                legal@bemymentor.co
               </a>
             </p>
           </section>

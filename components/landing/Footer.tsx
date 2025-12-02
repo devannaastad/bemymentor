@@ -61,7 +61,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:support@bemymentor.dev"
+                  href="mailto:support@bemymentor.co"
                   className="text-muted-foreground transition-colors hover:text-white"
                 >
                   Help Center
@@ -69,7 +69,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:abuse@bemymentor.dev"
+                  href="mailto:abuse@bemymentor.co"
                   className="text-muted-foreground transition-colors hover:text-white"
                 >
                   Report Abuse
@@ -77,7 +77,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:mentors@bemymentor.dev"
+                  href="mailto:mentors@bemymentor.co"
                   className="text-muted-foreground transition-colors hover:text-white"
                 >
                   Mentor Support
@@ -102,7 +102,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:legal@bemymentor.dev"
+                  href="mailto:legal@bemymentor.co"
                   className="text-muted-foreground transition-colors hover:text-white"
                 >
                   Legal Inquiries
