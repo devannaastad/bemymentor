@@ -8,6 +8,8 @@ const CATEGORIES = [
   { value: "TRADING_INVESTING", label: "Trading & Investing" },
   { value: "STREAMING_CONTENT", label: "Streaming" },
   { value: "YOUTUBE_PRODUCTION", label: "YouTube" },
+  { value: "ECOMMERCE", label: "Ecommerce" },
+  { value: "AGENCIES", label: "Agencies" },
 ];
 
 export default function CategoryPills() {

@@ -6,7 +6,7 @@ import { MentorCategory, OfferType, Prisma } from "@prisma/client";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get("q") ?? "").trim();
-  const category = (searchParams.get("category") ?? "").trim().toLowerCase();
+  const category = (searchParams.get("category") ?? "").trim().toUpperCase();
   const priceMinRaw = searchParams.get("priceMin");
   const priceMaxRaw = searchParams.get("priceMax");
   const offerTypeRaw = (searchParams.get("type") ?? "").trim().toUpperCase();

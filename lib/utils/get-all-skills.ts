@@ -78,6 +78,30 @@ export const SKILL_CATEGORIES = {
     "Leadership",
     "Management",
   ],
+  ecommerce: [
+    "Shopify",
+    "Amazon FBA",
+    "Dropshipping",
+    "Product Sourcing",
+    "Facebook Ads",
+    "Email Marketing",
+    "Product Photography",
+    "Customer Service",
+    "Supply Chain",
+    "Conversion Optimization",
+  ],
+  agencies: [
+    "Client Acquisition",
+    "Agency Scaling",
+    "Project Management",
+    "Team Building",
+    "SEO Services",
+    "Social Media Marketing",
+    "Cold Outreach",
+    "Agency Operations",
+    "Pricing Strategy",
+    "Client Retention",
+  ],
 } as const;
 
 /**
@@ -114,4 +138,8 @@ export const POPULAR_SKILLS = [
   "FPS Games",
   "Figma",
   "Nutrition",
+  "Shopify",
+  "Amazon FBA",
+  "Client Acquisition",
+  "Agency Scaling",
 ] as const;

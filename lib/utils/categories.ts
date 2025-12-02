@@ -6,6 +6,8 @@ export const CATEGORY_LABELS: Record<MentorCategory, string> = {
   TRADING_INVESTING: "Trading & Investing",
   STREAMING_CONTENT: "Streaming & Content",
   YOUTUBE_PRODUCTION: "YouTube Production",
+  ECOMMERCE: "Ecommerce",
+  AGENCIES: "Agencies",
 };
 
 export const CATEGORY_DESCRIPTIONS: Record<MentorCategory, string> = {
@@ -13,6 +15,8 @@ export const CATEGORY_DESCRIPTIONS: Record<MentorCategory, string> = {
   TRADING_INVESTING: "Market education, risk management",
   STREAMING_CONTENT: "Twitch/YouTube growth, audience retention",
   YOUTUBE_PRODUCTION: "Filmmaking, editing, branding",
+  ECOMMERCE: "Shopify, Amazon FBA, dropshipping, product sourcing",
+  AGENCIES: "Client acquisition, scaling, operations, marketing services",
 };
 
 export const CATEGORY_ICONS: Record<MentorCategory, string> = {
@@ -20,6 +24,8 @@ export const CATEGORY_ICONS: Record<MentorCategory, string> = {
   TRADING_INVESTING: "💸",
   STREAMING_CONTENT: "📹",
   YOUTUBE_PRODUCTION: "🎬",
+  ECOMMERCE: "🛒",
+  AGENCIES: "🏢",
 };
 
 export function getCategoryLabel(category: MentorCategory): string {

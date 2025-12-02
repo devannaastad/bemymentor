@@ -45,11 +45,10 @@ export default function Hero() {
 
           {/* Main Headline */}
           <h1 className="mb-6 text-5xl font-bold leading-tight text-white md:text-6xl lg:text-7xl">
-            Level Up with{" "}
+            Accelerate Your Growth with{" "}
             <span className="bg-gradient-to-r from-purple-400 via-amber-400 to-purple-400 bg-clip-text text-transparent animate-gradient">
-              Elite Creators
+              Expert Mentors
             </span>
-            , Gamers & Traders
           </h1>
 
           {/* Subheadline */}
