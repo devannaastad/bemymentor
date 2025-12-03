@@ -26,7 +26,7 @@ export default function SessionScheduler({
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [, setSelectedIsFreeSession] = useState<boolean>(false);
+  const [selectedIsFreeSession, setSelectedIsFreeSession] = useState<boolean>(false);
   const [duration, setDuration] = useState<number>(defaultDuration);
 
   const handleDateSelect = (date: Date) => {
@@ -170,10 +170,17 @@ export default function SessionScheduler({
             <div className="flex justify-between items-center pt-3 border-t border-white/20">
               <span className="text-white/70">Total Price:</span>
               <span className="font-bold text-primary-300 text-xl">
-                ${calculatePrice()}
+                {selectedIsFreeSession ? "FREE" : `$${calculatePrice()}`}
               </span>
             </div>
           </div>
+          {selectedIsFreeSession && (
+            <div className="mt-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-center">
+              <p className="text-sm text-emerald-200 font-semibold">
+                🎉 Free Introductory Session
+              </p>
+            </div>
+          )}
           <div className="mt-3 pt-3 border-t border-white/10">
             <p className="text-xs text-white/60 text-center">
               🌍 Times shown in your timezone ({getTimezoneAbbreviation(getUserTimezone())})

@@ -18,7 +18,6 @@ export async function GET(
     const { id: mentorId } = await context.params;
     const { searchParams } = new URL(req.url);
     const monthParam = searchParams.get("month"); // YYYY-MM
-    const userTimezone = searchParams.get("timezone"); // User's timezone
 
     if (!monthParam) {
       return NextResponse.json(
@@ -27,8 +26,21 @@ export async function GET(
       );
     }
 
-    // Use user's timezone if provided, otherwise default
-    const viewerTimezone = userTimezone || "America/New_York";
+    // Get the mentor's timezone from their profile
+    const mentor = await db.mentor.findUnique({
+      where: { id: mentorId },
+      select: { timezone: true },
+    });
+
+    if (!mentor) {
+      return NextResponse.json(
+        { ok: false, error: "Mentor not found" },
+        { status: 404 }
+      );
+    }
+
+    // Use mentor's timezone to display availability in their local time
+    const mentorTimezone = mentor.timezone;
 
     // Parse month - fix timezone issues like in mentor calendar
     const [year, month] = monthParam.split("-").map(Number);
@@ -66,7 +78,7 @@ export async function GET(
     }
 
     // Extract unique dates from available slots
-    // Convert to VIEWER'S timezone (might show across 2 days if slot crosses midnight)
+    // Convert to MENTOR'S timezone to show availability on the correct days they set
     const availableDatesSet = new Set<string>();
     const freeDatesSet = new Set<string>();
 
@@ -74,15 +86,15 @@ export async function GET(
       const slotStart = new Date(slot.startTime);
       const slotEnd = new Date(slot.endTime);
 
-      // Convert both start and end to viewer's timezone
-      const startInViewerTz = toZonedTime(slotStart, viewerTimezone);
-      const endInViewerTz = toZonedTime(slotEnd, viewerTimezone);
+      // Convert both start and end to mentor's timezone (same timezone they used when creating slots)
+      const startInMentorTz = toZonedTime(slotStart, mentorTimezone);
+      const endInMentorTz = toZonedTime(slotEnd, mentorTimezone);
 
-      // Get the date strings
-      const startDateStr = format(startInViewerTz, "yyyy-MM-dd");
-      const endDateStr = format(endInViewerTz, "yyyy-MM-dd");
+      // Get the date strings in mentor's timezone
+      const startDateStr = format(startInMentorTz, "yyyy-MM-dd");
+      const endDateStr = format(endInMentorTz, "yyyy-MM-dd");
 
-      // Add both dates (they might be different if slot crosses midnight in viewer's TZ)
+      // Add both dates (they might be different if slot crosses midnight in mentor's TZ)
       availableDatesSet.add(startDateStr);
       if (startDateStr !== endDateStr) {
         availableDatesSet.add(endDateStr);

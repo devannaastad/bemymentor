@@ -193,8 +193,9 @@ export default async function BookingConfirmPage({
     : null;
 
   const bookingStatus = booking.status;
-  const isPaid = bookingStatus === "CONFIRMED" && booking.stripePaidAt;
-  const isPending = bookingStatus === "PENDING" && !booking.stripePaymentIntentId;
+  const isFreeSession = booking.totalPrice === 0;
+  const isPaid = bookingStatus === "CONFIRMED" && (booking.stripePaidAt || isFreeSession);
+  const isPending = bookingStatus === "PENDING" && !booking.stripePaymentIntentId && !isFreeSession;
   const isCompleted = bookingStatus === "COMPLETED";
   const showMessages = (isPaid || isCompleted) || (isMentor && (bookingStatus === "CONFIRMED" || isCompleted));
 
@@ -206,11 +207,13 @@ export default async function BookingConfirmPage({
           <Card className="mb-8 border-emerald-500/20 bg-emerald-500/5">
             <CardContent className="text-center">
               <div className="mb-4 text-6xl">✅</div>
-              <h1 className="h2 mb-2">Payment Successful!</h1>
+              <h1 className="h2 mb-2">{isFreeSession ? "Booking Confirmed!" : "Payment Successful!"}</h1>
               <p className="text-white/70">
-                Your booking is confirmed. {booking.type === "ACCESS"
-                  ? "You'll receive access details shortly."
-                  : "You'll receive a calendar invite and meeting link soon."}
+                {isFreeSession
+                  ? "Your free session is confirmed! You'll receive a calendar invite and meeting link soon."
+                  : booking.type === "ACCESS"
+                  ? "Your booking is confirmed. You'll receive access details shortly."
+                  : "Your booking is confirmed. You'll receive a calendar invite and meeting link soon."}
               </p>
             </CardContent>
           </Card>
@@ -391,10 +394,10 @@ export default async function BookingConfirmPage({
               <div className="flex items-center justify-between rounded-lg bg-white/5 p-4">
                 <div>
                   <p className="text-sm text-white/60">Total Amount</p>
-                  <p className="text-3xl font-bold">${formattedPrice}</p>
+                  <p className="text-3xl font-bold">{isFreeSession ? "FREE" : `$${formattedPrice}`}</p>
                 </div>
                 {isPaid ? (
-                  <Badge variant="success">Paid</Badge>
+                  <Badge variant="success">{isFreeSession ? "Confirmed" : "Paid"}</Badge>
                 ) : (
                   <Badge variant="warning">Payment Pending</Badge>
                 )}

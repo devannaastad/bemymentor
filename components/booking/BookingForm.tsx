@@ -211,7 +211,11 @@ export default function BookingForm({ mentor }: BookingFormProps) {
           size="lg"
           className="w-full py-4 text-lg font-bold bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 shadow-xl shadow-primary-500/20"
         >
-          {isSubmitting ? "Processing..." : `Continue to Payment - $${calculatePrice()}`}
+          {isSubmitting
+            ? "Processing..."
+            : isFreeSession
+            ? "Confirm Free Session"
+            : `Continue to Payment - $${calculatePrice()}`}
         </Button>
       </div>
 
@@ -263,9 +267,17 @@ export default function BookingForm({ mentor }: BookingFormProps) {
 
           <div className="flex justify-between pt-3 border-t border-white/20">
             <span className="text-white/70">Total:</span>
-            <span className="font-bold text-primary-300 text-2xl">${calculatePrice()}</span>
+            <span className="font-bold text-primary-300 text-2xl">
+              {isFreeSession ? "FREE" : `$${calculatePrice()}`}
+            </span>
           </div>
         </div>
+
+        {isFreeSession && (
+          <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+            This is a free introductory session - no payment required!
+          </div>
+        )}
 
         <div className="flex gap-3">
           <Button
@@ -280,7 +292,7 @@ export default function BookingForm({ mentor }: BookingFormProps) {
             variant="primary"
             className="flex-1 bg-gradient-to-r from-primary-400 to-primary-500"
           >
-            Confirm & Pay
+            {isFreeSession ? "Confirm Booking" : "Confirm & Pay"}
           </Button>
         </div>
       </Modal>

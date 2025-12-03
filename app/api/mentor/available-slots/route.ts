@@ -125,8 +125,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse the date and create DateTime objects
-    // Use the user's timezone to create the correct UTC timestamp
-    const userTimezone = timezone || "America/Los_Angeles"; // Default to Pacific if not provided
+    // Use the mentor's timezone from their profile, fallback to parameter, then to their user timezone
+    const userTimezone = timezone || user.mentorProfile.timezone || user.timezone;
 
     // Parse date components
     const [year, month, day] = date.split("-").map(Number);

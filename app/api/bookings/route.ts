@@ -147,12 +147,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Create the booking
+    // Free sessions are auto-confirmed since no payment is required
     const booking = await db.booking.create({
       data: {
         userId: user.id,
         mentorId: mentor.id,
         type,
-        status: "PENDING", // Will be CONFIRMED after payment
+        status: isFreeSession ? "CONFIRMED" : "PENDING", // Free sessions auto-confirmed
         totalPrice,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
         durationMinutes: durationMinutes || null,
@@ -165,12 +166,66 @@ export async function POST(req: NextRequest) {
             name: true,
             category: true,
             tagline: true,
+            userId: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
           },
         },
       },
     });
 
-    console.log("[api/bookings] Created booking:", booking.id);
+    console.log("[api/bookings] Created booking:", booking.id, "isFreeSession:", isFreeSession);
+
+    // Send confirmation emails immediately for free sessions
+    if (isFreeSession && type === "SESSION") {
+      try {
+        const { sendBookingConfirmation, sendMentorBookingNotification } = await import("@/lib/email");
+
+        // Get mentor's user email
+        const mentorUser = await db.user.findUnique({
+          where: { id: booking.mentor.userId },
+          select: { email: true, name: true },
+        });
+
+        // Send email to student
+        await sendBookingConfirmation({
+          to: booking.user.email!,
+          userName: booking.user.name || "Student",
+          mentorName: booking.mentor.name,
+          bookingType: booking.type,
+          totalAmount: booking.totalPrice,
+          scheduledAt: booking.scheduledAt?.toISOString() || null,
+          durationMinutes: booking.durationMinutes,
+          bookingId: booking.id,
+        });
+
+        // Send email to mentor
+        if (mentorUser?.email) {
+          await sendMentorBookingNotification({
+            to: mentorUser.email,
+            mentorName: booking.mentor.name,
+            userName: booking.user.name || "Student",
+            userEmail: booking.user.email!,
+            bookingType: booking.type,
+            totalAmount: booking.totalPrice,
+            scheduledAt: booking.scheduledAt?.toISOString() || null,
+            durationMinutes: booking.durationMinutes,
+            notes: booking.notes,
+            bookingId: booking.id,
+          });
+        }
+
+        console.log("[api/bookings] Free session confirmation emails sent for booking:", booking.id);
+      } catch (emailError) {
+        console.error("[api/bookings] Failed to send free session confirmation emails:", emailError);
+        // Don't fail the booking creation - email is nice to have
+      }
+    }
 
     return NextResponse.json(
       { ok: true, data: booking },
