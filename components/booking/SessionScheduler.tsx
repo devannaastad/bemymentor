@@ -35,17 +35,12 @@ export default function SessionScheduler({
     setSelectedIsFreeSession(false);
   };
 
-  const handleTimeSelect = (time: string, isFreeSession: boolean) => {
+  const handleTimeSelect = (time: string, isFreeSession: boolean, utcDatetime: Date) => {
     setSelectedTime(time);
     setSelectedIsFreeSession(isFreeSession);
 
-    // Automatically update the parent with the scheduled datetime
-    if (selectedDate) {
-      const [hours, minutes] = time.split(":").map(Number);
-      const scheduledDateTime = new Date(selectedDate);
-      scheduledDateTime.setHours(hours, minutes, 0, 0);
-      onSchedule(scheduledDateTime, duration, isFreeSession);
-    }
+    // Pass the UTC datetime directly to parent
+    onSchedule(utcDatetime, duration, isFreeSession);
   };
 
   const handleDurationChange = (newDuration: number) => {

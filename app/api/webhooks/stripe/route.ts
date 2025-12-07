@@ -7,6 +7,7 @@ import { sendBookingConfirmation, sendMentorBookingNotification } from "@/lib/em
 import { calculatePayoutAmounts } from "@/lib/stripe-connect";
 import { processBookingPayout } from "@/lib/payout-processor";
 import { autoGenerateMeetingLink } from "@/lib/meeting-links";
+import { formatDateWithTimezone } from "@/lib/utils/timezone";
 import Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -153,6 +154,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
           id: true,
           name: true,
           userId: true,
+          timezone: true,
         },
       },
       user: {
@@ -160,6 +162,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
           id: true,
           email: true,
           name: true,
+          timezone: true,
         },
       },
     },
@@ -224,6 +227,18 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
   // Send confirmation emails
   try {
+    // Format scheduled time in user's timezone (if applicable)
+    let formattedScheduledAtStudent: string | null = null;
+    let formattedScheduledAtMentor: string | null = null;
+
+    if (booking.scheduledAt) {
+      const studentTimezone = booking.user.timezone || "America/New_York";
+      const mentorTimezone = booking.mentor.timezone || "America/New_York";
+
+      formattedScheduledAtStudent = formatDateWithTimezone(booking.scheduledAt, studentTimezone);
+      formattedScheduledAtMentor = formatDateWithTimezone(booking.scheduledAt, mentorTimezone);
+    }
+
     // Email to user (learner)
     if (booking.user.email) {
       await sendBookingConfirmation({
@@ -232,7 +247,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         mentorName: booking.mentor.name,
         bookingType: booking.type,
         totalAmount: booking.totalPrice,
-        scheduledAt: booking.scheduledAt?.toISOString() || null,
+        scheduledAt: formattedScheduledAtStudent,
         durationMinutes: booking.durationMinutes,
         bookingId: booking.id,
       });
@@ -247,7 +262,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         userEmail: booking.user.email || "",
         bookingType: booking.type,
         totalAmount: booking.totalPrice,
-        scheduledAt: booking.scheduledAt?.toISOString() || null,
+        scheduledAt: formattedScheduledAtMentor,
         durationMinutes: booking.durationMinutes,
         notes: booking.notes,
         bookingId: booking.id,

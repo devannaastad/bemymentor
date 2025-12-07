@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { sendBookingReschedule } from "@/lib/email";
 import { z } from "zod";
 import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 const RescheduleSchema = z.object({
   newScheduledAt: z.string().datetime(),
@@ -57,12 +58,13 @@ export async function POST(
     const booking = await db.booking.findUnique({
       where: { id },
       include: {
-        user: { select: { email: true, name: true } },
+        user: { select: { email: true, name: true, timezone: true } },
         mentor: {
           select: {
             id: true,
             name: true,
             userId: true,
+            timezone: true,
             user: { select: { email: true } }
           }
         },
@@ -117,18 +119,39 @@ export async function POST(
     // Determine who initiated the reschedule
     const initiatedByMentor = isMentor;
 
-    // Format old and new dates
+    // Get user timezones
+    const studentTimezone = booking.user.timezone || "America/New_York";
+    const mentorTimezone = booking.mentor.timezone || "America/New_York";
+
+    // Format old dates for student and mentor
     const oldScheduledAt = booking.scheduledAt;
-    let oldDate: string | undefined;
-    let oldTime: string | undefined;
+    let oldDateStudent: string | undefined;
+    let oldTimeStudent: string | undefined;
+    let oldDateMentor: string | undefined;
+    let oldTimeMentor: string | undefined;
 
     if (oldScheduledAt) {
-      oldDate = format(new Date(oldScheduledAt), "MMMM dd, yyyy");
-      oldTime = format(new Date(oldScheduledAt), "h:mm a");
+      const oldDateObj = new Date(oldScheduledAt);
+
+      // Student's timezone
+      const oldStudentTime = toZonedTime(oldDateObj, studentTimezone);
+      oldDateStudent = format(oldStudentTime, "MMMM dd, yyyy");
+      oldTimeStudent = format(oldStudentTime, "h:mm a");
+
+      // Mentor's timezone
+      const oldMentorTime = toZonedTime(oldDateObj, mentorTimezone);
+      oldDateMentor = format(oldMentorTime, "MMMM dd, yyyy");
+      oldTimeMentor = format(oldMentorTime, "h:mm a");
     }
 
-    const newDateFormatted = format(newDate, "MMMM dd, yyyy");
-    const newTimeFormatted = format(newDate, "h:mm a");
+    // Format new dates for student and mentor
+    const newStudentTime = toZonedTime(newDate, studentTimezone);
+    const newDateFormattedStudent = format(newStudentTime, "MMMM dd, yyyy");
+    const newTimeFormattedStudent = format(newStudentTime, "h:mm a");
+
+    const newMentorTime = toZonedTime(newDate, mentorTimezone);
+    const newDateFormattedMentor = format(newMentorTime, "MMMM dd, yyyy");
+    const newTimeFormattedMentor = format(newMentorTime, "h:mm a");
 
     // Update the booking
     const updatedBooking = await db.booking.update({
@@ -141,16 +164,16 @@ export async function POST(
       },
     });
 
-    // Send reschedule notification to student
+    // Send reschedule notification to student (with student's timezone)
     const studentEmailResult = await sendBookingReschedule({
       to: booking.user.email || "",
       recipientName: booking.user.name || "Student",
       bookingId: id,
       mentorName: booking.mentor.name,
-      oldDate,
-      oldTime,
-      newDate: newDateFormatted,
-      newTime: newTimeFormatted,
+      oldDate: oldDateStudent,
+      oldTime: oldTimeStudent,
+      newDate: newDateFormattedStudent,
+      newTime: newTimeFormattedStudent,
       reason,
       isMentor: false,
       initiatedByMentor,
@@ -160,16 +183,16 @@ export async function POST(
       console.error("[reschedule-booking] Failed to send student email:", studentEmailResult.error);
     }
 
-    // Send reschedule notification to mentor
+    // Send reschedule notification to mentor (with mentor's timezone)
     const mentorEmailResult = await sendBookingReschedule({
       to: booking.mentor.user.email || "",
       recipientName: booking.mentor.name,
       bookingId: id,
       mentorName: booking.mentor.name,
-      oldDate,
-      oldTime,
-      newDate: newDateFormatted,
-      newTime: newTimeFormatted,
+      oldDate: oldDateMentor,
+      oldTime: oldTimeMentor,
+      newDate: newDateFormattedMentor,
+      newTime: newTimeFormattedMentor,
       reason,
       isMentor: true,
       initiatedByMentor,

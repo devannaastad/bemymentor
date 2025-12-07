@@ -114,12 +114,14 @@ export default function Navbar() {
             )}
 
             {status !== "authenticated" ? (
-              <Link
-                href="/login"
-                className="inline-flex h-9 items-center rounded-md border border-white/15 px-3 text-sm text-neutral-200 hover:bg-white/5"
-              >
-                Sign in
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex h-9 items-center rounded-md border border-white/15 px-3 text-sm text-neutral-200 hover:bg-white/5"
+                >
+                  Sign in
+                </Link>
+              </>
             ) : (
               <>
                 <NotificationBell />

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { format, subHours } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 export const runtime = "nodejs";
 
@@ -56,6 +57,7 @@ export async function GET(req: NextRequest) {
             id: true,
             name: true,
             email: true,
+            timezone: true,
           },
         },
       },
@@ -79,9 +81,12 @@ export async function GET(req: NextRequest) {
           continue;
         }
 
-        const sessionTime = format(booking.scheduledAt!, "h:mm a");
+        // Convert time to student's timezone
+        const studentTimezone = booking.user.timezone || "America/New_York";
+        const studentSessionTime = toZonedTime(booking.scheduledAt!, studentTimezone);
+        const sessionTime = format(studentSessionTime, "h:mm a");
 
-        // Create in-app notification for student to complete session
+        // Create in-app notification for student to complete session (using student's timezone)
         await db.notification.create({
           data: {
             userId: booking.userId,

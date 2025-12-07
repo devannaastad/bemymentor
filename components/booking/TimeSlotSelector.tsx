@@ -10,7 +10,7 @@ interface TimeSlotSelectorProps {
   selectedDate: Date;
   duration: number; // in minutes
   selectedTime: string | null;
-  onSelectTime: (time: string, isFreeSession: boolean) => void;
+  onSelectTime: (time: string, isFreeSession: boolean, utcDatetime: Date) => void;
 }
 
 interface TimeSlot {
@@ -34,6 +34,7 @@ interface AvailableSlotsResponse {
 interface ConvertedSlot extends TimeSlot {
   originalTime: string; // Original time in mentor's timezone (for booking)
   displayTime: string; // Converted time in user's timezone (for display)
+  utcDatetime: Date; // UTC datetime for this slot
 }
 
 export default function TimeSlotSelector({
@@ -72,17 +73,23 @@ export default function TimeSlotSelector({
 
           // Convert each slot from mentor's timezone to user's timezone
           const convertedSlots: ConvertedSlot[] = data.data.slots.map((slot) => {
-            const displayTime = convertTimeToUserTimezone(
-              slot.time,
-              selectedDate,
-              mentorTz,
-              userTz
-            );
+            const [hours, minutes] = slot.time.split(":").map(Number);
+
+            // Create datetime in mentor's timezone
+            const mentorDateTime = new Date(selectedDate);
+            mentorDateTime.setHours(hours, minutes, 0, 0);
+
+            // Convert to UTC
+            const utcDatetime = fromZonedTime(mentorDateTime, mentorTz);
+
+            // Format for display in user's timezone
+            const displayTime = formatInTimeZone(utcDatetime, userTz, "HH:mm");
 
             return {
               ...slot,
               originalTime: slot.time, // Keep original for booking
               displayTime, // Converted for display
+              utcDatetime, // UTC datetime for accurate booking
             };
           });
 
@@ -99,38 +106,6 @@ export default function TimeSlotSelector({
 
     fetchSlots();
   }, [mentorId, selectedDate, duration]);
-
-  // Convert time from mentor's timezone to user's timezone
-  const convertTimeToUserTimezone = (
-    time: string,
-    date: Date,
-    fromTz: string,
-    toTz: string
-  ): string => {
-    // If same timezone, no conversion needed
-    if (fromTz === toTz) {
-      return time;
-    }
-
-    try {
-      const [hours, minutes] = time.split(":").map(Number);
-
-      // Create a date object in the mentor's timezone
-      const mentorDateTime = new Date(date);
-      mentorDateTime.setHours(hours, minutes, 0, 0);
-
-      // Convert this local time in mentor's timezone to UTC
-      const utcDate = fromZonedTime(mentorDateTime, fromTz);
-
-      // Convert UTC to user's timezone and format as HH:mm
-      const userTime = formatInTimeZone(utcDate, toTz, "HH:mm");
-
-      return userTime;
-    } catch (error) {
-      console.error("Timezone conversion error:", error);
-      return time; // Fallback to original time
-    }
-  };
 
   const formatTimeDisplay = (time: string) => {
     // Convert "09:00" to "9:00 AM"
@@ -189,7 +164,7 @@ export default function TimeSlotSelector({
           return (
             <button
               key={slot.originalTime}
-              onClick={() => !isDisabled && onSelectTime(slot.originalTime, slot.isFreeSession)}
+              onClick={() => !isDisabled && onSelectTime(slot.originalTime, slot.isFreeSession, slot.utcDatetime)}
               disabled={isDisabled}
               className={`
                 rounded-lg border px-4 py-3 text-sm font-medium transition-all relative

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { format, parse, startOfDay, endOfDay, addMinutes, isAfter, isBefore } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
 
 type Params = { id: string };
 
@@ -42,12 +43,16 @@ export async function GET(
 
     const mentorTimezone = mentor?.timezone || "America/New_York";
 
-    // Parse the requested date
+    // Parse the requested date in the mentor's timezone
     const requestedDate = parse(dateParam, "yyyy-MM-dd", new Date());
 
-    // Get available slots for this specific date
-    const dayStart = startOfDay(requestedDate);
-    const dayEnd = endOfDay(requestedDate);
+    // Get day boundaries in mentor's timezone, then convert to UTC
+    const dayStartLocal = startOfDay(requestedDate);
+    const dayEndLocal = endOfDay(requestedDate);
+
+    // Convert to UTC for database queries
+    const dayStart = fromZonedTime(dayStartLocal, mentorTimezone);
+    const dayEnd = fromZonedTime(dayEndLocal, mentorTimezone);
 
     const availableSlots = await db.availableSlot.findMany({
       where: {
@@ -96,7 +101,13 @@ export async function GET(
     });
 
     // Generate available slots based on AvailableSlot records
-    const slots: Array<{ time: string; isFreeSession: boolean; isPast?: boolean; isBooked?: boolean }> = [];
+    const slots: Array<{
+      time: string;
+      isFreeSession: boolean;
+      isPast?: boolean;
+      isBooked?: boolean;
+      sortOrder: Date; // For proper time sorting
+    }> = [];
 
     for (const avail of availableSlots) {
       // Get the start and end times from the AvailableSlot DateTime fields
@@ -175,6 +186,7 @@ export async function GET(
             isFreeSession: avail.isFreeSession,
             isPast: isPastTime,
             isBooked: isBooked,
+            sortOrder: currentSlotStart, // Use actual Date for sorting
           });
         }
 
@@ -182,15 +194,19 @@ export async function GET(
       }
     }
 
-    // Sort by time
-    slots.sort((a, b) => a.time.localeCompare(b.time));
+    // Sort by actual datetime (not string comparison)
+    slots.sort((a, b) => a.sortOrder.getTime() - b.sortOrder.getTime());
+
+    // Remove sortOrder from response (internal use only)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const cleanedSlots = slots.map(({ sortOrder, ...slot }) => slot);
 
     return NextResponse.json({
       ok: true,
       data: {
         date: dateParam,
         duration,
-        slots,
+        slots: cleanedSlots,
         timezone: mentorTimezone,
       },
     });

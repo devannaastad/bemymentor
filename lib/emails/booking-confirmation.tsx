@@ -6,7 +6,7 @@ interface BookingConfirmationEmailProps {
   mentorName: string;
   bookingType: "ACCESS" | "SESSION" | "SUBSCRIPTION";
   totalAmount: number; // in cents
-  scheduledAt?: string | null;
+  scheduledAt?: string | null; // Pre-formatted date/time string (e.g., "December 10, 2025, 3:00 PM PST")
   durationMinutes?: number | null;
   bookingId: string;
   dashboardUrl: string;
@@ -23,12 +23,6 @@ export function BookingConfirmationEmail({
   dashboardUrl,
 }: BookingConfirmationEmailProps) {
   const formattedAmount = (totalAmount / 100).toFixed(2);
-  const formattedDate = scheduledAt
-    ? new Date(scheduledAt).toLocaleString("en-US", {
-        dateStyle: "full",
-        timeStyle: "short",
-      })
-    : null;
 
   return (
     <div style={{ fontFamily: "Arial, sans-serif", maxWidth: "600px", margin: "0 auto" }}>
@@ -74,10 +68,10 @@ export function BookingConfirmationEmail({
                   {bookingType === "ACCESS" ? "ACCESS Pass" : "1-on-1 Session"}
                 </td>
               </tr>
-              {formattedDate && (
+              {scheduledAt && (
                 <tr>
                   <td style={{ padding: "8px 0", color: "#666" }}>Scheduled:</td>
-                  <td style={{ padding: "8px 0", fontWeight: "bold" }}>{formattedDate}</td>
+                  <td style={{ padding: "8px 0", fontWeight: "bold" }}>{scheduledAt}</td>
                 </tr>
               )}
               {durationMinutes && (
@@ -88,10 +82,10 @@ export function BookingConfirmationEmail({
                   </td>
                 </tr>
               )}
-              {formattedDate && (
+              {scheduledAt && (
                 <tr>
                   <td colSpan={2} style={{ padding: "12px 0 8px 0", fontSize: "13px", color: "#999" }}>
-                    🌍 Times shown in your local timezone
+                    🌍 Times shown in your timezone
                   </td>
                 </tr>
               )}

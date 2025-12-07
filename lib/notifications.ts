@@ -148,14 +148,14 @@ export async function notifyBookingCancelled(
 export async function notifyBookingRescheduled(
   userId: string,
   mentorName: string,
-  newDate: Date,
+  newDateFormatted: string, // Pre-formatted date string with timezone
   bookingId: string
 ) {
   return createNotification({
     userId,
     type: "BOOKING_RESCHEDULED",
     title: "Booking Rescheduled",
-    message: `Your session with ${mentorName} has been rescheduled to ${newDate.toLocaleDateString()}.`,
+    message: `Your session with ${mentorName} has been rescheduled to ${newDateFormatted}.`,
     link: `/bookings/${bookingId}`,
   });
 }
