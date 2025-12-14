@@ -50,16 +50,30 @@ export default function MentorAvatarUploader({ initialUrl }: MentorAvatarUploade
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
       setShowCamera(true);
+
+      // Wait for next tick to ensure video element is rendered
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          // Play the video once metadata is loaded
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(err => {
+              console.error("[MentorAvatarUploader] Video play failed:", err);
+            });
+          };
+        }
+      }, 100);
     } catch (err) {
       console.error("[MentorAvatarUploader] Camera failed:", err);
-      toast("Failed to access camera", "error");
+      toast("Failed to access camera. Please ensure you've granted camera permissions.", "error");
     }
   };
 
