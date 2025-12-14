@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  // JSON-LD structured data for Google search
+  // JSON-LD structured data for Google search and SEO
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
