@@ -6,9 +6,12 @@ interface AdminNotificationEmailProps {
   applicantEmail: string;
   phone?: string;
   topic: string;
+  customCategory?: string;
   offerType: string;
   accessPrice?: number;
   hourlyRate?: number;
+  weeklyPrice?: number;
+  monthlyPrice?: number;
   proofLinks: string;
   proofImages?: string[];
   socialProof?: {
@@ -29,9 +32,12 @@ export function AdminNotificationEmail({
   applicantEmail,
   phone,
   topic,
+  customCategory,
   offerType,
   accessPrice,
   hourlyRate,
+  weeklyPrice,
+  monthlyPrice,
   proofLinks,
   proofImages,
   socialProof,
@@ -66,6 +72,12 @@ export function AdminNotificationEmail({
             <td style={{ padding: "8px 0", fontWeight: "bold" }}>Topic:</td>
             <td style={{ padding: "8px 0" }}>{topic}</td>
           </tr>
+          {customCategory && (
+            <tr>
+              <td style={{ padding: "8px 0", fontWeight: "bold" }}>Category:</td>
+              <td style={{ padding: "8px 0" }}>{customCategory}</td>
+            </tr>
+          )}
           <tr>
             <td style={{ padding: "8px 0", fontWeight: "bold" }}>Offer Type:</td>
             <td style={{ padding: "8px 0" }}>{offerType}</td>
@@ -80,6 +92,18 @@ export function AdminNotificationEmail({
             <tr>
               <td style={{ padding: "8px 0", fontWeight: "bold" }}>Hourly Rate:</td>
               <td style={{ padding: "8px 0" }}>${(hourlyRate / 100).toFixed(2)}/hr</td>
+            </tr>
+          )}
+          {weeklyPrice && (
+            <tr>
+              <td style={{ padding: "8px 0", fontWeight: "bold" }}>Weekly Subscription:</td>
+              <td style={{ padding: "8px 0" }}>${(weeklyPrice / 100).toFixed(2)}/week</td>
+            </tr>
+          )}
+          {monthlyPrice && (
+            <tr>
+              <td style={{ padding: "8px 0", fontWeight: "bold" }}>Monthly Subscription:</td>
+              <td style={{ padding: "8px 0" }}>${(monthlyPrice / 100).toFixed(2)}/month</td>
             </tr>
           )}
         </table>

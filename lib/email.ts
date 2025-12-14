@@ -54,9 +54,12 @@ export async function sendAdminNotification({
   applicantEmail,
   phone,
   topic,
+  customCategory,
   offerType,
   accessPrice,
   hourlyRate,
+  weeklyPrice,
+  monthlyPrice,
   proofLinks,
   proofImages,
   socialProof,
@@ -66,9 +69,12 @@ export async function sendAdminNotification({
   applicantEmail: string;
   phone?: string;
   topic: string;
+  customCategory?: string;
   offerType: string;
   accessPrice?: number;
   hourlyRate?: number;
+  weeklyPrice?: number;
+  monthlyPrice?: number;
   proofLinks: string;
   proofImages?: string[];
   socialProof?: Record<string, string | undefined>;
@@ -81,9 +87,12 @@ export async function sendAdminNotification({
         applicantEmail,
         phone,
         topic,
+        customCategory,
         offerType,
         accessPrice,
         hourlyRate,
+        weeklyPrice,
+        monthlyPrice,
         proofLinks,
         proofImages,
         socialProof,

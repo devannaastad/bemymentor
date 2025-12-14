@@ -19,6 +19,8 @@ enum MentorCategory {
   YOUTUBE_PRODUCTION       // YouTube Production & Editing - Filmmaking, editing, branding
   ECOMMERCE                // Ecommerce - Shopify, Amazon FBA, dropshipping, product sourcing
   AGENCIES                 // Agencies - Client acquisition, scaling, operations, marketing services
+  GYMFITNESS               // Gym & Fitness - Personal training, nutrition, workout coaching
+  OTHER                    // Other - Custom mentorship category
 }
 
 enum OfferType {
@@ -152,6 +154,7 @@ model Mentor {
   name         String
   category     MentorCategory // Primary category for backwards compatibility
   categories   MentorCategory[] @default([]) // Multiple categories support
+  customCategory String?      // Custom category text when category is OTHER
   tagline      String
   bio          String?        @db.Text // Full bio/description
   profileImage String?        // URL to profile photo
@@ -273,12 +276,15 @@ model Application {
   email       String
   phone       String?           // Optional phone number
   topic       String
+  customCategory String?        // Custom category text when topic is OTHER
   proofLinks  String            @db.Text
   proofImages Json?             // Array of proof image URLs
   socialProof Json?             // Structured social proof links (portfolio, socials, etc.)
   offerType   OfferType
   accessPrice Int?
   hourlyRate  Int?
+  weeklyPrice Int?              // Weekly subscription price in cents
+  monthlyPrice Int?             // Monthly subscription price in cents
   status      ApplicationStatus @default(PENDING)
   reviewedBy  String?           // Admin email who reviewed
   reviewedAt  DateTime?

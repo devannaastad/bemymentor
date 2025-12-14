@@ -1,6 +1,6 @@
 // components/landing/Categories.tsx
 import Link from "next/link";
-import { Gamepad2, TrendingUp, Radio, Film, ShoppingCart, Briefcase } from "lucide-react";
+import { Gamepad2, TrendingUp, Radio, Film, ShoppingCart, Briefcase, Dumbbell, Sparkles } from "lucide-react";
 
 const CATS = [
   {
@@ -44,6 +44,20 @@ const CATS = [
     icon: Briefcase,
     description: "Scale your agency with proven client acquisition and operations strategies",
     gradient: "from-rose-500 to-pink-500",
+  },
+  {
+    slug: "GYMFITNESS",
+    label: "Gym & Fitness",
+    icon: Dumbbell,
+    description: "Personal training, nutrition coaching, and workout program development",
+    gradient: "from-red-500 to-orange-500",
+  },
+  {
+    slug: "OTHER",
+    label: "Other",
+    icon: Sparkles,
+    description: "Discover unique mentorship opportunities across various fields",
+    gradient: "from-violet-500 to-fuchsia-500",
   },
 ];
 

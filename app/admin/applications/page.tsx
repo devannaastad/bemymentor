@@ -109,12 +109,21 @@ export default async function AdminApplicationsPage() {
                           <p className="text-sm">{app.topic}</p>
                         </div>
 
+                        {app.customCategory && (
+                          <div>
+                            <p className="text-xs font-medium text-white/60">Category</p>
+                            <p className="text-sm">{app.customCategory}</p>
+                          </div>
+                        )}
+
                         <div>
                           <p className="text-xs font-medium text-white/60">Pricing</p>
                           <p className="text-sm">
                             {app.offerType}
                             {app.accessPrice && ` • ACCESS ${formatCurrency(app.accessPrice)}`}
                             {app.hourlyRate && ` • TIME ${formatCurrency(app.hourlyRate)}/hr`}
+                            {app.weeklyPrice && ` • WEEKLY ${formatCurrency(app.weeklyPrice)}/wk`}
+                            {app.monthlyPrice && ` • MONTHLY ${formatCurrency(app.monthlyPrice)}/mo`}
                           </p>
                         </div>
 

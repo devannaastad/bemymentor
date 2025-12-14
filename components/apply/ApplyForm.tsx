@@ -17,6 +17,8 @@ import FormFieldError from "@/components/common/FormFieldError";
 import { AlertCircle, X } from "lucide-react";
 import { UploadButton } from "@/lib/uploadthing";
 import Image from "next/image";
+import { MentorCategory } from "@prisma/client";
+import { getCategoryLabel } from "@/lib/utils/categories";
 
 export default function ApplyForm() {
   const router = useRouter();
@@ -40,6 +42,7 @@ export default function ApplyForm() {
   });
 
   const offerType = watch("offerType");
+  const category = watch("category");
 
   const onSubmit = async (data: ApplicationFormValues) => {
     // Honeypot check - if filled, it's a bot
@@ -155,6 +158,44 @@ export default function ApplyForm() {
           Focus areas: Gaming & Esports, Trading & Investing, Streaming, YouTube Production
         </p>
       </div>
+
+      {/* Category */}
+      <div>
+        <label htmlFor="category" className="mb-2 block text-base font-semibold text-white">
+          Category <span className="text-white/40 text-sm font-normal">(Optional)</span>
+        </label>
+        <Select id="category" {...register("category")} className="h-12 text-base">
+          <option value="">Select a category...</option>
+          {Object.values(MentorCategory).map((cat) => (
+            <option key={cat} value={cat}>
+              {getCategoryLabel(cat)}
+            </option>
+          ))}
+        </Select>
+        {errors.category?.message && <FormFieldError error={errors.category.message} />}
+        <p className="mt-2 text-sm text-white/50">
+          Choose the category that best fits your expertise
+        </p>
+      </div>
+
+      {/* Custom Category (only shown when OTHER is selected) */}
+      {category === "OTHER" && (
+        <div>
+          <label htmlFor="customCategory" className="mb-2 block text-base font-semibold text-white">
+            Describe your mentorship area <span className="text-rose-400">*</span>
+          </label>
+          <Input
+            id="customCategory"
+            {...register("customCategory")}
+            placeholder="e.g., Life coaching, Music production, Photography"
+            className="h-12 text-base"
+          />
+          {errors.customCategory?.message && <FormFieldError error={errors.customCategory.message} />}
+          <p className="mt-2 text-sm text-white/50">
+            Tell us what you specialize in
+          </p>
+        </div>
+      )}
 
       {/* Proof of Expertise Section */}
       <div className="space-y-6 rounded-lg border border-primary-500/20 bg-primary-500/5 p-6">
@@ -390,6 +431,64 @@ export default function ApplyForm() {
           </p>
         </div>
       )}
+
+      {/* Subscription Options */}
+      <div className="space-y-4 rounded-lg border border-purple-500/20 bg-purple-500/5 p-6">
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-2">Subscription Plans (Optional)</h3>
+          <p className="text-sm text-white/60">
+            Offer recurring subscriptions for ongoing mentorship and exclusive content
+          </p>
+        </div>
+
+        {/* Weekly Subscription */}
+        <div>
+          <label htmlFor="weeklyPrice" className="mb-2 block text-base font-semibold text-white">
+            Weekly Subscription Price (USD) <span className="text-white/40 text-sm font-normal">(Optional)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 text-lg font-medium">
+              $
+            </span>
+            <Input
+              id="weeklyPrice"
+              type="text"
+              inputMode="decimal"
+              {...register("weeklyPrice")}
+              placeholder="25.00"
+              className="h-12 text-base pl-8"
+            />
+          </div>
+          {errors.weeklyPrice?.message && <FormFieldError error={errors.weeklyPrice.message} />}
+          <p className="mt-2 text-sm text-white/50">
+            Weekly recurring payment for ongoing access and support
+          </p>
+        </div>
+
+        {/* Monthly Subscription */}
+        <div>
+          <label htmlFor="monthlyPrice" className="mb-2 block text-base font-semibold text-white">
+            Monthly Subscription Price (USD) <span className="text-white/40 text-sm font-normal">(Optional)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 text-lg font-medium">
+              $
+            </span>
+            <Input
+              id="monthlyPrice"
+              type="text"
+              inputMode="decimal"
+              {...register("monthlyPrice")}
+              placeholder="75.00"
+              className="h-12 text-base pl-8"
+            />
+          </div>
+          {errors.monthlyPrice?.message && <FormFieldError error={errors.monthlyPrice.message} />}
+          <p className="mt-2 text-sm text-white/50">
+            Monthly recurring payment for continuous mentorship
+          </p>
+        </div>
+      </div>
 
       {/* Error Display */}
       {error && (
