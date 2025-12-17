@@ -51,7 +51,6 @@ export default function Navbar() {
     { label: "Dashboard", href: "/dashboard" },
     { label: "Messages", href: "/messages" },
     { label: "Mentor Dashboard", href: "/mentor-dashboard" },
-    { label: "Mentor Settings", href: "/mentor/settings" },
     ...(userIsAdmin ? [{ label: "Admin", href: "/admin" }] : []),
     { label: "Catalog", href: "/catalog" },
     ...(!isMentor ? [{ label: "Apply as Mentor", href: "/apply" }] : []),

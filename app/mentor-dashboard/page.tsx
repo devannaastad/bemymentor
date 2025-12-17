@@ -158,25 +158,25 @@ export default async function MentorDashboardPage() {
     <section className="section">
       <div className="container">
         {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
-          <div>
+        <div className="mb-8">
+          <div className="mb-4">
             <h1 className="h1 mb-2">Mentor Dashboard</h1>
             <p className="text-white/60">
               Welcome back, {mentorName}! Manage your bookings and track your progress.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             <StripeConnectButton mentor={mentor} />
-            <Button href="/mentor-dashboard/access-pass" variant="ghost">
+            <Button href="/mentor-dashboard/access-pass" variant="ghost" className="whitespace-nowrap">
               Access Pass Page
             </Button>
-            <Button href="/mentor-dashboard/subscriptions" variant="ghost">
+            <Button href="/mentor-dashboard/subscriptions" variant="ghost" className="whitespace-nowrap">
               Subscription Pages
             </Button>
-            <Button href="/mentor/settings" variant="ghost">
+            <Button href="/mentor/settings" variant="ghost" className="whitespace-nowrap">
               Settings
             </Button>
-            <Button href="/mentor-dashboard/profile" variant="primary">
+            <Button href="/mentor-dashboard/profile" variant="primary" className="whitespace-nowrap">
               Edit Profile
             </Button>
           </div>
