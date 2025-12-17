@@ -7,6 +7,8 @@ import { redirect } from "next/navigation";
  */
 const ADMIN_EMAILS = [
   "devannaastad@gmail.com",
+  "bemymentor2025@gmail.com",
+  "nathannegede0@gmail.com",
   // Add more admin emails here
 ];
 
