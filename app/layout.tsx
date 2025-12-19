@@ -14,16 +14,17 @@ export const metadata: Metadata = {
     template: "%s | BeMyMentor",
   },
   description:
-    "Connect with expert mentors in trading, gaming, design, fitness, languages, and career development. Book 1-on-1 sessions or get exclusive access to mentor communities.",
+    "Mentorship for the next generation. Learn from top Ecommerce and Marketing experts, Trading pros, Streamers, YouTube creators, and Gaming & Esports professionals. Get 1-on-1 coaching or exclusive access.",
   keywords: [
     "mentorship",
     "online coaching",
+    "ecommerce mentor",
+    "marketing coach",
     "trading mentor",
+    "streaming coach",
+    "youtube mentor",
     "gaming coach",
-    "design mentor",
-    "fitness coach",
-    "language tutor",
-    "career coaching",
+    "esports coach",
   ],
   authors: [{ name: "BeMyMentor" }],
   icons: {
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     siteName: "BeMyMentor",
     title: "BeMyMentor - Find Your Perfect Mentor",
     description:
-      "Connect with expert mentors in trading, gaming, design, fitness, languages, and career development.",
+      "Mentorship for the next generation. Learn from top Ecommerce and Marketing experts, Trading pros, Streamers, YouTube creators, and Gaming & Esports professionals.",
     images: [
       {
         url: "/og-image.png",
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "BeMyMentor - Find Your Perfect Mentor",
     description:
-      "Connect with expert mentors in trading, gaming, design, fitness, languages, and career development.",
+      "Mentorship for the next generation. Learn from top Ecommerce and Marketing experts, Trading pros, Streamers, YouTube creators, and Gaming & Esports professionals.",
     images: ["/og-image.png"],
   },
   robots: {
