@@ -8,6 +8,7 @@ import { MentorBookingNotificationEmail } from "./emails/mentor-booking-notifica
 import BookingCancellationEmail from "./emails/booking-cancellation";
 import BookingRescheduleEmail from "./emails/booking-reschedule";
 import SessionReminderEmail from "./emails/session-reminder";
+import MentorApprovalEmail from "./emails/mentor-approval";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -471,4 +472,47 @@ export async function sendReviewReminder({
   }
 
   return { ok: true, data };
+}
+
+/**
+ * Send mentor approval email with setup link and Discord invite
+ */
+export async function sendMentorApproval({
+  to,
+  mentorName,
+  discordUrl = "https://discord.gg/VgzezswFUW",
+}: {
+  to: string;
+  mentorName: string;
+  discordUrl?: string;
+}) {
+  try {
+    const setupUrl = `${APP_URL}/mentor-setup`;
+
+    const emailHtml = await render(
+      MentorApprovalEmail({
+        mentorName,
+        setupUrl,
+        discordUrl,
+      })
+    );
+
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: "🎉 You're Approved! Welcome to BeMyMentor",
+      html: emailHtml,
+    });
+
+    if (error) {
+      console.error("[email:mentor-approval] Failed:", error);
+      return { ok: false, error };
+    }
+
+    console.log("[email:mentor-approval] Sent to:", to, "ID:", data?.id);
+    return { ok: true, data };
+  } catch (error) {
+    console.error("[email:mentor-approval] Exception:", error);
+    return { ok: false, error };
+  }
 }

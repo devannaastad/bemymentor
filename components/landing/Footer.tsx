@@ -119,14 +119,8 @@ export default function Footer() {
               © {new Date().getFullYear()} BeMyMentor. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-muted-foreground">
-              <a href="https://twitter.com/bemymentor" className="transition-colors hover:text-white">
-                Twitter
-              </a>
-              <a href="https://discord.gg/bemymentor" className="transition-colors hover:text-white">
+              <a href="https://discord.gg/VgzezswFUW" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">
                 Discord
-              </a>
-              <a href="https://github.com/bemymentor" className="transition-colors hover:text-white">
-                GitHub
               </a>
             </div>
           </div>

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin";
+import { sendMentorApproval } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -34,6 +35,21 @@ export async function PATCH(
         reviewedAt: parsed.status ? new Date() : undefined,
       },
     });
+
+    // Send approval email if status changed to APPROVED
+    if (parsed.status === "APPROVED") {
+      // Get Discord URL from environment variable or use a default
+      const discordUrl = process.env.DISCORD_INVITE_URL || "https://discord.gg/VgzezswFUW";
+
+      await sendMentorApproval({
+        to: application.email,
+        mentorName: application.fullName,
+        discordUrl,
+      }).catch((err) => {
+        console.error("[admin:update] Failed to send approval email:", err);
+        // Don't fail the request if email fails
+      });
+    }
 
     // Note: We no longer auto-create mentor profiles here
     // Users must complete the /mentor-setup flow after approval

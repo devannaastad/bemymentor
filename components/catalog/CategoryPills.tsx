@@ -4,12 +4,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const CATEGORIES = [
   { value: "", label: "All Categories" },
-  { value: "GAMING_ESPORTS", label: "Gaming & Esports" },
+  { value: "ECOMMERCE", label: "Ecommerce" },
+  { value: "AGENCIES", label: "Agencies" },
   { value: "TRADING_INVESTING", label: "Trading & Investing" },
   { value: "STREAMING_CONTENT", label: "Streaming" },
   { value: "YOUTUBE_PRODUCTION", label: "YouTube" },
-  { value: "ECOMMERCE", label: "Ecommerce" },
-  { value: "AGENCIES", label: "Agencies" },
+  { value: "GAMING_ESPORTS", label: "Gaming & Esports" },
+  { value: "GYMFITNESS", label: "Gym & Fitness" },
+  { value: "OTHER", label: "Other" },
 ];
 
 export default function CategoryPills() {

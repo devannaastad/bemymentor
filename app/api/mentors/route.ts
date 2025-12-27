@@ -58,16 +58,29 @@ export async function GET(req: Request) {
     orConditions.push({ tagline: { contains: q, mode: "insensitive" } });
     orConditions.push({ bio: { contains: q, mode: "insensitive" } });
 
-    where.OR = orConditions;
+    // Add to AND clause to combine with other filters properly
+    const andClauses: Prisma.MentorWhereInput[] = [];
+    if (Array.isArray(where.AND)) andClauses.push(...where.AND);
+    else if (where.AND) andClauses.push(where.AND);
+
+    andClauses.push({ OR: orConditions });
+    where.AND = andClauses;
   }
 
   // Category filter - match if category is in their categories array OR their primary category
   if ((Object.values(MentorCategory) as string[]).includes(category)) {
-    where.OR = [
-      ...(where.OR || []),
-      { category: category as MentorCategory },
-      { categories: { has: category as MentorCategory } },
-    ];
+    const andClauses: Prisma.MentorWhereInput[] = [];
+    if (Array.isArray(where.AND)) andClauses.push(...where.AND);
+    else if (where.AND) andClauses.push(where.AND);
+
+    // Use OR for matching either primary category OR categories array, but wrap in AND
+    andClauses.push({
+      OR: [
+        { category: category as MentorCategory },
+        { categories: { has: category as MentorCategory } },
+      ]
+    });
+    where.AND = andClauses;
   }
 
   // Offer type filter
@@ -138,6 +151,17 @@ export async function GET(req: Request) {
   }
 
   try {
+    // Debug logging for empty results
+    console.log("[api/mentors] Query params:", {
+      q,
+      category,
+      priceMin,
+      priceMax,
+      minRating,
+      verified: verifiedOnly,
+      sort: sortBy,
+    });
+
     const [mentors, total] = await Promise.all([
       prisma.mentor.findMany({
         where,
@@ -153,6 +177,11 @@ export async function GET(req: Request) {
       }),
       prisma.mentor.count({ where }),
     ]);
+
+    // Log when results are empty to help debug
+    if (total === 0) {
+      console.log("[api/mentors] No results found with where clause:", JSON.stringify(where, null, 2));
+    }
 
     const totalPages = Math.ceil(total / limit);
 
