@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
+import Select from "@/components/common/Select";
 import FormFieldError from "@/components/common/FormFieldError";
 import { MentorCategory } from "@prisma/client";
 
@@ -105,19 +106,18 @@ export default function Step1BasicInfo({
           <label htmlFor="category" className="block text-sm font-medium text-white/80 mb-2">
             Category *
           </label>
-          <select
+          <Select
             id="category"
             value={category}
             onChange={(e) => setCategory(e.target.value as MentorCategory)}
-            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
           >
-            <option value="" className="bg-gray-900">Select a category</option>
+            <option value="">Select a category</option>
             {CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value} className="bg-gray-900">
+              <option key={cat.value} value={cat.value}>
                 {cat.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Tagline */}

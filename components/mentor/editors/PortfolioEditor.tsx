@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import Select from "@/components/common/Select";
 import { Plus, Trash2, ExternalLink } from "lucide-react";
 import { useProfileEditor } from "../ProfileEditorContext";
 
@@ -103,17 +104,17 @@ export default function PortfolioEditor() {
                         <label className="mb-1 block text-xs font-medium text-white/70">
                           Type
                         </label>
-                        <select
+                        <Select
                           value={item.type}
                           onChange={(e) => updateItem(index, "type", e.target.value)}
-                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                          className="h-auto py-2 text-sm"
                         >
                           <option value="Project">Project</option>
                           <option value="Case Study">Case Study</option>
                           <option value="Achievement">Achievement</option>
                           <option value="Video">Video</option>
                           <option value="Article">Article</option>
-                        </select>
+                        </Select>
                       </div>
                       <div>
                         <label className="mb-1 block text-xs font-medium text-white/70">

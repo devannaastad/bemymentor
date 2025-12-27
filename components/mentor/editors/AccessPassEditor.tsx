@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import Select from "@/components/common/Select";
 import { Plus, Trash2, Link as LinkIcon, MessageSquare, FileText } from "lucide-react";
 import { useProfileEditor } from "../ProfileEditorContext";
 
@@ -163,17 +164,16 @@ export default function AccessPassEditor({ mentor }: AccessPassEditorProps) {
                         <label className="mb-2 block text-sm font-medium text-white/80">
                           Type
                         </label>
-                        <select
+                        <Select
                           value={link.type}
                           onChange={(e) => updateLink(index, "type", e.target.value)}
-                          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                         >
                           {LINK_TYPES.map((type) => (
                             <option key={type.value} value={type.value}>
                               {type.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
 
                       {/* Title */}

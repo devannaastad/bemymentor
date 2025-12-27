@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import Select from "@/components/common/Select";
 import { toast } from "@/components/common/Toast";
 import { Plus, Trash2, Eye, Save, Image as ImageIcon, Video } from "lucide-react";
 import ImageUploader from "@/components/common/ImageUploader";
@@ -398,10 +399,9 @@ export default function AccessPassEditor({ mentor }: AccessPassEditorProps) {
                       <label className="mb-1 block text-sm font-medium text-white/70">
                         Type
                       </label>
-                      <select
+                      <Select
                         value={link.type}
                         onChange={(e) => updateLink(index, "type", e.target.value)}
-                        className="w-full rounded-lg border border-white/10 bg-white/5 p-2 text-white focus:border-purple-500/50 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                       >
                         <option value="link">Website/Link</option>
                         <option value="discord">Discord Server</option>
@@ -411,7 +411,7 @@ export default function AccessPassEditor({ mentor }: AccessPassEditorProps) {
                         <option value="video">Video Content</option>
                         <option value="document">Document</option>
                         <option value="other">Other</option>
-                      </select>
+                      </Select>
                     </div>
 
                     {/* Title */}

@@ -6,6 +6,7 @@ import { Mentor, MentorCategory } from "@prisma/client";
 import { useProfileEditor } from "../ProfileEditorContext";
 import MentorAvatarUploader from "../MentorAvatarUploader";
 import Button from "@/components/common/Button";
+import Select from "@/components/common/Select";
 import { Twitter, Linkedin, Globe, Youtube, Github, Instagram, Facebook, CheckCircle, AlertCircle, ExternalLink, DollarSign } from "lucide-react";
 import { CATEGORY_LABELS, getCategoryIcon } from "@/lib/utils/categories";
 
@@ -428,15 +429,14 @@ export default function BasicInfoEditor({ mentor }: BasicInfoEditorProps) {
               <label className="mb-2 block text-sm font-medium text-white/80">
                 Offer Type
               </label>
-              <select
+              <Select
                 value={profileData.offerType || "BOTH"}
                 onChange={(e) => updateField("offerType", e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               >
                 <option value="ACCESS">Access Pass Only</option>
                 <option value="TIME">Hourly Sessions Only</option>
                 <option value="BOTH">Both Options</option>
-              </select>
+              </Select>
             </div>
 
             {/* Access Price */}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import Select from "@/components/common/Select";
 
 interface AvailabilitySlot {
   id: string;
@@ -287,38 +288,36 @@ export default function AvailabilitySettings() {
                 <label className="mb-2 block text-sm font-medium text-white/90">
                   Day of Week
                 </label>
-                <select
+                <Select
                   value={newSlot.dayOfWeek}
                   onChange={(e) =>
                     setNewSlot({ ...newSlot, dayOfWeek: Number(e.target.value) })
                   }
-                  className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-white"
                 >
                   {DAYS_OF_WEEK.map((day) => (
                     <option key={day.value} value={day.value}>
                       {day.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-white/90">
                   Timezone
                 </label>
-                <select
+                <Select
                   value={newSlot.timezone}
                   onChange={(e) =>
                     setNewSlot({ ...newSlot, timezone: e.target.value })
                   }
-                  className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-white"
                 >
                   {TIMEZONES.map((tz) => (
                     <option key={tz} value={tz}>
                       {tz.replace(/_/g, " ")}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import Select from "@/components/common/Select";
 import { Plus, Trash2, Calendar, DollarSign, CheckCircle } from "lucide-react";
 import { toast } from "@/components/common/Toast";
 
@@ -313,7 +314,7 @@ export default function SubscriptionEditor() {
                       <label className="mb-2 block text-sm font-medium text-white/80">
                         Billing Interval *
                       </label>
-                      <select
+                      <Select
                         value={plan.interval}
                         onChange={(e) =>
                           updatePlan(
@@ -322,14 +323,13 @@ export default function SubscriptionEditor() {
                             e.target.value as "WEEKLY" | "MONTHLY" | "YEARLY"
                           )
                         }
-                        className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                       >
                         {INTERVAL_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
 
                     {/* Price */}

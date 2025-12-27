@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Select from "@/components/common/Select";
 
 interface TimezoneSelectorProps {
   value: string;
@@ -81,21 +82,21 @@ export default function TimezoneSelector({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <select
+        <Select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="flex-1"
         >
           {Object.entries(TIMEZONES).map(([region, timezones]) => (
-            <optgroup key={region} label={region} className="bg-[#1a1a1a] text-white">
+            <optgroup key={region} label={region}>
               {timezones.map((tz) => (
-                <option key={tz.value} value={tz.value} className="bg-[#1a1a1a] text-white">
+                <option key={tz.value} value={tz.value}>
                   {tz.label}
                 </option>
               ))}
             </optgroup>
           ))}
-        </select>
+        </Select>
 
         <button
           type="button"

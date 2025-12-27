@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import Select from "@/components/common/Select";
 import { Calendar, Plus, Trash2 } from "lucide-react";
 
 interface AvailabilitySlot {
@@ -163,19 +164,19 @@ export default function AvailabilityEditor({ mentor }: AvailabilityEditorProps) 
                             <label className="mb-1 block text-xs text-white/60">
                               Start Time
                             </label>
-                            <select
+                            <Select
                               value={slot.startTime}
                               onChange={(e) =>
                                 updateSlot(slotIndex, "startTime", e.target.value)
                               }
-                              className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                              className="h-auto py-2 text-sm"
                             >
                               {TIME_OPTIONS.map((time) => (
                                 <option key={time} value={time}>
                                   {formatTime(time)}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           </div>
 
                           {/* End Time */}
@@ -183,19 +184,19 @@ export default function AvailabilityEditor({ mentor }: AvailabilityEditorProps) 
                             <label className="mb-1 block text-xs text-white/60">
                               End Time
                             </label>
-                            <select
+                            <Select
                               value={slot.endTime}
                               onChange={(e) =>
                                 updateSlot(slotIndex, "endTime", e.target.value)
                               }
-                              className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                              className="h-auto py-2 text-sm"
                             >
                               {TIME_OPTIONS.map((time) => (
                                 <option key={time} value={time}>
                                   {formatTime(time)}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           </div>
 
                           {/* Active Toggle */}
