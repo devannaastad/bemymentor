@@ -38,20 +38,24 @@ export default async function AccessPassPage({
     );
   }
 
-  // Check if user has purchased an access pass from this mentor
-  const accessPass = await db.booking.findFirst({
-    where: {
-      userId: session.user.id,
-      mentorId: mentorId,
-      type: "ACCESS",
-      status: {
-        in: ["CONFIRMED", "COMPLETED"], // Accept both confirmed and completed bookings
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  // Check if user is the mentor (allow preview) OR has purchased an access pass
+  const isMentorViewing = mentor.userId === session.user.id;
 
-  if (!accessPass) {
+  const accessPass = !isMentorViewing
+    ? await db.booking.findFirst({
+        where: {
+          userId: session.user.id,
+          mentorId: mentorId,
+          type: "ACCESS",
+          status: {
+            in: ["CONFIRMED", "COMPLETED"], // Accept both confirmed and completed bookings
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      })
+    : null;
+
+  if (!isMentorViewing && !accessPass) {
     return (
       <div className="section">
         <div className="container max-w-4xl">
@@ -97,6 +101,23 @@ export default async function AccessPassPage({
   return (
     <div className="section">
       <div className="container max-w-4xl">
+        {/* Preview Banner for Mentor */}
+        {isMentorViewing && (
+          <div className="mb-6 rounded-lg border-2 border-blue-500/50 bg-blue-500/10 p-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-blue-500/20 p-2">
+                <Lock className="h-5 w-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="font-semibold text-blue-300">Preview Mode</p>
+                <p className="text-sm text-blue-400/80">
+                  You&apos;re viewing this as the mentor. Students will see this after purchasing your access pass.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8 text-center">
           {mentor.profileImage && (
