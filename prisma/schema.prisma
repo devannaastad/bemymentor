@@ -62,6 +62,15 @@ enum BookingStatus {
   REFUNDED
 }
 
+enum DisputeDecision {
+  REFUND_STUDENT_FULL    // Full refund to student, no payout to mentor
+  REFUND_STUDENT_PARTIAL // Partial refund to student, partial payout to mentor
+  PAYOUT_MENTOR_FULL     // Full payout to mentor, no refund
+  SPLIT_50_50            // Split 50/50 between student and mentor
+  UNDER_REVIEW           // Still investigating
+  NO_ACTION              // Dismiss the dispute, proceed as normal
+}
+
 /**
  * ---------- NextAuth core models (v5 compatible) ----------
  */
@@ -333,7 +342,15 @@ model Booking {
   verifiedAt      DateTime?     // When customer verified
   isFraudReported Boolean       @default(false) // Customer reported fraud
   fraudReportedAt DateTime?     // When fraud was reported
-  fraudNotes      String?       @db.Text // Admin notes on fraud report
+  fraudNotes      String?       @db.Text // Student notes on fraud report
+
+  // Admin dispute resolution
+  adminReviewedAt DateTime?     // When admin reviewed the dispute
+  adminReviewedBy String?       // Admin email who reviewed
+  adminDecision   DisputeDecision? // Admin's decision on the dispute
+  adminNotes      String?       @db.Text // Admin notes on dispute
+  refundAmount    Int?          // Amount refunded in cents (if partial)
+  stripeRefundId  String?       // Stripe refund ID if refunded
 
   // Two-sided confirmation system
   mentorCompletedAt DateTime?   // When mentor marked as completed

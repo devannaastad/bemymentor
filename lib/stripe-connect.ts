@@ -160,3 +160,31 @@ export async function updatePayoutSchedule(accountId: string, isTrusted: boolean
 export function shouldUpgradeToTrusted(verifiedBookingsCount: number, isTrusted: boolean): boolean {
   return verifiedBookingsCount >= 5 && !isTrusted;
 }
+
+/**
+ * Issue a refund for a payment
+ */
+export async function issueRefund(
+  paymentIntentId: string,
+  amount?: number,
+  reason?: string
+) {
+  const refund = await stripe.refunds.create({
+    payment_intent: paymentIntentId,
+    amount, // Optional partial refund (in cents). If not provided, full refund
+    reason: reason as "duplicate" | "fraudulent" | "requested_by_customer" | undefined,
+  });
+
+  return refund;
+}
+
+/**
+ * Reverse a transfer to a connected account (claw back funds from mentor)
+ */
+export async function reverseTransfer(transferId: string, amount?: number) {
+  const reversal = await stripe.transfers.createReversal(transferId, {
+    amount, // Optional partial reversal
+  });
+
+  return reversal;
+}

@@ -13,6 +13,7 @@ export default function AdminHeader() {
     { href: "/admin/mentors", label: "Mentors" },
     { href: "/admin/users", label: "Users" },
     { href: "/admin/bookings", label: "Bookings" },
+    { href: "/admin/disputes", label: "Disputes" },
   ];
 
   const isActive = (href: string, exact?: boolean) => {
