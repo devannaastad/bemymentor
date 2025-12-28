@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { Card, CardContent } from "@/components/common/Card";
-import { Lock, ExternalLink, MessageSquare, FileText } from "lucide-react";
+import { Lock, ExternalLink, MessageSquare, FileText, Video } from "lucide-react";
 import Image from "next/image";
 
 type Params = { mentorId: string };
@@ -85,6 +85,16 @@ export default async function AccessPassPage({
     ? (mentor.accessPassLinks as AccessLink[])
     : [];
 
+  type AccessVideo = { title: string; url: string; description?: string };
+  const accessPassVideos: AccessVideo[] = Array.isArray(mentor.accessPassVideos)
+    ? (mentor.accessPassVideos as AccessVideo[])
+    : [];
+
+  type AccessImage = { url: string; caption?: string };
+  const accessPassImages: AccessImage[] = Array.isArray(mentor.accessPassImages)
+    ? (mentor.accessPassImages as AccessImage[])
+    : [];
+
   const getLinkIcon = (type: string) => {
     switch (type) {
       case "discord":
@@ -140,6 +150,76 @@ export default async function AccessPassPage({
               <h2 className="mb-4 text-xl font-semibold">Welcome Message</h2>
               <div className="whitespace-pre-wrap text-white/80">
                 {mentor.accessPassWelcome}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Page Content */}
+        {mentor.accessPassPageContent && (
+          <Card className="mb-8">
+            <CardContent>
+              <h2 className="mb-4 text-xl font-semibold">About This Access Pass</h2>
+              <div className="whitespace-pre-wrap text-white/80">
+                {mentor.accessPassPageContent}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Videos */}
+        {accessPassVideos.length > 0 && (
+          <Card className="mb-8">
+            <CardContent>
+              <div className="mb-4 flex items-center gap-2">
+                <Video className="h-5 w-5 text-purple-400" />
+                <h2 className="text-xl font-semibold">Video Content</h2>
+              </div>
+              <div className="space-y-4">
+                {accessPassVideos.map((video, idx) => (
+                  <div key={idx} className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <h4 className="mb-2 font-semibold text-white">{video.title}</h4>
+                    {video.description && (
+                      <p className="mb-3 text-sm text-white/60">{video.description}</p>
+                    )}
+                    <a
+                      href={video.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      <span className="text-sm font-medium">Watch Video</span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Images */}
+        {accessPassImages.length > 0 && (
+          <Card className="mb-8">
+            <CardContent>
+              <h2 className="mb-4 text-xl font-semibold">Gallery</h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                {accessPassImages.map((img, idx) => (
+                  <div key={idx} className="group relative overflow-hidden rounded-lg">
+                    <div className="relative aspect-video">
+                      <Image
+                        src={img.url}
+                        alt={img.caption || `Gallery image ${idx + 1}`}
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    </div>
+                    {img.caption && (
+                      <p className="mt-2 text-sm text-white/70">{img.caption}</p>
+                    )}
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
