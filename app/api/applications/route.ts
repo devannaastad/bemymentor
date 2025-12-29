@@ -8,9 +8,9 @@ import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
-    // Rate limit by IP: 3 submissions per hour
+    // Rate limit by IP: 10 submissions per hour (relaxed to allow multiple applicants from same location)
     const clientIp = getClientIp(request);
-    const rateLimitResult = rateLimit(clientIp, { max: 3, windowMs: 60 * 60 * 1000 });
+    const rateLimitResult = rateLimit(clientIp, { max: 10, windowMs: 60 * 60 * 1000 });
 
     if (!rateLimitResult.success) {
       const resetTime = new Date(rateLimitResult.resetAt).toLocaleTimeString();
