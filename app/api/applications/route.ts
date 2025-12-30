@@ -58,6 +58,7 @@ export async function POST(request: Request) {
         email: parsed.email,
         phone: parsed.phone,
         topic: parsed.topic,
+        category: parsed.category,
         customCategory: parsed.customCategory,
         proofLinks: parsed.proofLinks,
         proofImages: parsed.proofImages || [],

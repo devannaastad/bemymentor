@@ -5,9 +5,9 @@ import Button from "@/components/common/Button";
 import MentorCard from "@/components/catalog/MentorCard";
 import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
 import SearchHero from "@/components/catalog/SearchHero";
-import CategoryPills from "@/components/catalog/CategoryPills";
 import EnhancedFilters from "@/components/catalog/EnhancedFilters";
 import EmptyState from "@/components/catalog/EmptyState";
+import CatalogHeading from "@/components/catalog/CatalogHeading";
 import type { Mentor } from "@prisma/client";
 import type { Metadata } from "next";
 
@@ -184,11 +184,10 @@ export default async function HomePage({ searchParams }: PageProps) {
   return (
     <section className="section">
       <div className="container">
+        <CatalogHeading />
+
         {/* Search Hero */}
         <SearchHero />
-
-        {/* Category Pills */}
-        <CategoryPills />
 
         {/* Enhanced Filters */}
         <EnhancedFilters />

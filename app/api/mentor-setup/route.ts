@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
 
     const { bio, profileImage, twitterUrl, linkedinUrl, websiteUrl } = validation.data;
 
-    // Determine category from topic
-    const category = inferCategory(approvedApp.topic);
+    // Use the category from the application, or infer from topic as fallback
+    const category = approvedApp.category || inferCategory(approvedApp.topic);
 
     // Build social links object (only include non-empty values)
     const socialLinksData: Record<string, string> = {};

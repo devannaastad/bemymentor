@@ -5,9 +5,9 @@ import Button from "@/components/common/Button";
 import MentorCard from "@/components/catalog/MentorCard";
 import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
 import SearchHero from "@/components/catalog/SearchHero";
-import CategoryPills from "@/components/catalog/CategoryPills";
 import EnhancedFilters from "@/components/catalog/EnhancedFilters";
 import EmptyState from "@/components/catalog/EmptyState";
+import CatalogHeading from "@/components/catalog/CatalogHeading";
 import type { Mentor } from "@prisma/client";
 import type { Metadata } from "next";
 
@@ -182,18 +182,10 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   return (
     <section className="section">
       <div className="container">
-        {/* Hero Heading */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(251,191,36,0.5)] animate-pulse">
-            Find Your Mentor
-          </h1>
-        </div>
+        <CatalogHeading />
 
         {/* Search Hero */}
         <SearchHero />
-
-        {/* Category Pills */}
-        <CategoryPills />
 
         {/* Enhanced Filters */}
         <EnhancedFilters />

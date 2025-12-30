@@ -11,6 +11,17 @@ const EXAMPLES = [
   "Rocket League",
 ];
 
+const CATEGORIES = [
+  { value: "ECOMMERCE", label: "Ecommerce" },
+  { value: "AGENCIES", label: "Agencies" },
+  { value: "TRADING_INVESTING", label: "Trading & Investing" },
+  { value: "STREAMING_CONTENT", label: "Streaming" },
+  { value: "YOUTUBE_PRODUCTION", label: "YouTube" },
+  { value: "GAMING_ESPORTS", label: "Gaming & Esports" },
+  { value: "GYMFITNESS", label: "Gym & Fitness" },
+  { value: "OTHER", label: "Other" },
+];
+
 export default function SearchHero() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -67,6 +78,11 @@ export default function SearchHero() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleCategoryClick = (categoryLabel: string) => {
+    setQuery(categoryLabel);
+    setShowSuggestions(false);
+  };
+
   const handleSearch = (searchQuery?: string) => {
     const finalQuery = searchQuery || query;
     const params = new URLSearchParams(searchParams.toString());
@@ -106,12 +122,9 @@ export default function SearchHero() {
 
   return (
     <div className="bg-gradient-to-br from-primary-900/20 to-primary-800/10 border border-primary-500/20 rounded-2xl p-8 mb-8">
-      <h2 className="text-3xl font-bold text-white mb-2 text-center">
+      <h2 className="text-3xl font-bold text-white mb-6 text-center">
         What do you want to learn?
       </h2>
-      <p className="text-white/60 text-center mb-6">
-        Find expert mentors in gaming, trading, streaming, and content creation
-      </p>
 
       <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
         <div className="relative" ref={searchRef}>
@@ -182,14 +195,13 @@ export default function SearchHero() {
       </form>
 
       <div className="flex gap-2 justify-center mt-4 flex-wrap">
-        <span className="text-white/40 text-sm">Popular:</span>
-        {EXAMPLES.map((example) => (
+        {CATEGORIES.map((cat) => (
           <button
-            key={example}
-            onClick={() => handleSearch(example)}
-            className="text-sm text-primary-400 hover:text-primary-300 transition"
+            key={cat.value}
+            onClick={() => handleCategoryClick(cat.label)}
+            className="text-sm text-primary-400 hover:text-primary-300 transition px-3 py-1 rounded-full hover:bg-primary-500/10"
           >
-            {example}
+            {cat.label}
           </button>
         ))}
       </div>
