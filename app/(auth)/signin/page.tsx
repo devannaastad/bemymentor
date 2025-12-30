@@ -14,13 +14,14 @@ const hasGoogleAuth = !!(
 );
 
 type PageProps = {
-  searchParams?: Promise<{ error?: string; callbackUrl?: string }>;
+  searchParams?: Promise<{ error?: string; callbackUrl?: string; message?: string }>;
 };
 
 export default async function SignInPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const error = params?.error;
   const callbackUrl = params?.callbackUrl;
+  const message = params?.message;
 
   const googleSignIn = async () => {
     "use server";
@@ -46,6 +47,15 @@ export default async function SignInPage({ searchParams }: PageProps) {
             <div className="mb-4 rounded-lg border border-rose-500/20 bg-rose-500/10 p-3">
               <p className="text-sm text-rose-200">
                 ⚠️ You need to sign in to access that page.
+              </p>
+            </div>
+          )}
+
+          {/* Custom Message */}
+          {message && (
+            <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/10 p-3">
+              <p className="text-sm text-blue-200">
+                {message}
               </p>
             </div>
           )}

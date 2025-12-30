@@ -3,6 +3,8 @@ import ApplyForm from "@/components/apply/ApplyForm";
 import type { Metadata } from "next";
 import { Card, CardContent } from "@/components/common/Card";
 import { CheckCircle, DollarSign, Users, Zap } from "lucide-react";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Become a Mentor - BeMyMentor",
@@ -13,7 +15,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ApplyPage() {
+export default async function ApplyPage() {
+  const session = await auth();
+
+  // Require sign-in before showing application form
+  if (!session?.user) {
+    redirect("/api/auth/signin?callbackUrl=/apply&message=Please sign in to apply as a mentor");
+  }
   return (
     <section className="section min-h-screen">
       <div className="container max-w-6xl">
