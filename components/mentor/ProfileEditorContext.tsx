@@ -26,6 +26,10 @@ interface ProfileData {
 
   // Video Intro
   videoIntro?: string;
+
+  // Banner Card
+  bannerMedia?: { type: "image" | "video"; url: string; thumbnail?: string }[];
+  bannerTagline?: string;
 }
 
 interface ProfileEditorContextType {

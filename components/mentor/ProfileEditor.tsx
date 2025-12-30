@@ -3,16 +3,17 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/common/Card";
 import Button from "@/components/common/Button";
-import { User, Briefcase, Video, Lock, Save, Calendar } from "lucide-react";
+import { User, Briefcase, Video, Lock, Save, Calendar, Sparkles } from "lucide-react";
 import BasicInfoEditor from "./editors/BasicInfoEditor";
 import PortfolioEditor from "./editors/PortfolioEditor";
 import VideoEditor from "./editors/VideoEditor";
 import AccessPassEditor from "./editors/AccessPassEditor";
 import SubscriptionEditor from "./editors/SubscriptionEditor";
+import BannerCardEditor from "./editors/BannerCardEditor";
 import { ProfileEditorProvider, useProfileEditor } from "./ProfileEditorContext";
 import { useRouter } from "next/navigation";
 
-type Tab = "basic" | "portfolio" | "video" | "access" | "subscriptions";
+type Tab = "basic" | "portfolio" | "banner" | "video" | "access" | "subscriptions";
 
 import { Mentor } from "@prisma/client";
 
@@ -50,6 +51,7 @@ function ProfileEditorContent({ mentor }: ProfileEditorProps) {
   const tabs = [
     { id: "basic" as Tab, label: "Basic Info", icon: User },
     { id: "portfolio" as Tab, label: "Portfolio", icon: Briefcase },
+    { id: "banner" as Tab, label: "Banner Card", icon: Sparkles },
     { id: "video" as Tab, label: "Video Intro", icon: Video },
     { id: "access" as Tab, label: "Access Pass Content", icon: Lock },
     { id: "subscriptions" as Tab, label: "Subscriptions", icon: Calendar },
@@ -114,6 +116,7 @@ function ProfileEditorContent({ mentor }: ProfileEditorProps) {
       <div className="min-h-[500px]">
         {activeTab === "basic" && <BasicInfoEditor mentor={mentor} />}
         {activeTab === "portfolio" && <PortfolioEditor />}
+        {activeTab === "banner" && <BannerCardEditor mentor={mentor} />}
         {activeTab === "video" && <VideoEditor mentor={mentor} />}
         {activeTab === "access" && <AccessPassEditor mentor={mentor} />}
         {activeTab === "subscriptions" && <SubscriptionEditor />}

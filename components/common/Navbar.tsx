@@ -10,7 +10,7 @@ export default function Navbar() {
           BeMyMentor
         </Link>
         <nav className="hidden gap-6 sm:flex">
-          <Link href="/catalog">Browse</Link>
+          <Link href="/">Browse</Link>
           <Link href="/apply">Become a Mentor</Link>
           <Link href="/#how-it-works">How it works</Link>
           <Link href="/#trust">Trust & Safety</Link>

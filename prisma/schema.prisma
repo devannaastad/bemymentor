@@ -185,6 +185,10 @@ model Mentor {
   accessPassVideos     Json?               // Array of videos: [{ title, url, description? }]
   accessPassImages     Json?               // Array of images: [{ url, caption? }]
 
+  // Banner Card Content (displayed on mentor catalog cards)
+  bannerMedia     Json?          // Array of media: [{ type: 'image' | 'video', url, thumbnail? }]
+  bannerTagline   String?        // Bold catchphrase/tagline for the card
+
   isActive     Boolean        @default(true) // Can be toggled off by admin or mentor
   flagged      Boolean        @default(false) // Admin flag for suspicious/scamming mentors
   flagReason   String?        @db.Text // Reason for flagging

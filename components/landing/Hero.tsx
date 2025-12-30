@@ -60,7 +60,7 @@ export default function Hero() {
           {/* CTA Buttons */}
           <div className="mb-12 flex flex-wrap items-center justify-center gap-4">
             <Button
-              href="/catalog"
+              href="/"
               className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-amber-600 px-8 py-4 text-lg font-semibold shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40 hover:scale-105"
             >
               <span className="relative z-10 flex items-center gap-2">

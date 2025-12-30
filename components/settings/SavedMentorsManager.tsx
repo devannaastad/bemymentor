@@ -71,7 +71,7 @@ export default function SavedMentorsManager({ userId }: { userId: string }) {
     return (
       <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
         <p className="mb-3 text-white/60">You haven&apos;t saved any mentors yet.</p>
-        <Button href="/catalog" size="sm">
+        <Button href="/" size="sm">
           Browse Catalog
         </Button>
       </div>

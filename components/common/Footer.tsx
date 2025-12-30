@@ -12,7 +12,7 @@ export default function Footer() {
           </p>
         </div>
         <nav className="grid gap-2">
-          <Link href="/catalog">Browse mentors</Link>
+          <Link href="/">Browse mentors</Link>
           <Link href="/apply">Become a mentor</Link>
           <Link href="/#trust">Trust & Safety</Link>
         </nav>

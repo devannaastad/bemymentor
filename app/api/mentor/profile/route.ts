@@ -97,6 +97,10 @@ export async function PUT(req: NextRequest) {
     // Portfolio field
     if (body.portfolio !== undefined) updateData.portfolio = body.portfolio;
 
+    // Banner Card fields
+    if (body.bannerMedia !== undefined) updateData.bannerMedia = body.bannerMedia;
+    if (body.bannerTagline !== undefined) updateData.bannerTagline = body.bannerTagline;
+
     // Update the mentor profile
     const updatedMentor = await db.mentor.update({
       where: { id: mentor.id },

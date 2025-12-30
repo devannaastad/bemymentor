@@ -23,7 +23,7 @@ export default function Footer() {
             <h3 className="mb-4 text-sm font-semibold uppercase text-white">Platform</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="/catalog" className="text-muted-foreground transition-colors hover:text-white">
+                <Link href="/" className="text-muted-foreground transition-colors hover:text-white">
                   Browse Mentors
                 </Link>
               </li>
@@ -38,12 +38,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/catalog?category=GAMING_ESPORTS" className="text-muted-foreground transition-colors hover:text-white">
+                <Link href="/?category=GAMING_ESPORTS" className="text-muted-foreground transition-colors hover:text-white">
                   Gaming & Esports
                 </Link>
               </li>
               <li>
-                <Link href="/catalog?category=TRADING_INVESTING" className="text-muted-foreground transition-colors hover:text-white">
+                <Link href="/?category=TRADING_INVESTING" className="text-muted-foreground transition-colors hover:text-white">
                   Trading & Investing
                 </Link>
               </li>
@@ -86,10 +86,15 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links */}
+          {/* Company Links */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase text-white">Legal</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase text-white">Company</h3>
             <ul className="space-y-3 text-sm">
+              <li>
+                <Link href="/about" className="text-muted-foreground transition-colors hover:text-white">
+                  About Us
+                </Link>
+              </li>
               <li>
                 <Link href="/terms" className="text-muted-foreground transition-colors hover:text-white">
                   Terms of Service

@@ -54,6 +54,22 @@ export const ourFileRouter = {
       console.log("Image URL:", file.ufsUrl);
       return { uploadedBy: metadata.email, url: file.ufsUrl };
     }),
+
+  videoUploader: f({ video: { maxFileSize: "32MB" } })
+    .middleware(async () => {
+      const session = await auth();
+
+      if (!session?.user?.email) {
+        throw new UploadThingError("Unauthorized");
+      }
+
+      return { email: session.user.email };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Video uploaded by:", metadata.email);
+      console.log("Video URL:", file.ufsUrl);
+      return { uploadedBy: metadata.email, url: file.ufsUrl };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

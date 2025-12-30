@@ -518,7 +518,7 @@ export default async function BookingConfirmPage({
           <Button href={`/mentors/${booking.mentor.id}`} variant="ghost">
             View Mentor Profile
           </Button>
-          <Button href="/catalog" variant="ghost">
+          <Button href="/" variant="ghost">
             Browse More Mentors
           </Button>
         </div>

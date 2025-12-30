@@ -12,7 +12,7 @@ export default function CTA() {
           </p>
         </div>
         <div className="mt-4 flex gap-3 md:mt-0">
-          <Button href="/catalog">Find a mentor</Button>
+          <Button href="/">Find a mentor</Button>
           <Button href="/apply" variant="ghost">Become a mentor</Button>
         </div>
       </div>

@@ -26,7 +26,7 @@ export default function ApplicationSuccessPage() {
               </ol>
             </div>
             <div className="mt-6 flex justify-center gap-3">
-              <Button href="/catalog">Browse Catalog</Button>
+              <Button href="/">Browse Catalog</Button>
               <Button href="/dashboard" variant="ghost">
                 Go to Dashboard
               </Button>

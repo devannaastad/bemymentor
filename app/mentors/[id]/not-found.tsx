@@ -10,7 +10,7 @@ export default function NotFound() {
           The mentor you’re looking for doesn’t exist or was removed.
         </p>
         <div className="mt-4">
-          <Link href="/catalog" className="underline underline-offset-4">
+          <Link href="/" className="underline underline-offset-4">
             ← Back to catalog
           </Link>
         </div>

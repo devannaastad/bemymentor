@@ -47,13 +47,13 @@ export default function Navbar() {
   }, [session?.user?.image]);
 
   const items: NavItem[] = [
-    { label: "Home", href: "/" },
+    { label: "Browse Mentors", href: "/" },
     { label: "Dashboard", href: "/dashboard" },
     { label: "Messages", href: "/messages" },
     { label: "Mentor Dashboard", href: "/mentor-dashboard" },
     ...(userIsAdmin ? [{ label: "Admin", href: "/admin" }] : []),
-    { label: "Catalog", href: "/catalog" },
     ...(!isMentor ? [{ label: "Apply as Mentor", href: "/apply" }] : []),
+    { label: "About", href: "/about" },
     { label: "Settings", href: "/settings" },
     { label: "Sign out", onSelect: () => setShowSignOutConfirm(true) },
   ];
@@ -78,12 +78,9 @@ export default function Navbar() {
 
           {/* Center: Primary nav */}
           <div className="hidden items-center gap-6 text-sm md:flex">
-            <TopLink href="/catalog" active={pathname === "/catalog"}>
-              Catalog
-            </TopLink>
             {!isMentor && (
               <TopLink href="/apply" active={pathname === "/apply"}>
-                Apply
+                Become a Mentor
               </TopLink>
             )}
             {status === "authenticated" && (
@@ -104,6 +101,9 @@ export default function Navbar() {
                 )}
               </>
             )}
+            <TopLink href="/about" active={pathname === "/about"}>
+              About
+            </TopLink>
           </div>
 
           {/* Right: Notifications & Account */}

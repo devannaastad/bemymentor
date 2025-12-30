@@ -1,69 +1,205 @@
-import Hero from "@/components/landing/Hero";
-import HowItWorks from "@/components/landing/HowItWorks";
-import Categories from "@/components/landing/Categories";
-import Trust from "@/components/landing/Trust";
-import CTA from "@/components/landing/CTA";
-import FAQ from "@/components/landing/FAQ";
-import Footer from "@/components/landing/Footer";
+// app/page.tsx - Main landing page (Catalog)
+import { cache, Suspense } from "react";
+import { headers } from "next/headers";
+import Button from "@/components/common/Button";
+import MentorCard from "@/components/catalog/MentorCard";
+import MentorCardShimmer from "@/components/catalog/MentorCardShimmer";
+import SearchHero from "@/components/catalog/SearchHero";
+import CategoryPills from "@/components/catalog/CategoryPills";
+import EnhancedFilters from "@/components/catalog/EnhancedFilters";
+import EmptyState from "@/components/catalog/EmptyState";
+import type { Mentor } from "@prisma/client";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "BeMyMentor - Level Up Your Skills with Expert Creators, Gamers & Traders",
-  description: "Mentorship for the next generation. Learn from top Gaming & Esports pros, Trading experts, Streamers, and YouTube creators. Get 1-on-1 coaching or exclusive content access.",
+  title: "BeMyMentor - Find Expert Mentors in Gaming, Trading, Streaming & YouTube",
+  description:
+    "Mentorship for the next generation of creators, gamers, and traders. Find expert mentors in Gaming, Trading, Streaming, and YouTube Production.",
   openGraph: {
-    title: "BeMyMentor - Expert Mentorship for Creators, Gamers & Traders",
-    description: "Level up your game. Learn from Radiant Valorant coaches, successful crypto traders, Twitch Partners, and YouTube pros.",
+    title: "BeMyMentor - Expert Mentorship Platform",
+    description:
+      "Find the perfect mentor for your goals. Expert mentors in Gaming & Esports, Trading & Investing, Streaming, and YouTube Production.",
     type: "website",
   },
   keywords: ["gaming coach", "esports mentor", "trading mentor", "crypto trading", "twitch streaming", "youtube creator", "content creation", "valorant coach", "rocket league coach"],
 };
 
-export default function HomePage() {
-  // JSON-LD structured data for Google search and SEO
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "BeMyMentor",
-    "url": "https://www.bemymentor.co",
-    "logo": "https://www.bemymentor.co/logo.png",
-    "description": "Mentorship for the next generation. Learn from top Gaming & Esports pros, Trading experts, Streamers, and YouTube creators.",
-    "sameAs": [
-      // Add your social media profiles here when available
-    ],
-  };
+export const revalidate = 60;
 
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "BeMyMentor",
-    "url": "https://www.bemymentor.co",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://www.bemymentor.co/catalog?search={search_term_string}",
-      "query-input": "required name=search_term_string",
-    },
+type SP = {
+  q?: string;
+  category?: string;
+  priceMin?: string;
+  priceMax?: string;
+  type?: "ACCESS" | "TIME" | "BOTH";
+  skills?: string;
+  sort?: string;
+  page?: string;
+};
+
+type PageProps = {
+  searchParams?: Promise<SP>;
+};
+
+function buildQuery(sp?: SP) {
+  if (!sp) return "";
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(sp)) {
+    if (v) params.set(k, v as string);
+  }
+  const s = params.toString();
+  return s ? `?${s}` : "";
+}
+
+type MentorsResponse = {
+  ok: boolean;
+  data: Mentor[];
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasMore: boolean;
   };
+};
+
+const fetchMentors = cache(async (absoluteUrl: string) => {
+  const res = await fetch(absoluteUrl, { next: { revalidate: 60 } });
+  if (!res.ok) return { data: [], meta: undefined };
+  const json = (await res.json()) as MentorsResponse;
+  return { data: json.data ?? [], meta: json.meta };
+});
+
+async function CatalogResults({ url, sp }: { url: string; sp: SP }) {
+  const { data: mentors, meta } = await fetchMentors(url);
+
+  const hasFilters = !!(
+    sp.q ||
+    sp.category ||
+    sp.priceMin ||
+    sp.priceMax ||
+    sp.type ||
+    sp.skills
+  );
+
+  if (mentors.length === 0) {
+    return <EmptyState hasFilters={hasFilters} />;
+  }
+
+  const currentPage = meta?.page ?? 1;
+  const totalPages = meta?.totalPages ?? 1;
 
   return (
     <>
-      {/* JSON-LD for Google Search */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-      />
+      {/* Results Count */}
+      {meta && (
+        <div className="mb-4 text-sm text-white/60">
+          Showing {mentors.length} of {meta.total} mentors
+        </div>
+      )}
 
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(80%_50%_at_50%_0%,rgba(147,51,234,0.25)_0%,rgba(0,0,0,0)_60%)]" />
-      <Hero />
-      <HowItWorks />
-      <Categories />
-      <Trust />
-      <CTA />
-      <FAQ />
-      <Footer />
+      {/* Mentor Grid */}
+      <div className="grid gap-4 mb-6">
+        {mentors.map((m) => (
+          <MentorCard key={m.id} m={m} />
+        ))}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          {currentPage > 1 && (
+            <Button
+              href={`/${buildQuery({ ...sp, page: String(currentPage - 1) })}`}
+              variant="ghost"
+              size="sm"
+            >
+              ← Previous
+            </Button>
+          )}
+
+          <div className="flex gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum: number;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+
+              const isActive = pageNum === currentPage;
+              return (
+                <Button
+                  key={pageNum}
+                  href={`/${buildQuery({ ...sp, page: String(pageNum) })}`}
+                  variant={isActive ? "primary" : "ghost"}
+                  size="sm"
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+          </div>
+
+          {currentPage < totalPages && (
+            <Button
+              href={`/${buildQuery({ ...sp, page: String(currentPage + 1) })}`}
+              variant="ghost"
+              size="sm"
+            >
+              Next →
+            </Button>
+          )}
+        </div>
+      )}
     </>
+  );
+}
+
+function CatalogFallback() {
+  return (
+    <div className="grid gap-4">
+      {Array.from({ length: 9 }).map((_, i) => (
+        <MentorCardShimmer key={i} />
+      ))}
+    </div>
+  );
+}
+
+export default async function HomePage({ searchParams }: PageProps) {
+  const sp = (await searchParams) ?? {};
+  const query = buildQuery(sp);
+
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("host") ?? "localhost:3000";
+  const baseUrl = `${proto}://${host}`;
+
+  const apiUrl = `${baseUrl}/api/mentors${query}`;
+
+  return (
+    <section className="section">
+      <div className="container">
+        {/* Search Hero */}
+        <SearchHero />
+
+        {/* Category Pills */}
+        <CategoryPills />
+
+        {/* Enhanced Filters */}
+        <EnhancedFilters />
+
+        {/* Results */}
+        <div>
+          <Suspense fallback={<CatalogFallback />}>
+            <CatalogResults url={apiUrl} sp={sp} />
+          </Suspense>
+        </div>
+      </div>
+    </section>
   );
 }

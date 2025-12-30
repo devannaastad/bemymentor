@@ -424,7 +424,7 @@ export default async function DashboardPage() {
                 <p className="mb-4 text-white/60">
                   Explore our catalog and save mentors you&apos;re interested in!
                 </p>
-                <Button href="/catalog">Browse Mentors</Button>
+                <Button href="/">Browse Mentors</Button>
               </CardContent>
             </Card>
           ) : (
