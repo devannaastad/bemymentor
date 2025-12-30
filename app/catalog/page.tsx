@@ -182,6 +182,13 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   return (
     <section className="section">
       <div className="container">
+        {/* Hero Heading */}
+        <div className="text-center mb-8">
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(251,191,36,0.5)] animate-pulse">
+            Find Your Mentor
+          </h1>
+        </div>
+
         {/* Search Hero */}
         <SearchHero />
 
