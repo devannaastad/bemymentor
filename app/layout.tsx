@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import SessionProvider from "@/components/auth/SessionProvider";
 import NextTopLoader from "nextjs-toploader";
 import ToastContainer from "@/components/common/Toast";
+import OrganizationSchema from "@/components/seo/OrganizationSchema";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
@@ -76,6 +77,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <OrganizationSchema />
+      </head>
       <body className="bg-black text-white antialiased">
         {/* Page transition loader */}
         <NextTopLoader showSpinner={false} color="#a3a3a3" height={2} />
