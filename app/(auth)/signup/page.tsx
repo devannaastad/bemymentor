@@ -14,12 +14,13 @@ const hasGoogleAuth = !!(
 );
 
 type PageProps = {
-  searchParams?: Promise<{ callbackUrl?: string }>;
+  searchParams?: Promise<{ callbackUrl?: string; message?: string }>;
 };
 
 export default async function SignUpPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const callbackUrl = params?.callbackUrl;
+  const message = params?.message;
 
   const googleSignIn = async () => {
     "use server";
@@ -44,6 +45,15 @@ export default async function SignUpPage({ searchParams }: PageProps) {
               </Link>
             </p>
           </div>
+
+          {/* Custom Message */}
+          {message && (
+            <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/10 p-3">
+              <p className="text-sm text-blue-200">
+                {message}
+              </p>
+            </div>
+          )}
 
           {/* Email/Password Sign Up */}
           <EmailSignUpForm callbackUrl={callbackUrl} />

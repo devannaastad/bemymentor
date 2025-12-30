@@ -20,7 +20,7 @@ export default async function ApplyPage() {
 
   // Require sign-in before showing application form
   if (!session?.user) {
-    redirect("/api/auth/signin?callbackUrl=/apply&message=Please sign in to apply as a mentor");
+    redirect("/signup?callbackUrl=/apply&message=Please sign up to apply as a mentor");
   }
   return (
     <section className="section min-h-screen">
