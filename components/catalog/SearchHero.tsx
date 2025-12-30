@@ -22,6 +22,171 @@ const CATEGORIES = [
   { value: "OTHER", label: "Other" },
 ];
 
+// Common search terms for autocomplete
+const COMMON_SEARCHES = [
+  // Trading & Investing
+  "Trading options",
+  "Trading strategies",
+  "Trading forex",
+  "Trading crypto",
+  "Trading stocks",
+  "Day trading",
+  "Swing trading",
+  "Options trading strategies",
+  "Technical analysis",
+  "Chart patterns",
+  "Crypto trading",
+  "Bitcoin trading",
+  "Ethereum trading",
+  "Cryptocurrency investing",
+  "Stock market analysis",
+  "Forex trading strategies",
+  "Options strategies",
+  "Risk management trading",
+  "Trading psychology",
+  "Algorithmic trading",
+
+  // Gaming & Esports
+  "Valorant coaching",
+  "Valorant aim training",
+  "Valorant ranked tips",
+  "Valorant agent guides",
+  "Rocket League coaching",
+  "Rocket League mechanics",
+  "Rocket League aerial training",
+  "League of Legends coaching",
+  "League of Legends jungle guide",
+  "League of Legends mid lane",
+  "CS:GO coaching",
+  "Counter-Strike tips",
+  "Fortnite coaching",
+  "Fortnite building",
+  "Apex Legends coaching",
+  "Call of Duty coaching",
+  "Gaming coaching",
+  "Esports coaching",
+  "FPS coaching",
+  "MOBA coaching",
+  "Game sense training",
+  "Competitive gaming",
+
+  // YouTube & Content Creation
+  "YouTube thumbnail design",
+  "YouTube editing",
+  "YouTube growth",
+  "YouTube SEO",
+  "YouTube monetization",
+  "YouTube algorithm",
+  "YouTube shorts",
+  "Video editing",
+  "Video production",
+  "Content creation",
+  "Video editing tips",
+  "Adobe Premiere Pro",
+  "Final Cut Pro",
+  "DaVinci Resolve",
+  "Color grading",
+  "Motion graphics",
+  "YouTube analytics",
+  "Viral content creation",
+  "Storytelling for YouTube",
+
+  // Twitch & Streaming
+  "Twitch streaming setup",
+  "Twitch growth strategies",
+  "Stream overlay design",
+  "OBS setup",
+  "Streaming tips",
+  "Twitch monetization",
+  "Stream engagement",
+  "Stream quality improvement",
+  "Streaming equipment",
+  "Chat interaction",
+  "Viewer retention",
+  "Live streaming",
+
+  // Ecommerce & Marketing
+  "Ecommerce dropshipping",
+  "Ecommerce marketing",
+  "Shopify store setup",
+  "Product research",
+  "Facebook ads",
+  "Google ads",
+  "Instagram marketing",
+  "TikTok marketing",
+  "Email marketing",
+  "Social media marketing",
+  "Influencer marketing",
+  "Brand building",
+  "Digital marketing",
+  "SEO optimization",
+  "Content marketing",
+  "Affiliate marketing",
+  "Amazon FBA",
+  "Product photography",
+  "Conversion optimization",
+
+  // Agency & Business
+  "Agency growth",
+  "Client acquisition",
+  "Sales strategies",
+  "Business consulting",
+  "Marketing agency",
+  "Lead generation",
+  "Cold outreach",
+  "Email campaigns",
+  "Client retention",
+  "Project management",
+
+  // Fitness & Health
+  "Personal training",
+  "Workout programming",
+  "Nutrition coaching",
+  "Weight loss coaching",
+  "Muscle building",
+  "Strength training",
+  "Bodybuilding coaching",
+  "CrossFit training",
+  "Yoga instruction",
+  "Meal planning",
+
+  // Creative & Design
+  "Graphic design",
+  "Logo design",
+  "Brand design",
+  "UI/UX design",
+  "Web design",
+  "Photoshop tutorials",
+  "Illustrator tutorials",
+  "Digital art",
+  "Animation",
+  "3D modeling",
+
+  // General Skills
+  "Programming tutoring",
+  "Music production",
+  "Photography",
+  "Writing coaching",
+  "Public speaking",
+  "Career coaching",
+  "Interview preparation",
+  "Resume building",
+  "Entrepreneurship",
+  "Time management",
+];
+
+// Get autocomplete suggestions based on query
+function getAutocompleteSuggestions(searchQuery: string): string[] {
+  if (!searchQuery || searchQuery.length < 2) return [];
+
+  const lower = searchQuery.toLowerCase();
+  const matches = COMMON_SEARCHES.filter(term =>
+    term.toLowerCase().includes(lower)
+  );
+
+  return matches.slice(0, 8); // Show max 8 suggestions
+}
+
 export default function SearchHero() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,7 +204,7 @@ export default function SearchHero() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch suggestions
+  // Fetch suggestions or use autocomplete
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (query.length < 2) {
@@ -47,19 +212,24 @@ export default function SearchHero() {
         return;
       }
 
-      try {
-        const res = await fetch(
-          `/api/search-suggestions?q=${encodeURIComponent(query)}`
-        );
-        const data = await res.json();
-        setSuggestions(data.suggestions || []);
-      } catch (error) {
-        console.error("Failed to fetch suggestions:", error);
-        setSuggestions([]);
-      }
+      // First, try autocomplete from common searches
+      const autocompleteSuggestions = getAutocompleteSuggestions(query);
+      setSuggestions(autocompleteSuggestions);
+
+      // Optionally, also fetch from API (commented out for now)
+      // try {
+      //   const res = await fetch(
+      //     `/api/search-suggestions?q=${encodeURIComponent(query)}`
+      //   );
+      //   const data = await res.json();
+      //   setSuggestions(data.suggestions || []);
+      // } catch (error) {
+      //   console.error("Failed to fetch suggestions:", error);
+      //   setSuggestions([]);
+      // }
     };
 
-    const debounce = setTimeout(fetchSuggestions, 300);
+    const debounce = setTimeout(fetchSuggestions, 150);
     return () => clearTimeout(debounce);
   }, [query]);
 
@@ -155,9 +325,9 @@ export default function SearchHero() {
             className="w-full pl-12 pr-4 py-4 bg-dark-800 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg"
           />
 
-          {/* Autocomplete Suggestions */}
+          {/* Autocomplete Suggestions Dropdown */}
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-dark-900 border-2 border-primary-500/30 rounded-xl overflow-hidden shadow-2xl z-50 backdrop-blur-sm">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-lg z-50">
               {suggestions.map((suggestion, index) => (
                 <button
                   key={suggestion}
@@ -167,14 +337,15 @@ export default function SearchHero() {
                     e.preventDefault();
                     handleSearch(suggestion);
                   }}
-                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition cursor-pointer ${
+                  onMouseEnter={() => setSelectedIndex(index)}
+                  className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition cursor-pointer ${
                     index === selectedIndex
-                      ? "bg-primary-500/30 text-white"
-                      : "text-white hover:bg-primary-500/10"
+                      ? "bg-gray-100"
+                      : "hover:bg-gray-50"
                   }`}
                 >
                   <svg
-                    className="w-4 h-4 text-primary-400 flex-shrink-0"
+                    className="w-4 h-4 text-gray-400 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -186,7 +357,7 @@ export default function SearchHero() {
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
-                  <span className="font-medium">{suggestion}</span>
+                  <span className="text-gray-700 text-sm">{suggestion}</span>
                 </button>
               ))}
             </div>
